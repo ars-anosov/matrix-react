@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { Grid, Box } from '@mui/material'
@@ -21,10 +21,15 @@ const MtrxContainer = () => {
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch])
   const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch])
 
-  const { displayAd } = authControlRdcr
+  useEffect(() => {
+    mtrxControlActions.handleRestoreSession()
+  }, [mtrxControlActions])
+
+  const { displayAd, errComponent: authErrComponent } = authControlRdcr
   const { displayReg, displayPad, errComponent } = mtrxControlRdcr
 
-  const isOverlayActive = displayAd || displayReg || errComponent === 'MtrxReg'
+  const isOverlayActive = displayAd || authErrComponent === 'AuthAd'
+    || displayReg || errComponent === 'MtrxReg'
 
   // Стили для оверлеев вынесены из тела рендера для производительности
   const centerOverlayStyle = {
@@ -50,7 +55,7 @@ const MtrxContainer = () => {
     >
       
       {/* Центрирование AuthAd */}
-      {displayAd && (
+      {(displayAd || authErrComponent === 'AuthAd') && (
         <Box sx={centerOverlayStyle}>
           <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />
         </Box>

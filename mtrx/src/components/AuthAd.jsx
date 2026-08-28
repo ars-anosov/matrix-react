@@ -230,7 +230,7 @@ function AdAuth(props) {
 
       <Collapse in={isError}>
         <Alert severity="error" sx={{ mt: 3, borderRadius: 2 }}>
-          {authControlRdcr.message}
+          {authControlRdcr.errText}
         </Alert>
       </Collapse>
     </Paper>
@@ -241,7 +241,7 @@ AdAuth.propTypes = {
   authControlRdcr: PropTypes.shape({
     uriAdAuth: PropTypes.string,
     status: PropTypes.string,
-    message: PropTypes.string,
+    errText: PropTypes.string,
     responseData: PropTypes.shape({
       sip_username: PropTypes.string,
       sip_secret: PropTypes.string,

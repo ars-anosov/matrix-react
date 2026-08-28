@@ -8,6 +8,15 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/matrix-js-sdk')) {
+            return 'matrix-sdk'
+          }
+        },
+      },
+    },
   },
   server: {
     port: 3000,

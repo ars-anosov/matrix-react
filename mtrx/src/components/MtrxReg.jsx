@@ -112,7 +112,7 @@ function MtrxReg(props) {
         
         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
           {isSuccess
-            ? responseData.ad_cn
+            ? (responseData?.display_name || responseData?.user_id || '')
             : 'Введите учетные данные'
           }
         </Typography>
@@ -230,7 +230,7 @@ function MtrxReg(props) {
 
       <Collapse in={isError}>
         <Alert severity="error" sx={{ mt: 3, borderRadius: 2 }}>
-          {mtrxControlRdcr.message}
+          {mtrxControlRdcr.errText}
         </Alert>
       </Collapse>
     </Paper>
@@ -241,10 +241,11 @@ MtrxReg.propTypes = {
   mtrxControlRdcr: PropTypes.shape({
     uriMatrix: PropTypes.string,
     status: PropTypes.string,
-    message: PropTypes.string,
+    errText: PropTypes.string,
     responseData: PropTypes.shape({
-      sip_username: PropTypes.string,
-      sip_secret: PropTypes.string,
+      user_id: PropTypes.string,
+      display_name: PropTypes.string,
+      device_id: PropTypes.string,
     }),
   }).isRequired,
   mtrxControlActions: PropTypes.shape({

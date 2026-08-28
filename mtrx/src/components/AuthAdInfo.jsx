@@ -65,6 +65,12 @@ department:\t${authControlRdcr?.responseData?.ad_department || ''}
 SIP num:\t${authControlRdcr?.responseData?.sip_username || ''}`}
     </Typography>
 
+      {authControlRdcr?.status === 'error' && authControlRdcr?.errText && (
+        <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+          {authControlRdcr.errText}
+        </Typography>
+      )}
+
       <Stack direction="row" spacing={1} sx={{ mt: 2, justifyContent: 'space-between', alignItems: 'center' }}>
         <Tooltip title={isAuthorized ? "Деавторизоваться" : "Авторизоваться"}>
           <IconButton

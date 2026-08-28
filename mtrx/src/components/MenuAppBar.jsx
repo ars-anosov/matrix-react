@@ -26,6 +26,8 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 
 import AuthIco          from './AuthIco'
 import AuthAdInfo       from './AuthAdInfo'
+import MtrxIco          from './MtrxIco'
+import MtrxInfo         from './MtrxInfo'
 import MtrxPad          from './MtrxPad'
 import Copyright        from '../Copyright'
 
@@ -34,6 +36,7 @@ import Copyright        from '../Copyright'
 const MENU_ITEMS_MTRX = [
   { key: 'displayReg', primary: 'Matrix Вход', secondary: 'MtrxReg.jsx' },
   { key: 'displayPad', primary: 'Matrix Мессенджер', secondary: 'MtrxPad.jsx' },
+  { key: 'displayControl', primary: 'Matrix Кругляш', secondary: 'MtrxIco.jsx' },
 ]
 
 const MENU_ITEMS_AUTH = [
@@ -61,6 +64,7 @@ function MenuAppBar(props) {
     ? rawToolbarHeight
     : (rawToolbarHeight ? parseInt(String(rawToolbarHeight).replace('px', ''), 10) : 64)
 
+    const [anchorEl_mtrxControl, setAnchorEl_mtrxControl] = useState(null)
     const [anchorEl_adControl, setAnchorEl_adControl] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -193,6 +197,22 @@ function MenuAppBar(props) {
 
           <Box sx={{ flexGrow: 1 }} />
 
+          {mtrxControlRdcr.displayControl && (
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ cursor: 'pointer', alignItems: 'center' }}
+              onClick={(e) => setAnchorEl_mtrxControl(e.currentTarget)}
+            >
+              <Typography variant="caption" sx={{ pl: 1 }}>
+                {mtrxControlRdcr?.responseData?.display_name
+                  || mtrxControlRdcr?.responseData?.user_id
+                  || ''}
+              </Typography>
+              <MtrxIco mtrxControlRdcr={mtrxControlRdcr} />
+            </Stack>
+          )}
+
           {authControlRdcr.displayControl && (
             <Stack 
               direction="row" 
@@ -209,6 +229,25 @@ function MenuAppBar(props) {
 
         </Toolbar>
       </AppBar>
+
+      <Popover
+        id="mtrxControl_id"
+        open={Boolean(anchorEl_mtrxControl)}
+        anchorEl={anchorEl_mtrxControl}
+        onClose={() => setAnchorEl_mtrxControl(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Box sx={{ p: 1 }}>
+          <Typography variant="body2">{mtrxControlRdcr.uriMatrix}</Typography>
+          <Divider />
+          <MtrxInfo
+            mtrxControlRdcr={mtrxControlRdcr}
+            mtrxControlActions={mtrxControlActions}
+            showFull={false}
+          />
+        </Box>
+      </Popover>
 
       <Popover
         id='adControl_id'
