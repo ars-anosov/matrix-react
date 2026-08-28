@@ -16,8 +16,11 @@ npm run build
 
 # Компоненты
 
-## MsngrReg.jsx
-![component_MsngrReg.png](img/component_MtrxReg.png)
+## MtrxReg.jsx
+![component_MtrxReg.png](img/component_MtrxReg.png)
+
+## MtrxPad.jsx
+![component_MtrxPad.png](img/component_MtrxPad.png)
 
 # Доп. компоненты
 Плюшки для интеграции с внешними сервисами
