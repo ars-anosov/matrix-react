@@ -1,12 +1,44 @@
 rules:
   - id: project-context
-    description: "Контекст репозитория и общие правила"
+    description: "Контекст репозитория matrix-react"
     alwaysApply: true
     scope: "**/*"
     guidance: |
-      Цель: Сборка ReactJS компонент для matrix-js-sdk.
-      Документация на русском — сохраняй стиль и терминологию.
+      Проект: ReactJS-компоненты на базе matrix-js-sdk.
+      Рабочее приложение — каталог mtrx/ (Vite + React + MUI + Redux).
+      Готовая сборка: mtrx/dist. Документация и комментарии — на русском.
 
-      Правила поведения:
+      Структура mtrx/src:
+      - components/ — UI (MtrxReg, MtrxPad, AuthAd, …)
+      - containers/ — Redux-контейнеры
+      - actions/, reducers/, store/, constants/
+
+      Стек: React 19, Vite 8, MUI 9, Redux, matrix-js-sdk, ky.
+      Язык: JavaScript (.jsx/.js), TypeScript не используется.
+
+      Команды (из каталога mtrx):
+        npm install
+        npm run dev      # порт 3000
+        npm run build    # → mtrx/dist
+        npm run serve    # preview, порт 4173
+
+      Поведение:
       - Действуй как senior FullStack-разработчик.
-      - Не расширяй объём правок без запроса. Для критичных изменений указывай риски и проверки.
+      - Не расширяй объём правок без запроса.
+      - Для критичных изменений указывай риски и проверки.
+      - Не редактируй mtrx/dist вручную.
+
+  - id: mtrx-react
+    description: "Соглашения React/Redux для mtrx"
+    alwaysApply: false
+    scope: "mtrx/**/*.{js,jsx}"
+    guidance: |
+      - Функциональные компоненты, PropTypes для публичных props.
+      - components/ — презентация, containers/ — связка с Redux.
+      - UI через @mui/material и @mui/icons-material.
+      - Action types в constants/redux.js (MTRXCTL_*, AUTHCTL_*).
+      - Reducers: mtrxControlRdcr, authControlRdcr.
+      - HTTP через ky, ошибки — actions/utils/kyError.js.
+      - Matrix-логика через matrix-js-sdk, не дублировать SDK.
+      - localStorage-ключи — constants/storage.js.
+      - Vite base: './' — сохранять относительные пути.

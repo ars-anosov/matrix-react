@@ -1,0 +1,34 @@
+---
+description: "Соглашения React/Redux/MUI для mtrx"
+globs: mtrx/**/*.{jsx,js}
+alwaysApply: false
+---
+
+# Соглашения кода mtrx
+
+## Компоненты
+
+- Функциональные компоненты, `PropTypes` для публичных props.
+- Презентационные — в `components/`, подключённые к store — в `containers/`.
+- UI — Material UI (`@mui/material`, `@mui/icons-material`).
+
+## Redux
+
+- Action types — константы в `constants/redux.js` (префиксы `MTRXCTL_`, `AUTHCTL_`).
+- Reducers: `mtrxControlRdcr`, `authControlRdcr`; actions: `mtrxControlActions`, `authControlActions`.
+- В контейнерах: `useSelector`, `bindActionCreators` + `useMemo`.
+
+## Matrix
+
+- Работа с протоколом — через `matrix-js-sdk`; не дублировать низкоуровневую логику SDK.
+- Ключевые компоненты: `MtrxReg` (регистрация/вход), `MtrxPad` (чат), `AuthAd` (интеграция с AD).
+
+## HTTP
+
+- Запросы — через `ky`; ошибки — `actions/utils/kyError.js`.
+
+## Стиль
+
+- Комментарии на русском, кратко и по делу.
+- `localStorage`-ключи — в `constants/storage.js`.
+- Vite: `base: './'` — сохранять относительные пути для деплоя из `dist`.
