@@ -1,0 +1,7 @@
+# Dependency directories
+node_modules/
+
+# test app
+vite-react-app/
+material-ui-master.tar.gz
+material-ui-vite/
