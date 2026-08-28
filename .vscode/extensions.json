@@ -2,6 +2,7 @@
   "recommendations": [
     "ms-vscode-remote.remote-containers",
     "bierner.markdown-preview-github-styles",
-    "bierner.markdown-mermaid"
+    "bierner.markdown-mermaid",
+    "philipdaoud.sftp-neo"
   ]
 }
