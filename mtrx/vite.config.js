@@ -7,25 +7,30 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1200,
     rolldownOptions: {
       output: {
         codeSplitting: {
           groups: [
             {
-              name: 'matrix-sdk',
-              test: /node_modules[\\/]matrix-js-sdk/,
-              priority: 30, // Самый высокий приоритет для изоляции Matrix SDK
+              name: 'react',
+              test: /node_modules\/(react|react-dom)\//,
+            },
+            {
+              name: 'redux',
+              test: /node_modules\/(redux|react-redux|redux-thunk|redux-logger)\//,
             },
             {
               name: 'mui',
-              test: /node_modules[\\/]@mui/,
-              priority: 20, // Отделяем Material-UI
+              test: /node_modules\/(@mui|@emotion)\//,
+            },
+            {
+              name: 'matrix-sdk',
+              test: /node_modules[\\/]matrix-js-sdk/,
             },
             {
               name: 'vendor',
               test: /node_modules/,
-              priority: 10, // Все остальные библиотеки (React, ReactDOM и др.)
             },
           ],
         },
