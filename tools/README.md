@@ -5,11 +5,12 @@
 [nodejs.org](https://nodejs.org/en/download), [fnm](https://github.com/Schniz/fnm)
 
 ```bash
+sudo apt install -y unzip
 curl -o- https://fnm.vercel.app/install | bash
 fnm install 24
 
 node -v
-npm -v
+# v24.20.0
 ```
 
 
