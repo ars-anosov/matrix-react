@@ -4,6 +4,11 @@ import {
   createTempMatrixClient,
   destroyMatrixClient,
   getMatrixClient,
+  resolveHomeserverUrl,
+  persistMatrixSession,
+  clearMatrixSession,
+  fetchDisplayName,
+  startMatrixSync,
 } from '../services/matrixClient'
 
 import {
@@ -27,61 +32,6 @@ const DEVICE_DISPLAY_NAME = 'mtrx-web'
 
 // Защита от двойного восстановления сессии (React StrictMode в dev).
 let restoreSessionPromise = null
-
-function resolveHomeserverUrl(uriMatrix = '') {
-  const url = (uriMatrix || localStorage.getItem(MTRX_HS_URL_KEY) || '').trim()
-  if (!url) {
-    throw new Error('Не задан URL homeserver Matrix.')
-  }
-  return url.replace(/\/$/, '')
-}
-
-function persistMatrixSession({
-  homeserverUrl,
-  login,
-  accessToken,
-  userId,
-  deviceId,
-  refreshToken,
-}) {
-  localStorage.setItem(MTRX_HS_URL_KEY, homeserverUrl)
-  localStorage.setItem(MTRX_LOGIN_KEY, login)
-  localStorage.setItem(MTRX_ACCESS_TOKEN_KEY, accessToken)
-  localStorage.setItem(MTRX_USER_ID_KEY, userId)
-
-  if (deviceId) {
-    localStorage.setItem(MTRX_DEVICE_ID_KEY, deviceId)
-  } else {
-    localStorage.removeItem(MTRX_DEVICE_ID_KEY)
-  }
-
-  if (refreshToken) {
-    localStorage.setItem(MTRX_REFRESH_TOKEN_KEY, refreshToken)
-  } else {
-    localStorage.removeItem(MTRX_REFRESH_TOKEN_KEY)
-  }
-}
-
-function clearMatrixSession() {
-  localStorage.removeItem(MTRX_ACCESS_TOKEN_KEY)
-  localStorage.removeItem(MTRX_USER_ID_KEY)
-  localStorage.removeItem(MTRX_DEVICE_ID_KEY)
-  localStorage.removeItem(MTRX_REFRESH_TOKEN_KEY)
-}
-
-async function fetchDisplayName(client, userId) {
-  try {
-    const profile = await client.getProfileInfo(userId)
-    return profile.displayname || userId
-  } catch {
-    return userId
-  }
-}
-
-async function startMatrixSync(client) {
-  if (client.clientRunning) return
-  await client.startClient({ initialSyncLimit: 10 })
-}
 
 async function dispatchRestoreSuccess(dispatch, client, homeserverUrl, deviceId = '') {
   const userId = client.getUserId()
