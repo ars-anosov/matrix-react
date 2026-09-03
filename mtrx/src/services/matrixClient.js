@@ -102,13 +102,6 @@ async function createMatrixClientFromSession({
   if (clientOptions.store) {
     await clientOptions.store.startup()
 
-    // ИСПРАВЛЕНИЕ: Базовый initCrypto() обязателен для настройки окружения перед Rust
-    if (typeof client.initCrypto === 'function') {
-      await client.initCrypto().catch(err => {
-        console.warn('[matrixClient] Ошибка при базовом initCrypto:', err)
-      })
-    }
-
     if (typeof client.initRustCrypto === 'function') {
       try {
         await client.initRustCrypto()
@@ -123,7 +116,6 @@ async function createMatrixClientFromSession({
           await deleteMatrixIndexedDbStores(storeKey)
           await clientOptions.store.startup()
           
-          if (typeof client.initCrypto === 'function') await client.initCrypto().catch(() => {})
           await client.initRustCrypto()
         } else {
           throw err
