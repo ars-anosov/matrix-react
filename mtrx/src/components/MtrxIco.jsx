@@ -2,9 +2,9 @@ import { useEffect, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { IconButton, keyframes, useTheme, alpha } from '@mui/material'
 
-import IconChat from '@mui/icons-material/Chat'
-import IconHowToReg from '@mui/icons-material/HowToReg'
-import IconPersonOff from '@mui/icons-material/PersonOff'
+import IconHub from '@mui/icons-material/Hub'
+import IconDeviceHub from '@mui/icons-material/DeviceHub'
+import IconLinkOff from '@mui/icons-material/LinkOff'
 import IconSync from '@mui/icons-material/Sync'
 
 const pulse = keyframes`
@@ -35,14 +35,14 @@ function MtrxIco({ mtrxControlRdcr }) {
         }
       case 'success':
         return {
-          icon: <IconHowToReg />,
+          icon: <IconHub />,
           bg: alpha(theme.palette.common.white, 0.2),
           color: theme.palette.common.white,
           pulse: false,
         }
       case 'error':
         return {
-          icon: <IconPersonOff />,
+          icon: <IconLinkOff />,
           bg: theme.palette.error.dark,
           color: theme.palette.error.contrastText,
           pulse: false,
@@ -50,7 +50,7 @@ function MtrxIco({ mtrxControlRdcr }) {
       case 'idle':
       default:
         return {
-          icon: <IconChat />,
+          icon: <IconHub />,
           bg: alpha(theme.palette.common.black, 0.2),
           color: theme.palette.action.disabled,
           pulse: false,

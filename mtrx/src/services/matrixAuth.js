@@ -23,13 +23,34 @@ import {
 
 const DEVICE_DISPLAY_NAME = 'mtrx-web'
 
+/**
+ * Возвращает сохранённые логин и device_id из одного места, чтобы не
+ * дублировать чтение из localStorage в разных местах. deviceId возвращается,
+ * только если он относится к тому же login (на случай, если раньше в этом
+ * браузере логинился другой пользователь).
+ */
 function getStoredMatrixLogin() {
-  return localStorage.getItem(MTRX_LOGIN_KEY) || ''
+  const login = localStorage.getItem(MTRX_LOGIN_KEY) || ''
+  const deviceId = localStorage.getItem(MTRX_DEVICE_ID_KEY) || ''
+
+  return { login, deviceId }
 }
 
 async function loginMatrix({ login, password, uriMatrix }) {
   const homeserverUrl = resolveHomeserverUrl(uriMatrix)
   const tempClient = await createTempMatrixClient(homeserverUrl)
+
+  // Если для этого логина уже сохранён device_id (тот же браузер,
+  // повторный вход после logout/истечения токена) — передаём его серверу,
+  // чтобы он переиспользовал существующее устройство, а не плодил новое.
+  // Без этого /login каждый раз создаёт НОВОЕ устройство, а локальная
+  // rust-crypto база (общая, с фиксированным именем) остаётся привязана
+  // к старому device_id — отсюда бесконечный mismatch при initRustCrypto().
+  const { login: storedLogin, deviceId: storedLoginDeviceId } = getStoredMatrixLogin()
+  const storedDeviceId = storedLogin === login
+    ? storedLoginDeviceId || undefined
+    : undefined
+
   const loginResponse = await tempClient.loginRequest({
     type: 'm.login.password',
     identifier: {
@@ -37,6 +58,7 @@ async function loginMatrix({ login, password, uriMatrix }) {
       user: login,
     },
     password,
+    device_id: storedDeviceId,
     initial_device_display_name: DEVICE_DISPLAY_NAME,
     refresh_token: true,
   })

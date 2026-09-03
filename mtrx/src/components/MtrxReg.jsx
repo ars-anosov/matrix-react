@@ -24,7 +24,7 @@ import {
   Lock,
   Visibility,
   VisibilityOff,
-  AdminPanelSettings
+  Hub as IconHub
 } from '@mui/icons-material'
 
 function MtrxReg(props) {
@@ -33,7 +33,7 @@ function MtrxReg(props) {
     mtrxControlActions,
   } = props
   
-  const [login, setLogin] = useState(getStoredMatrixLogin)
+  const [login, setLogin] = useState(() => getStoredMatrixLogin().login)
   const [password, setPassword] = useState('')
   const [uriMatrix, setUriMatrix] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -105,7 +105,7 @@ function MtrxReg(props) {
             transition: 'background-color 0.3s ease'
           }}
         >
-          <AdminPanelSettings sx={{ fontSize: 32, color: isSuccess ? 'success.main' : 'primary.main' }} />
+          <IconHub sx={{ fontSize: 32, color: isSuccess ? 'success.main' : 'primary.main' }} />
         </Avatar>
         <Typography variant="h5" fontWeight="600">
           Matrix

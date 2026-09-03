@@ -13,7 +13,7 @@ function getRoomInitial(name = '') {
   return name.trim().charAt(0).toUpperCase() || '#'
 }
 
-function MtrxRoomList({ rooms, selectedRoomId, onSelect }) {
+function MtrxRoomList({ rooms, selectedRoomId = '', onSelect }) {
   if (rooms.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary" sx={{ px: 1, py: 2 }}>
@@ -54,8 +54,10 @@ function MtrxRoomList({ rooms, selectedRoomId, onSelect }) {
           <ListItemText
             primary={room.name}
             secondary={room.roomId}
-            primaryTypographyProps={{ noWrap: true, fontSize: 14, fontWeight: 600 }}
-            secondaryTypographyProps={{ noWrap: true, fontSize: 11, color: 'text.secondary' }}
+            slotProps={{
+              primary: { noWrap: true, fontSize: 14, fontWeight: 600 },
+              secondary: { noWrap: true, fontSize: 11, color: 'text.secondary' },
+            }}
           />
         </ListItemButton>
       ))}
@@ -71,10 +73,6 @@ MtrxRoomList.propTypes = {
   })).isRequired,
   selectedRoomId: PropTypes.string,
   onSelect: PropTypes.func.isRequired,
-}
-
-MtrxRoomList.defaultProps = {
-  selectedRoomId: '',
 }
 
 export default MtrxRoomList

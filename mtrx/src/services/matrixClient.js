@@ -28,6 +28,16 @@ async function createTempMatrixClient(baseUrl) {
 }
 
 /**
+ * Ключ для имени IndexedDB-баз — обязательно учитывает deviceId,
+ * иначе разные сессии одного userId будут делить одну и ту же базу
+ * и при смене device_id ловить "account in the store doesn't match
+ * the account in the constructor".
+ */
+function buildStoreKey(userId, deviceId) {
+  return deviceId ? `${userId}::${deviceId}` : userId
+}
+
+/**
  * Создаёт и сохраняет клиент из сохранённой сессии.
  */
 async function createMatrixClientFromSession({
@@ -48,13 +58,15 @@ async function createMatrixClientFromSession({
     refreshToken: refreshToken || undefined,
   }
 
+  const storeKey = buildStoreKey(userId, deviceId)
+
   if (typeof indexedDB !== 'undefined' && IndexedDBStore && IndexedDBCryptoStore) {
     clientOptions.store = new IndexedDBStore({
       indexedDB,
       localStorage,
-      dbName: `mtrx-sync-${userId}`,
+      dbName: `mtrx-sync-${storeKey}`,
     })
-    clientOptions.cryptoStore = new IndexedDBCryptoStore(indexedDB, `mtrx-crypto-${userId}`)
+    clientOptions.cryptoStore = new IndexedDBCryptoStore(indexedDB, `mtrx-crypto-${storeKey}`)
   }
 
   if (refreshToken) {
@@ -95,13 +107,62 @@ async function createMatrixClientFromSession({
 
   if (clientOptions.store) {
     await clientOptions.store.startup()
+
     if (typeof client.initRustCrypto === 'function') {
-      await client.initRustCrypto()
+      try {
+        await client.initRustCrypto()
+      } catch (err) {
+        const message = String(err?.message || '')
+
+        // IndexedDB хранит данные от другого device_id той же учётки
+        // (залипшая сессия). Чистим старые базы и пробуем ещё раз с нуля.
+        if (message.includes("doesn't match the account in the constructor")) {
+          if (import.meta.env.DEV) {
+            console.warn('[matrixClient] обнаружено рассогласование device_id в IndexedDB, чищу store и пробую снова', err)
+          }
+
+          await deleteMatrixIndexedDbStores(storeKey)
+          await clientOptions.store.startup()
+          await client.initRustCrypto()
+        } else {
+          throw err
+        }
+      }
     }
   }
 
   matrixClient = client
   return client
+}
+
+/**
+ * Удаляет IndexedDB-базы sync store и crypto store для конкретного storeKey.
+ */
+async function deleteMatrixIndexedDbStores(storeKey) {
+  if (typeof indexedDB === 'undefined' || !storeKey) return
+
+  const dbNames = [
+    `mtrx-sync-${storeKey}`,
+    `mtrx-crypto-${storeKey}`,
+    // Собственные базы rust-crypto (matrix-sdk-crypto-wasm) — имена
+    // фиксированные, не зависят от нашего dbName/storeKey, но общие
+    // для всех сессий этого origin. Их тоже нужно чистить при mismatch,
+    // иначе конфликт account/device будет повторяться бесконечно.
+    'matrix-js-sdk::matrix-sdk-crypto',
+    'matrix-js-sdk::matrix-sdk-crypto-meta',
+  ]
+
+  await Promise.all(
+    dbNames.map(
+      name =>
+        new Promise(resolve => {
+          const request = indexedDB.deleteDatabase(name)
+          request.onsuccess = () => resolve()
+          request.onerror = () => resolve()
+          request.onblocked = () => resolve()
+        }),
+    ),
+  )
 }
 
 /**
@@ -116,9 +177,23 @@ function destroyMatrixClient() {
   matrixClient = null
 }
 
+/**
+ * Полная очистка хранилищ клиента: sync store через SDK + принудительное
+ * удаление IndexedDB-баз (sync store и crypto store), т.к. clearStores()
+ * не всегда надёжно чистит crypto store в зависимости от версии SDK.
+ */
 async function clearMatrixClientStores(client) {
-  if (!client?.clearStores) return
-  await client.clearStores()
+  if (!client) return
+
+  await client.clearStores?.()
+
+  const userId = client.getUserId?.()
+  const deviceId = client.getDeviceId?.()
+
+  if (userId) {
+    const storeKey = buildStoreKey(userId, deviceId)
+    await deleteMatrixIndexedDbStores(storeKey)
+  }
 }
 
 function watchMatrixSession(client, onLoggedOut) {
@@ -238,8 +313,19 @@ function getRoomMxcAvatarUrl(room) {
     if (typeof avatarUrl === 'string' && avatarUrl.trim()) return avatarUrl
   }
 
+  // Фолбэк: для DM без явного аватара комнаты берём аватар собеседника
+  if (typeof room.getAvatarFallbackMember === 'function') {
+    const fallbackMember = room.getAvatarFallbackMember()
+    const memberMxcUrl = fallbackMember?.getMxcAvatarUrl?.()
+    if (typeof memberMxcUrl === 'string' && memberMxcUrl.trim()) return memberMxcUrl
+  }
+
   return ''
 }
+
+// Кэш резолвнутых аватарок, чтобы не фетчить одно и то же на каждый sync
+// и не плодить blob-URL без revoke.
+const avatarUrlCache = new Map() // mxcUrl -> objectURL (или '' если резолв не удался)
 
 async function resolveRoomAvatarUrl(client, room) {
   if (!client || !room) return ''
@@ -247,28 +333,44 @@ async function resolveRoomAvatarUrl(client, room) {
   const mxcUrl = getRoomMxcAvatarUrl(room)
   if (!mxcUrl || typeof client.mxcUrlToHttp !== 'function') return ''
 
+  if (avatarUrlCache.has(mxcUrl)) {
+    return avatarUrlCache.get(mxcUrl)
+  }
+
   const accessToken = client.getAccessToken?.()
-  const headers = accessToken
+  const authHeaders = accessToken
     ? { Authorization: `Bearer ${accessToken}` }
     : undefined
 
-  const mediaUrls = [
-    client.mxcUrlToHttp(mxcUrl, 64, 64, 'scale', false, true, true),
-    client.mxcUrlToHttp(mxcUrl, undefined, undefined, undefined, false, true, true),
-  ].filter(Boolean)
+  // Сначала пробуем без авторизации (работает на большинстве серверов),
+  // затем — с авторизацией (нужно для серверов с MSC3916 / authenticated media).
+  const attempts = [
+    { url: client.mxcUrlToHttp(mxcUrl, 64, 64, 'scale', false, true, false), headers: undefined },
+    { url: client.mxcUrlToHttp(mxcUrl, 64, 64, 'scale', false, true, true), headers: authHeaders },
+  ].filter(a => a.url)
 
-  for (const mediaUrl of mediaUrls) {
+  for (const { url, headers } of attempts) {
     try {
-      const response = await fetch(mediaUrl, { headers })
-      if (!response.ok) continue
-
+      const response = await fetch(url, { headers })
+      if (!response.ok) {
+        if (import.meta.env.DEV) {
+          console.warn('[matrixClient] avatar fetch failed', room.roomId, url, response.status)
+        }
+        continue
+      }
       const blob = await response.blob()
-      return URL.createObjectURL(blob)
-    } catch {
+      const objectUrl = URL.createObjectURL(blob)
+      avatarUrlCache.set(mxcUrl, objectUrl)
+      return objectUrl
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[matrixClient] avatar fetch error', room.roomId, url, err)
+      }
       continue
     }
   }
 
+  avatarUrlCache.set(mxcUrl, '') // чтобы не долбить сервер повторно на каждый sync
   return ''
 }
 
