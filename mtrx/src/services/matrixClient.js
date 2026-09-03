@@ -65,34 +65,67 @@ async function createMatrixClientFromSession({
 
   if (refreshToken) {
     clientOptions.tokenRefreshFunction = async (currentRefreshToken) => {
-      const response = await fetch(`${baseUrl}/_matrix/client/v3/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: currentRefreshToken }),
-      })
+      try {
+        const response = await fetch(`${baseUrl}/_matrix/client/v3/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: currentRefreshToken }),
+        })
 
-      if (!response.ok) {
-        throw new Error(`Обновление Matrix-сессии завершилось с ошибкой: ${response.status}`)
-      }
+        // === ПРОВЕРКА ВАЛИДНОСТИ ТОКЕНА ===
+        if (response.status === 401) {
+          console.error('[tokenRefreshFunction] Рефреш-токен протух (401). Закрываем соединения и чистим хранилища...')
+          
+          // 1. Очищаем токеры в LocalStorage
+          clearMatrixSession()
 
-      const tokenData = await response.json()
-      if (!tokenData.access_token) throw new Error('Homeserver не вернул access token.')
+          // 2. ЗАКРЫВАЕМ ХРАНИЛИЩА: Без этого удаления в IndexedDB заблокируются!
+          if (clientOptions.store && typeof clientOptions.store.close === 'function') {
+            try { await clientOptions.store.close() } catch {}
+          }
+          if (clientOptions.cryptoStore && typeof clientOptions.cryptoStore.close === 'function') {
+            try { await clientOptions.cryptoStore.close() } catch {}
+          }
+          if (client) {
+            try { client.stopClient() } catch {}
+          }
 
-      persistMatrixSession({
-        homeserverUrl: baseUrl,
-        login: localStorage.getItem(MTRX_LOGIN_KEY) || '',
-        accessToken: tokenData.access_token,
-        userId,
-        deviceId,
-        refreshToken: tokenData.refresh_token || currentRefreshToken,
-      })
+          // 3. ТЕПЕРЬ базы свободны, их можно безопасно удалять
+          try {
+            await deleteMatrixIndexedDbStores(storeKey)
+            console.log('[tokenRefreshFunction] IndexedDB успешно очищен.')
+          } catch (dbErr) {
+            console.warn('[tokenRefreshFunction] Ошибка при удалении баз IndexedDB:', dbErr)
+          }
 
-      return {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token || currentRefreshToken,
-        expiry: tokenData.expires_in_ms
-          ? new Date(Date.now() + tokenData.expires_in_ms)
-          : undefined,
+          throw new Error('REFRESH_TOKEN_EXPIRED')
+        }
+
+        if (!response.ok) {
+          throw new Error(`Обновление Matrix-сессии завершилось с ошибкой: ${response.status}`)
+        }
+
+        const tokenData = await response.json()
+        if (!tokenData.access_token) throw new Error('Homeserver не вернул access token.')
+
+        persistMatrixSession({
+          homeserverUrl: baseUrl,
+          login: localStorage.getItem(MTRX_LOGIN_KEY) || '',
+          accessToken: tokenData.access_token,
+          userId,
+          deviceId,
+          refreshToken: tokenData.refresh_token || currentRefreshToken,
+        })
+
+        return {
+          accessToken: tokenData.access_token,
+          refreshToken: tokenData.refresh_token || currentRefreshToken,
+          expiry: tokenData.expires_in_ms
+            ? new Date(Date.now() + tokenData.expires_in_ms)
+            : undefined,
+        }
+      } catch (error) {
+        throw error
       }
     }
   }
@@ -110,7 +143,7 @@ async function createMatrixClientFromSession({
 
         if (message.includes("doesn't match the account in the constructor")) {
           if (import.meta.env.DEV) {
-            console.warn('[matrixClient] обнаружено рассогласование device_id в IndexedDB, чищу store и пробую снова', err)
+            console.warn('[matrixClient] обнаружено рассогласование device_id in IndexedDB, чищу store и пробую снова', err)
           }
 
           await deleteMatrixIndexedDbStores(storeKey)
@@ -124,6 +157,33 @@ async function createMatrixClientFromSession({
     }
   }
 
+  // === ПРОВЕРКА ВАЛИДНОСТИ ТОКЕНА ===
+  try {
+    // Вызов whoami заставит SDK проверить access-токен или сходить в tokenRefreshFunction.
+    // Если всё протухло, мы упадем в catch.
+    await client.whoami()
+  } catch (err) {
+    // Добавляем проверку на нашу кастомную ошибку из рефреша
+    if (err.httpStatus === 401 || err.message === 'REFRESH_TOKEN_EXPIRED') {
+      console.error('[matrixClient] Сессия окончательно мертва. Завершаем уничтожение инстанса.')
+      
+      // На всякий случай зачищаем остатки, если что-то упустили
+      clearMatrixSession()
+      // Если это был вылет по КЛАССИЧЕСКОМУ 401 (без участия tokenRefreshFunction),
+      // то базы ИНДЕКСЕД ДБ еще НЕ удалены. Удаляем их сейчас:
+      if (err.message !== 'REFRESH_TOKEN_EXPIRED') {
+        await clearMatrixClientStores(client)
+      }
+      destroyMatrixClient()
+      
+      // Выбрасываем единый маркер ошибки для UI-слоя (React / Redux Thunk)
+      throw new Error('MATRIX_UNAUTHORIZED')
+    }
+    
+    // Ошибки сети (502, Тimeout) пропускаем
+    console.warn('[matrixClient] Не удалось проверить токен (возможно нет сети):', err)
+  }
+
   matrixClient = client
   return client
 }
@@ -135,10 +195,6 @@ async function deleteMatrixIndexedDbStores(storeKey) {
   const dbNames = [
     `mtrx-sync-${storeKey}`,
     `mtrx-crypto-${storeKey}`,
-    // Собственные базы rust-crypto (matrix-sdk-crypto-wasm) — имена
-    // фиксированные, не зависят от нашего dbName/storeKey, но общие
-    // для всех сессий этого origin. Их тоже нужно чистить при mismatch,
-    // иначе конфликт account/device будет повторяться бесконечно.
     'matrix-js-sdk::matrix-sdk-crypto',
     'matrix-js-sdk::matrix-sdk-crypto-meta',
   ]
