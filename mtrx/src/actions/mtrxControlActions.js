@@ -1,15 +1,14 @@
-import { getMatrixErrorMessage } from './utils/matrixError'
 import {
-  createMatrixClientFromSession,
-  createTempMatrixClient,
-  destroyMatrixClient,
-  getMatrixClient,
-  resolveHomeserverUrl,
-  persistMatrixSession,
-  clearMatrixSession,
-  fetchDisplayName,
-  startMatrixSync,
-} from '../services/matrixClient'
+  getMatrixErrorMessage
+} from '../services/matrixError'
+import {
+  loginMatrix,
+  restoreMatrixSession,
+  getActiveMatrixSession,
+  logoutMatrix,
+  invalidateMatrixSession,
+  watchMatrixSession,
+} from '../services/matrixAuth'
 
 import {
   MTRXCTL_STORE_VALUE,
@@ -19,32 +18,18 @@ import {
   MTRXCTL_CLEAR,
 } from '../constants/redux'
 
-import {
-  MTRX_HS_URL_KEY,
-  MTRX_LOGIN_KEY,
-  MTRX_ACCESS_TOKEN_KEY,
-  MTRX_USER_ID_KEY,
-  MTRX_DEVICE_ID_KEY,
-  MTRX_REFRESH_TOKEN_KEY,
-} from '../constants/storage'
-
-const DEVICE_DISPLAY_NAME = 'mtrx-web'
-
-// Защита от двойного восстановления сессии (React StrictMode в dev).
 let restoreSessionPromise = null
+let sessionOperationId = 0
 
-async function dispatchRestoreSuccess(dispatch, client, homeserverUrl, deviceId = '') {
-  const userId = client.getUserId()
-  const displayName = await fetchDisplayName(client, userId)
-
+function dispatchMatrixSuccess(dispatch, session) {
   dispatch({
     type: MTRXCTL_SUBMIT_SUCCESS,
     payload: {
-      uriMatrix: homeserverUrl,
+      uriMatrix: session.homeserverUrl,
       responseData: {
-        user_id: userId,
-        display_name: displayName,
-        device_id: deviceId || client.getDeviceId() || '',
+        user_id: session.userId,
+        display_name: session.displayName || session.userId,
+        device_id: session.deviceId,
       },
     },
   })
@@ -57,8 +42,18 @@ function dispatchMtrxRegError(dispatch, errText) {
   })
 }
 
+function watchSessionAndDispatchClear(dispatch, operationId, client) {
+  watchMatrixSession(client, () => {
+    if (operationId !== sessionOperationId) return
+    invalidateMatrixSession().finally(() => {
+      if (operationId === sessionOperationId) dispatch({ type: MTRXCTL_CLEAR })
+    })
+  })
+}
+
 const handleRegister = function(formData = {}) {
   return async (dispatch) => {
+    const operationId = ++sessionOperationId
     const login = typeof formData.login === 'string' ? formData.login.trim() : ''
     const password = typeof formData.password === 'string' ? formData.password : ''
     const uriMatrix = typeof formData.uriMatrix === 'string' ? formData.uriMatrix.trim() : ''
@@ -68,131 +63,52 @@ const handleRegister = function(formData = {}) {
       return
     }
 
-    let homeserverUrl = ''
-    try {
-      homeserverUrl = resolveHomeserverUrl(uriMatrix)
-    } catch (error) {
-      dispatchMtrxRegError(dispatch, error.message)
-      return
-    }
-
     dispatch({ type: MTRXCTL_SUBMIT_REQUEST })
 
     try {
-      const tempClient = await createTempMatrixClient(homeserverUrl)
+      const session = await loginMatrix({ login, password, uriMatrix })
+      if (operationId !== sessionOperationId) return
 
-      const loginResponse = await tempClient.loginRequest({
-        type: 'm.login.password',
-        identifier: {
-          type: 'm.id.user',
-          user: login,
-        },
-        password,
-        initial_device_display_name: DEVICE_DISPLAY_NAME,
-        refresh_token: true,
-      })
-
-      const client = await createMatrixClientFromSession({
-        baseUrl: homeserverUrl,
-        accessToken: loginResponse.access_token,
-        userId: loginResponse.user_id,
-        deviceId: loginResponse.device_id,
-        refreshToken: loginResponse.refresh_token,
-      })
-
-      persistMatrixSession({
-        homeserverUrl,
-        login,
-        accessToken: loginResponse.access_token,
-        userId: loginResponse.user_id,
-        deviceId: loginResponse.device_id,
-        refreshToken: loginResponse.refresh_token,
-      })
-
-      await startMatrixSync(client)
-
-      const displayName = await fetchDisplayName(client, loginResponse.user_id)
-
-      dispatch({
-        type: MTRXCTL_SUBMIT_SUCCESS,
-        payload: {
-          uriMatrix: homeserverUrl,
-          responseData: {
-            user_id: loginResponse.user_id,
-            display_name: displayName,
-            device_id: loginResponse.device_id,
-          },
-        },
-      })
+      watchSessionAndDispatchClear(dispatch, operationId, session.client)
+      dispatchMatrixSuccess(dispatch, session)
     } catch (error) {
-      destroyMatrixClient()
-      clearMatrixSession()
-
-      dispatchMtrxRegError(dispatch, getMatrixErrorMessage(error))
+      if (operationId === sessionOperationId) {
+        dispatchMtrxRegError(dispatch, getMatrixErrorMessage(error))
+      }
     }
   }
 }
 
 const handleRegClear = function() {
   return async (dispatch) => {
-    const client = getMatrixClient()
-
-    if (client) {
-      try {
-        await client.logout()
-      } catch {
-        // Сессия на сервере могла уже истечь — локально всё равно очищаем.
-      }
-      destroyMatrixClient()
-    }
-
-    clearMatrixSession()
-
+    sessionOperationId += 1
     restoreSessionPromise = null
+    await logoutMatrix()
     dispatch({ type: MTRXCTL_CLEAR })
   }
 }
 
 const handleRestoreSession = function() {
   return (dispatch, getState) => {
-    const { status } = getState().mtrxControlRdcr
-    if (status === 'success') return
+    if (getState().mtrxControlRdcr.status === 'success') return
+    if (restoreSessionPromise) return restoreSessionPromise
 
-    if (restoreSessionPromise) {
-      return restoreSessionPromise
+    const activeSession = getActiveMatrixSession()
+    if (activeSession) {
+      dispatchMatrixSuccess(dispatch, activeSession)
+      return
     }
 
-    const existingClient = getMatrixClient()
-    if (existingClient?.clientRunning) {
-      const homeserverUrl = (localStorage.getItem(MTRX_HS_URL_KEY) || '').trim()
-      const deviceId = localStorage.getItem(MTRX_DEVICE_ID_KEY) || ''
-      return dispatchRestoreSuccess(dispatch, existingClient, homeserverUrl, deviceId)
-    }
-
-    const homeserverUrl = (localStorage.getItem(MTRX_HS_URL_KEY) || '').trim()
-    const accessToken = localStorage.getItem(MTRX_ACCESS_TOKEN_KEY)
-    const userId = localStorage.getItem(MTRX_USER_ID_KEY)
-    const deviceId = localStorage.getItem(MTRX_DEVICE_ID_KEY)
-    const refreshToken = localStorage.getItem(MTRX_REFRESH_TOKEN_KEY)
-
-    if (!homeserverUrl || !accessToken || !userId) return
-
+    const operationId = ++sessionOperationId
     restoreSessionPromise = (async () => {
       try {
-        const client = await createMatrixClientFromSession({
-          baseUrl: homeserverUrl,
-          accessToken,
-          userId,
-          deviceId,
-          refreshToken,
-        })
-
-        await client.whoami()
-        await startMatrixSync(client)
-        await dispatchRestoreSuccess(dispatch, client, homeserverUrl, deviceId)
+        const session = await restoreMatrixSession()
+        if (session && operationId === sessionOperationId) {
+          watchSessionAndDispatchClear(dispatch, operationId, session.client)
+          dispatchMatrixSuccess(dispatch, session)
+        }
       } catch {
-        destroyMatrixClient()
-        clearMatrixSession()
+        // Некорректная сохраненная сессия очищается сервисом.
       } finally {
         restoreSessionPromise = null
       }

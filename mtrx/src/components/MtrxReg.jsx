@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
+import { getStoredMatrixLogin } from '../services/matrixAuth'
 
 import {
   Box,
@@ -32,7 +33,7 @@ function MtrxReg(props) {
     mtrxControlActions,
   } = props
   
-  const [login, setLogin] = useState(() => localStorage.getItem('mtrxLogin') || '')
+  const [login, setLogin] = useState(getStoredMatrixLogin)
   const [password, setPassword] = useState('')
   const [uriMatrix, setUriMatrix] = useState('')
   const [showPassword, setShowPassword] = useState(false)

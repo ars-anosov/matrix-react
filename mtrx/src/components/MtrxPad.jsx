@@ -6,11 +6,6 @@ import {
   Stack,
   IconButton,
   Typography,
-  Avatar,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
   Box,
   Divider,
 } from '@mui/material'
@@ -20,6 +15,7 @@ import {
 } from '@mui/icons-material'
 
 import { getJoinedRooms, watchRoomChanges } from '../services/matrixClient'
+import MtrxRoomList from './MtrxRoomList'
 
 function MtrxPad(props) {
   if (import.meta.env.DEV) console.log('MtrxPad hook')
@@ -30,6 +26,7 @@ function MtrxPad(props) {
   } = props
 
   const [rooms, setRooms] = useState([])
+  const [selectedRoomId, setSelectedRoomId] = useState('')
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log('MtrxPad MOUNT')
@@ -63,6 +60,7 @@ function MtrxPad(props) {
     }
 
     setRooms([])
+    setSelectedRoomId('')
     return () => {
       isMounted = false
     }
@@ -103,33 +101,11 @@ function MtrxPad(props) {
           Комнаты
         </Typography>
 
-        {rooms.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            В этом аккаунте пока нет комнат.
-          </Typography>
-        ) : (
-          <List disablePadding>
-            {rooms.map(room => (
-              <ListItem key={room.roomId} disablePadding sx={{ py: 0.5 }}>
-                <ListItemAvatar>
-                  <Avatar
-                    src={room.avatarUrl || undefined}
-                    alt={room.name}
-                    sx={{ width: 36, height: 36, bgcolor: 'primary.light', fontSize: 14 }}
-                  >
-                    {room.name.charAt(0).toUpperCase()}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={room.name}
-                  secondary={room.roomId}
-                  primaryTypographyProps={{ noWrap: true, fontSize: 14 }}
-                  secondaryTypographyProps={{ noWrap: true, fontSize: 11, color: 'text.secondary' }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        )}
+        <MtrxRoomList
+          rooms={rooms}
+          selectedRoomId={selectedRoomId}
+          onSelect={room => setSelectedRoomId(room.roomId)}
+        />
       </Box>
     </Paper>
   )

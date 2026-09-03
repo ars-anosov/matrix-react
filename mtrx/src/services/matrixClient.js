@@ -10,6 +10,7 @@ import {
 } from '../constants/storage'
 
 let matrixClient = null
+let matrixSessionCleanup = null
 
 /**
  * Текущий авторизованный MatrixClient или null.
@@ -36,16 +37,68 @@ async function createMatrixClientFromSession({
   deviceId,
   refreshToken,
 }) {
-  const { createClient } = await loadMatrixSdk()
+  const { createClient, IndexedDBStore, IndexedDBCryptoStore } = await loadMatrixSdk()
   destroyMatrixClient()
 
-  const client = createClient({
+  const clientOptions = {
     baseUrl,
     accessToken,
     userId,
     deviceId,
     refreshToken: refreshToken || undefined,
-  })
+  }
+
+  if (typeof indexedDB !== 'undefined' && IndexedDBStore && IndexedDBCryptoStore) {
+    clientOptions.store = new IndexedDBStore({
+      indexedDB,
+      localStorage,
+      dbName: `mtrx-sync-${userId}`,
+    })
+    clientOptions.cryptoStore = new IndexedDBCryptoStore(indexedDB, `mtrx-crypto-${userId}`)
+  }
+
+  if (refreshToken) {
+    clientOptions.tokenRefreshFunction = async (currentRefreshToken) => {
+      const response = await fetch(`${baseUrl}/_matrix/client/v3/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: currentRefreshToken }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Обновление Matrix-сессии завершилось с ошибкой: ${response.status}`)
+      }
+
+      const tokenData = await response.json()
+      if (!tokenData.access_token) throw new Error('Homeserver не вернул access token.')
+
+      persistMatrixSession({
+        homeserverUrl: baseUrl,
+        login: localStorage.getItem(MTRX_LOGIN_KEY) || '',
+        accessToken: tokenData.access_token,
+        userId,
+        deviceId,
+        refreshToken: tokenData.refresh_token || currentRefreshToken,
+      })
+
+      return {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token || currentRefreshToken,
+        expiry: tokenData.expires_in_ms
+          ? new Date(Date.now() + tokenData.expires_in_ms)
+          : undefined,
+      }
+    }
+  }
+
+  const client = createClient(clientOptions)
+
+  if (clientOptions.store) {
+    await clientOptions.store.startup()
+    if (typeof client.initRustCrypto === 'function') {
+      await client.initRustCrypto()
+    }
+  }
 
   matrixClient = client
   return client
@@ -57,8 +110,29 @@ async function createMatrixClientFromSession({
 function destroyMatrixClient() {
   if (!matrixClient) return
 
+  matrixSessionCleanup?.()
+  matrixSessionCleanup = null
   matrixClient.stopClient()
   matrixClient = null
+}
+
+async function clearMatrixClientStores(client) {
+  if (!client?.clearStores) return
+  await client.clearStores()
+}
+
+function watchMatrixSession(client, onLoggedOut) {
+  if (!client || typeof client.on !== 'function') return () => {}
+
+  const handleLoggedOut = () => onLoggedOut?.()
+  client.on('Session.logged_out', handleLoggedOut)
+
+  const cleanup = () => {
+    client.removeListener?.('Session.logged_out', handleLoggedOut)
+  }
+
+  matrixSessionCleanup = cleanup
+  return cleanup
 }
 
 
@@ -71,7 +145,19 @@ function resolveHomeserverUrl(uriMatrix = '') {
   if (!url) {
     throw new Error('Не задан URL homeserver Matrix.')
   }
-  return url.replace(/\/$/, '')
+
+  let parsedUrl
+  try {
+    parsedUrl = new URL(url)
+  } catch {
+    throw new Error('URL homeserver Matrix указан некорректно.')
+  }
+
+  if (!['http:', 'https:'].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
+    throw new Error('Homeserver должен использовать URL http или https без учетных данных.')
+  }
+
+  return parsedUrl.toString().replace(/\/$/, '')
 }
 
 function persistMatrixSession({
@@ -237,11 +323,13 @@ export {
   createTempMatrixClient,
   createMatrixClientFromSession,
   destroyMatrixClient,
+  clearMatrixClientStores,
   resolveHomeserverUrl,
   persistMatrixSession,
   clearMatrixSession,
   fetchDisplayName,
   startMatrixSync,
+  watchMatrixSession,
   getRoomDisplayName,
   getRoomMxcAvatarUrl,
   resolveRoomAvatarUrl,
