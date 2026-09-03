@@ -43,6 +43,8 @@ function dispatchMtrxRegError(dispatch, errText) {
 }
 
 function watchSessionAndDispatchClear(dispatch, operationId, client) {
+  if (!client) return 
+
   watchMatrixSession(client, () => {
     if (operationId !== sessionOperationId) return
     invalidateMatrixSession().finally(() => {
@@ -90,25 +92,41 @@ const handleRegClear = function() {
 
 const handleRestoreSession = function() {
   return (dispatch, getState) => {
+    // Если в Redux статус уже success — ничего не делаем
     if (getState().mtrxControlRdcr.status === 'success') return
+    // Если промис восстановления уже запущен — возвращаем его, избегая дублирования
     if (restoreSessionPromise) return restoreSessionPromise
 
+    const operationId = ++sessionOperationId
+
+    // Проверяем синхронную активную сессию
     const activeSession = getActiveMatrixSession()
     if (activeSession) {
+      // Обязательно подписываемся на события даже активной сессии
+      watchSessionAndDispatchClear(dispatch, operationId, activeSession.client)
       dispatchMatrixSuccess(dispatch, activeSession)
       return
     }
 
-    const operationId = ++sessionOperationId
+    // Если активной сессии в памяти нет (перезагрузка страницы), запускаем асинхронное восстановление из хранилища
     restoreSessionPromise = (async () => {
       try {
         const session = await restoreMatrixSession()
-        if (session && operationId === sessionOperationId) {
+        
+        if (operationId !== sessionOperationId) return
+
+        if (session) {
           watchSessionAndDispatchClear(dispatch, operationId, session.client)
           dispatchMatrixSuccess(dispatch, session)
+        } else {
+          // Если сохраненных токенов нет или они невалидны
+          dispatch({ type: MTRXCTL_CLEAR })
         }
-      } catch {
-        // Некорректная сохраненная сессия очищается сервисом.
+      } catch (error) {
+        console.error("Ошибка восстановления сессии Matrix:", error)
+        if (operationId === sessionOperationId) {
+          dispatch({ type: MTRXCTL_CLEAR })
+        }
       } finally {
         restoreSessionPromise = null
       }

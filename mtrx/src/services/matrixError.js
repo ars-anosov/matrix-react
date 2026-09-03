@@ -1,6 +1,3 @@
-/**
- * Человекочитаемое сообщение из ошибки matrix-js-sdk / Matrix API.
- */
 export function getMatrixErrorMessage(error) {
   if (!error) return 'Неизвестная ошибка'
 

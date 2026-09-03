@@ -12,34 +12,22 @@ import {
 let matrixClient = null
 let matrixSessionCleanup = null
 
-/**
- * Текущий авторизованный MatrixClient или null.
- */
+
 function getMatrixClient() {
   return matrixClient
 }
 
-/**
- * Временный клиент для loginRequest до создания сессии.
- */
+
 async function createTempMatrixClient(baseUrl) {
   const { createClient } = await loadMatrixSdk()
   return createClient({ baseUrl })
 }
 
-/**
- * Ключ для имени IndexedDB-баз — обязательно учитывает deviceId,
- * иначе разные сессии одного userId будут делить одну и ту же базу
- * и при смене device_id ловить "account in the store doesn't match
- * the account in the constructor".
- */
 function buildStoreKey(userId, deviceId) {
   return deviceId ? `${userId}::${deviceId}` : userId
 }
 
-/**
- * Создаёт и сохраняет клиент из сохранённой сессии.
- */
+
 async function createMatrixClientFromSession({
   baseUrl,
   accessToken,
@@ -47,6 +35,11 @@ async function createMatrixClientFromSession({
   deviceId,
   refreshToken,
 }) {
+
+  if (!baseUrl || typeof baseUrl !== 'string') {
+    throw new Error(`[createMatrixClientFromSession] Невалидный baseUrl: ${baseUrl}`);
+  }
+
   const { createClient, IndexedDBStore, IndexedDBCryptoStore } = await loadMatrixSdk()
   destroyMatrixClient()
 
@@ -56,6 +49,7 @@ async function createMatrixClientFromSession({
     userId,
     deviceId,
     refreshToken: refreshToken || undefined,
+    useAuthorizationHeader: true, // ВАЖНО: заставляет SDK сразу привязать токен к сессии
   }
 
   const storeKey = buildStoreKey(userId, deviceId)
@@ -108,14 +102,19 @@ async function createMatrixClientFromSession({
   if (clientOptions.store) {
     await clientOptions.store.startup()
 
+    // ИСПРАВЛЕНИЕ: Базовый initCrypto() обязателен для настройки окружения перед Rust
+    if (typeof client.initCrypto === 'function') {
+      await client.initCrypto().catch(err => {
+        console.warn('[matrixClient] Ошибка при базовом initCrypto:', err)
+      })
+    }
+
     if (typeof client.initRustCrypto === 'function') {
       try {
         await client.initRustCrypto()
       } catch (err) {
         const message = String(err?.message || '')
 
-        // IndexedDB хранит данные от другого device_id той же учётки
-        // (залипшая сессия). Чистим старые базы и пробуем ещё раз с нуля.
         if (message.includes("doesn't match the account in the constructor")) {
           if (import.meta.env.DEV) {
             console.warn('[matrixClient] обнаружено рассогласование device_id в IndexedDB, чищу store и пробую снова', err)
@@ -123,6 +122,8 @@ async function createMatrixClientFromSession({
 
           await deleteMatrixIndexedDbStores(storeKey)
           await clientOptions.store.startup()
+          
+          if (typeof client.initCrypto === 'function') await client.initCrypto().catch(() => {})
           await client.initRustCrypto()
         } else {
           throw err
@@ -135,9 +136,7 @@ async function createMatrixClientFromSession({
   return client
 }
 
-/**
- * Удаляет IndexedDB-базы sync store и crypto store для конкретного storeKey.
- */
+
 async function deleteMatrixIndexedDbStores(storeKey) {
   if (typeof indexedDB === 'undefined' || !storeKey) return
 
@@ -165,9 +164,7 @@ async function deleteMatrixIndexedDbStores(storeKey) {
   )
 }
 
-/**
- * Останавливает sync и сбрасывает singleton.
- */
+
 function destroyMatrixClient() {
   if (!matrixClient) return
 
@@ -177,11 +174,7 @@ function destroyMatrixClient() {
   matrixClient = null
 }
 
-/**
- * Полная очистка хранилищ клиента: sync store через SDK + принудительное
- * удаление IndexedDB-баз (sync store и crypto store), т.к. clearStores()
- * не всегда надёжно чистит crypto store в зависимости от версии SDK.
- */
+
 async function clearMatrixClientStores(client) {
   if (!client) return
 

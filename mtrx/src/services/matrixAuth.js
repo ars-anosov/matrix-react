@@ -21,14 +21,9 @@ import {
   MTRX_REFRESH_TOKEN_KEY,
 } from '../constants/storage.js'
 
-const DEVICE_DISPLAY_NAME = 'mtrx-web'
+const DEVICE_DISPLAY_NAME = 'matrix-react'
 
-/**
- * Возвращает сохранённые логин и device_id из одного места, чтобы не
- * дублировать чтение из localStorage в разных местах. deviceId возвращается,
- * только если он относится к тому же login (на случай, если раньше в этом
- * браузере логинился другой пользователь).
- */
+
 function getStoredMatrixLogin() {
   const login = localStorage.getItem(MTRX_LOGIN_KEY) || ''
   const deviceId = localStorage.getItem(MTRX_DEVICE_ID_KEY) || ''
@@ -36,16 +31,11 @@ function getStoredMatrixLogin() {
   return { login, deviceId }
 }
 
+
 async function loginMatrix({ login, password, uriMatrix }) {
   const homeserverUrl = resolveHomeserverUrl(uriMatrix)
   const tempClient = await createTempMatrixClient(homeserverUrl)
 
-  // Если для этого логина уже сохранён device_id (тот же браузер,
-  // повторный вход после logout/истечения токена) — передаём его серверу,
-  // чтобы он переиспользовал существующее устройство, а не плодил новое.
-  // Без этого /login каждый раз создаёт НОВОЕ устройство, а локальная
-  // rust-crypto база (общая, с фиксированным именем) остаётся привязана
-  // к старому device_id — отсюда бесконечный mismatch при initRustCrypto().
   const { login: storedLogin, deviceId: storedLoginDeviceId } = getStoredMatrixLogin()
   const storedDeviceId = storedLogin === login
     ? storedLoginDeviceId || undefined
@@ -62,7 +52,10 @@ async function loginMatrix({ login, password, uriMatrix }) {
     initial_device_display_name: DEVICE_DISPLAY_NAME,
     refresh_token: true,
   })
-  tempClient.stopClient?.()
+  
+  if (typeof tempClient.stopClient === 'function') {
+    tempClient.stopClient()
+  }
 
   let client = null
   try {
@@ -90,7 +83,7 @@ async function loginMatrix({ login, password, uriMatrix }) {
       homeserverUrl,
       userId: loginResponse.user_id,
       deviceId: loginResponse.device_id,
-      displayName: await fetchDisplayName(client, loginResponse.user_id),
+      displayName: await fetchDisplayName(client, loginResponse.user_id).catch(() => loginResponse.user_id),
     }
   } catch (error) {
     destroyMatrixClient()
@@ -99,18 +92,31 @@ async function loginMatrix({ login, password, uriMatrix }) {
   }
 }
 
+
 function getStoredMatrixSession() {
-  const session = {
-    homeserverUrl: (localStorage.getItem(MTRX_HS_URL_KEY) || '').trim(),
-    accessToken: localStorage.getItem(MTRX_ACCESS_TOKEN_KEY),
-    userId: localStorage.getItem(MTRX_USER_ID_KEY),
-    deviceId: localStorage.getItem(MTRX_DEVICE_ID_KEY),
-    refreshToken: localStorage.getItem(MTRX_REFRESH_TOKEN_KEY),
+  const homeserverUrl = (localStorage.getItem(MTRX_HS_URL_KEY) || '').trim()
+  const accessToken = localStorage.getItem(MTRX_ACCESS_TOKEN_KEY)
+  const userId = localStorage.getItem(MTRX_USER_ID_KEY)
+  const deviceId = localStorage.getItem(MTRX_DEVICE_ID_KEY)
+  const refreshToken = localStorage.getItem(MTRX_REFRESH_TOKEN_KEY)
+
+  if (
+    !homeserverUrl || homeserverUrl === 'undefined' ||
+    !accessToken || accessToken === 'undefined' ||
+    !userId || userId === 'undefined' || !userId.startsWith('@')
+  ) {
+    return null
   }
 
-  if (!session.homeserverUrl || !session.accessToken || !session.userId) return null
-  return session
+  return {
+    baseUrl: homeserverUrl, // Читаем из localStorage homeserverUrl, но возвращаем как baseUrl!
+    accessToken,
+    userId,
+    deviceId: deviceId === 'undefined' ? '' : (deviceId || ''),
+    refreshToken: refreshToken === 'undefined' ? '' : (refreshToken || ''),
+  }
 }
+
 
 async function restoreMatrixSession() {
   const session = getStoredMatrixSession()
@@ -119,22 +125,25 @@ async function restoreMatrixSession() {
   let client = null
   try {
     client = await createMatrixClientFromSession(session)
-    await client.whoami()
     await startMatrixSync(client)
   } catch (error) {
+    console.error("Критическая ошибка восстановления клиента Matrix:", error)
     destroyMatrixClient()
     clearMatrixSession()
     throw error
   }
 
+  const finalUserId = client.getUserId() || session.userId
+
   return {
     client,
-    homeserverUrl: session.homeserverUrl,
-    userId: client.getUserId(),
+    homeserverUrl: session.baseUrl, // Меняем обращение с session.homeserverUrl на session.baseUrl
+    userId: finalUserId,
     deviceId: session.deviceId || client.getDeviceId() || '',
-    displayName: await fetchDisplayName(client, client.getUserId()),
+    displayName: await fetchDisplayName(client, finalUserId).catch(() => finalUserId),
   }
 }
+
 
 function getActiveMatrixSession() {
   const client = getMatrixClient()
@@ -149,15 +158,21 @@ function getActiveMatrixSession() {
   }
 }
 
+
 async function logoutMatrix() {
   const client = getMatrixClient()
 
   if (client) {
-    client.stopClient()
+    try {
+      client.stopClient()
+    } catch {
+      // Игнорируем ошибки остановки
+    }
+    
     try {
       await client.logout()
     } catch {
-      // Сессия на сервере могла уже истечь.
+      // Сессия на сервере могла уже истечь, игнорируем ошибку 401/403
     }
     await clearMatrixClientStores(client).catch(() => {})
     destroyMatrixClient()
@@ -166,9 +181,12 @@ async function logoutMatrix() {
   clearMatrixSession()
 }
 
+
 async function invalidateMatrixSession() {
   const client = getMatrixClient()
-  await clearMatrixClientStores(client).catch(() => {})
+  if (client) {
+    await clearMatrixClientStores(client).catch(() => {})
+  }
   destroyMatrixClient()
   clearMatrixSession()
 }
