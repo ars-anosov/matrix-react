@@ -25,7 +25,8 @@ async function createTempMatrixClient(baseUrl) {
 }
 
 function buildStoreKey(userId, deviceId) {
-  return deviceId ? `${userId}::${deviceId}` : userId
+  // return deviceId ? `${userId}::${deviceId}` : userId
+  return deviceId ? deviceId : userId
 }
 
 
@@ -60,10 +61,9 @@ async function createMatrixClientFromSession({
     clientOptions.store = new IndexedDBStore({
       indexedDB,
       localStorage,
-      dbName: `mtrx-sync-${storeKey}`,
+      dbName: `mx-sync-${storeKey}`,
     })
-    clientOptions.cryptoDatabasePrefix = `mtrx-crypto-${storeKey}`
-    clientOptions.cryptoStore = new IndexedDBCryptoStore(indexedDB, `mtrx-crypto-${storeKey}`)
+    clientOptions.cryptoStore = new IndexedDBCryptoStore(indexedDB, `mx-crypto-${storeKey}`)
   }
 
   if (refreshToken) {
@@ -119,7 +119,10 @@ async function createMatrixClientFromSession({
 
     if (typeof client.initRustCrypto === 'function') {
       try {
-        await client.initRustCrypto()
+        await client.initRustCrypto({
+          useIndexedDB: true,
+          cryptoDatabasePrefix: `mx-crypto-${storeKey}`,
+        })
       } catch (err) {
         const message = String(err?.message || '')
 
@@ -131,7 +134,10 @@ async function createMatrixClientFromSession({
           await deleteMatrixIndexedDbStores(storeKey)
           await clientOptions.store.startup()
           
-          await client.initRustCrypto()
+          await client.initRustCrypto({
+            useIndexedDB: true,
+            cryptoDatabasePrefix: `mx-crypto-${storeKey}`,
+          })
         } else {
           throw err
         }
@@ -164,10 +170,8 @@ async function deleteMatrixIndexedDbStores(storeKey) {
   if (typeof indexedDB === 'undefined' || !storeKey) return
 
   const dbNames = [
-    `matrix-js-sdk:mtrx-sync-${storeKey}`,
-    `matrix-js-sdk:mtrx-crypto-${storeKey}`,
-    'matrix-js-sdk::matrix-sdk-crypto',
-    'matrix-js-sdk::matrix-sdk-crypto-meta',
+    `matrix-js-sdk:mx-sync-${storeKey}`,
+    `mx-crypto-${storeKey}::matrix-sdk-crypto`
   ]
   // console.log('--- [deleteMatrixIndexedDbStores] --- dbNames :', dbNames)
 
