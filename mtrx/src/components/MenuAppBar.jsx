@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
+import { getStoredMatrixData } from '../services/matrixClient'
 
 import {
   Box,
@@ -239,7 +240,7 @@ function MenuAppBar(props) {
         transformOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Box sx={{ p: 1 }}>
-          <Typography variant="body2">{mtrxControlRdcr.uriMatrix}</Typography>
+          <Typography variant="body2">{getStoredMatrixData().uriMatrix}</Typography>
           <Divider />
           <MtrxInfo
             mtrxControlRdcr={mtrxControlRdcr}

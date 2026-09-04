@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { getStoredMatrixLogin } from '../services/matrixAuth'
+import { getStoredMatrixData } from '../services/matrixClient'
 
 import {
   Box,
@@ -33,20 +33,15 @@ function MtrxReg(props) {
     mtrxControlActions,
   } = props
   
-  const [login, setLogin] = useState(() => getStoredMatrixLogin().login)
+  const [uriMatrix, setUriMatrix] = useState(() => getStoredMatrixData().uriMatrix)
+  const [login, setLogin] = useState(() => getStoredMatrixData().login)
   const [password, setPassword] = useState('')
-  const [uriMatrix, setUriMatrix] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   const isLoading = mtrxControlRdcr.status === 'loading'
   const isError = mtrxControlRdcr.status === 'error'
   const isSuccess = mtrxControlRdcr.status === 'success'
   const responseData = mtrxControlRdcr.responseData
-
-  // Синхронизируем URI из глобального стора при его изменении
-  useEffect(() => {
-    setUriMatrix(mtrxControlRdcr.uriMatrix || '')
-  }, [mtrxControlRdcr.uriMatrix])
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -55,9 +50,8 @@ function MtrxReg(props) {
   }
 
   const handleReset = () => {
-    // setLogin('')
+    setLogin('')
     setPassword('')
-    setUriMatrix(mtrxControlRdcr.uriMatrix || '')
     mtrxControlActions.handleRegClear()
   }
 
@@ -72,20 +66,15 @@ function MtrxReg(props) {
       elevation={12} 
       sx={{ 
         maxWidth: 400, 
-        // На мобильных берем ширину от самого экрана устройства, на десктопе — обычные 100%
         width: { xs: '80vw', sm: '100%' }, 
-        // Центрируем элемент по горизонтали в любых условиях
         mx: 'auto', 
         mt: 2,
-        // Минимальный паддинг для мобильных (16px вместо 32px), чтобы инпутам внутри было просторно
         p: { xs: 2, sm: 4 }, 
         borderRadius: 3, 
         position: 'relative',
-        // Важно: гарантирует, что паддинги считаются внутрь ширины и не раздувают форму
         boxSizing: 'border-box' 
       }}
     >
-      {/* Кнопка закрытия формы сверху справа */}
       <IconButton 
         onClick={handleClose} 
         disabled={isLoading}
@@ -94,7 +83,6 @@ function MtrxReg(props) {
         <IconClose color="action" />
       </IconButton>
 
-      {/* Блок Логотипа и Заголовка */}
       <Stack spacing={1} sx={{ alignItems: 'center', mb: 4 }}>
         <Avatar 
           sx={{ 
@@ -122,7 +110,6 @@ function MtrxReg(props) {
       <Box component="form" onSubmit={handleSubmit} noValidate>
         <Stack spacing={2.5}>
           
-          {/* Поле ввода Логина */}
           <TextField
             fullWidth
             required
@@ -143,7 +130,6 @@ function MtrxReg(props) {
             }}
           />
 
-          {/* Поле ввода Пароля */}
           <TextField
             fullWidth
             required
@@ -178,7 +164,6 @@ function MtrxReg(props) {
             }}
           />
 
-          {/* Безопасный инпут API URI — рендерится только в DEV режиме */}
           {import.meta.env.DEV && (
             <TextField
               fullWidth
@@ -194,7 +179,6 @@ function MtrxReg(props) {
             />
           )}
 
-          {/* Блок управляющих кнопок */}
           <Stack spacing={1.5} sx={{ pt: 1 }}>
             {!isSuccess ? (
               <Button

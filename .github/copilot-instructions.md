@@ -22,8 +22,7 @@ React 19, Vite 8, Material UI 9, Redux (thunk), matrix-js-sdk, ky.
 ## Архитектура Matrix
 
 - Вся логика Matrix располагается в `mtrx/src/services/` (директория называется `services`, не `srvices`).
-- `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle и доступ к комнатам.
-- `matrixAuth.js` отвечает за login, restore, logout, refresh token и проверку Matrix-сессии.
+- `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle.
 - Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают Matrix API напрямую.
 - Redux actions только валидируют UI-ввод, вызывают методы сервисов и преобразуют результат в Redux actions. Reducers не содержат Matrix-логики.
 - Новую Matrix-функцию сначала добавлять в подходящий сервис; наружу экспортировать небольшой доменный API вместо SDK-объектов.

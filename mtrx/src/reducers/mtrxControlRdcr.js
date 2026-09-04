@@ -7,20 +7,21 @@ import {
   MTRXCTL_CLEAR,
 } from '../constants/redux'
 
-import { MTRX_HS_URL_KEY } from '../constants/storage'
+import {
+  MTRX_HS_URL_KEY
+} from '../constants/storage'
 
 const initialState = {
   // --- UI ---
-  displayReg: true,
-  displayPad: false,
-  displayControl: true,
-  uriMatrix: localStorage.getItem(MTRX_HS_URL_KEY) || '',
+  displayReg      :  true,
+  displayPad      : false,
+  displayControl  : true,
   // --- Auth ---
-  status: 'idle', // 'idle' | 'loading' | 'success' | 'error'
-  responseData: null,
+  status          : 'idle', // 'idle' | 'loading' | 'success' | 'error'
+  responseData    : null,
   // Error alert
-  errComponent: '',
-  errText: '',
+  errComponent    : '',
+  errText         : '',
 }
 
 export default function mtrxControlRdcr(state = initialState, action) {
@@ -43,7 +44,6 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayReg: false,
         displayPad: true,
         responseData: action.payload.responseData,
-        uriMatrix: action.payload.uriMatrix || state.uriMatrix,
         errComponent: '',
         errText: '',
       }

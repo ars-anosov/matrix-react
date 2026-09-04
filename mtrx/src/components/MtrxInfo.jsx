@@ -59,9 +59,7 @@ function MtrxInfo(props) {
       >
 {`display_name:\t${mtrxControlRdcr?.responseData?.display_name || ''}
 user_id:\t\t${mtrxControlRdcr?.responseData?.user_id || ''}
-device_id:\t${mtrxControlRdcr?.responseData?.device_id || ''}
-
-homeserver:\t${mtrxControlRdcr?.uriMatrix || ''}`}
+device_id:\t${mtrxControlRdcr?.responseData?.device_id || ''}`}
       </Typography>
 
       {mtrxControlRdcr?.status === 'error' && mtrxControlRdcr?.errText && (

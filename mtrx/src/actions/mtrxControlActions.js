@@ -1,6 +1,6 @@
 import {
   getMatrixErrorMessage
-} from '../services/matrixError'
+} from './utils/matrixError'
 import {
   loginMatrix,
   restoreMatrixSession,
@@ -8,7 +8,7 @@ import {
   logoutMatrix,
   invalidateMatrixSession,
   watchMatrixSession,
-} from '../services/matrixAuth'
+} from '../services/matrixClient'
 
 import {
   MTRXCTL_STORE_VALUE,
@@ -25,7 +25,6 @@ function dispatchMatrixSuccess(dispatch, session) {
   dispatch({
     type: MTRXCTL_SUBMIT_SUCCESS,
     payload: {
-      uriMatrix: session.homeserverUrl,
       responseData: {
         user_id: session.userId,
         display_name: session.displayName || session.userId,

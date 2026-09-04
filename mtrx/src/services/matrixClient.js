@@ -8,6 +8,7 @@ import {
   MTRX_DEVICE_ID_KEY,
   MTRX_REFRESH_TOKEN_KEY,
 } from '../constants/storage'
+const DEVICE_DISPLAY_NAME = 'matrix-react'
 
 let matrixClient = null
 let matrixSessionCleanup = null
@@ -49,7 +50,8 @@ async function createMatrixClientFromSession({
     userId,
     deviceId,
     refreshToken: refreshToken || undefined,
-    useAuthorizationHeader: true, // ВАЖНО: заставляет SDK сразу привязать токен к сессии
+    useAuthorizationHeader: true,
+    cryptoBackend: "rust",
   }
 
   const storeKey = buildStoreKey(userId, deviceId)
@@ -60,6 +62,7 @@ async function createMatrixClientFromSession({
       localStorage,
       dbName: `mtrx-sync-${storeKey}`,
     })
+    clientOptions.cryptoDatabasePrefix = `mtrx-crypto-${storeKey}`
     clientOptions.cryptoStore = new IndexedDBCryptoStore(indexedDB, `mtrx-crypto-${storeKey}`)
   }
 
@@ -74,35 +77,14 @@ async function createMatrixClientFromSession({
 
         // === ПРОВЕРКА ВАЛИДНОСТИ ТОКЕНА ===
         if (response.status === 401) {
-          console.error('[tokenRefreshFunction] Рефреш-токен протух (401). Закрываем соединения и чистим хранилища...')
-          
-          // 1. Очищаем токеры в LocalStorage
-          clearMatrixSession()
-
-          // 2. ЗАКРЫВАЕМ ХРАНИЛИЩА: Без этого удаления в IndexedDB заблокируются!
-          if (clientOptions.store && typeof clientOptions.store.close === 'function') {
-            try { await clientOptions.store.close() } catch {}
-          }
-          if (clientOptions.cryptoStore && typeof clientOptions.cryptoStore.close === 'function') {
-            try { await clientOptions.cryptoStore.close() } catch {}
-          }
-          if (client) {
-            try { client.stopClient() } catch {}
-          }
-
-          // 3. ТЕПЕРЬ базы свободны, их можно безопасно удалять
-          try {
-            await deleteMatrixIndexedDbStores(storeKey)
-            console.log('[tokenRefreshFunction] IndexedDB успешно очищен.')
-          } catch (dbErr) {
-            console.warn('[tokenRefreshFunction] Ошибка при удалении баз IndexedDB:', dbErr)
-          }
-
-          throw new Error('REFRESH_TOKEN_EXPIRED')
+          console.warn('[tokenRefreshFunction] Рефреш-токен протух (401). Закрываем соединения и чистим хранилища...')
+          deleteMatrixLocalStores()
+          deleteMatrixIndexedDbStores(storeKey)
+          throw new Error('REFRESH_TOKEN_EXPIRED: Store cleared')
         }
 
         if (!response.ok) {
-          throw new Error(`Обновление Matrix-сессии завершилось с ошибкой: ${response.status}`)
+          throw new Error(`REFRESH_ERROR: ${response.status}`)
         }
 
         const tokenData = await response.json()
@@ -159,24 +141,13 @@ async function createMatrixClientFromSession({
 
   // === ПРОВЕРКА ВАЛИДНОСТИ ТОКЕНА ===
   try {
-    // Вызов whoami заставит SDK проверить access-токен или сходить в tokenRefreshFunction.
-    // Если всё протухло, мы упадем в catch.
     await client.whoami()
   } catch (err) {
-    // Добавляем проверку на нашу кастомную ошибку из рефреша
-    if (err.httpStatus === 401 || err.message === 'REFRESH_TOKEN_EXPIRED') {
-      console.error('[matrixClient] Сессия окончательно мертва. Завершаем уничтожение инстанса.')
-      
-      // На всякий случай зачищаем остатки, если что-то упустили
-      clearMatrixSession()
-      // Если это был вылет по КЛАССИЧЕСКОМУ 401 (без участия tokenRefreshFunction),
-      // то базы ИНДЕКСЕД ДБ еще НЕ удалены. Удаляем их сейчас:
-      if (err.message !== 'REFRESH_TOKEN_EXPIRED') {
-        await clearMatrixClientStores(client)
-      }
+    if (err.httpStatus === 401) {
+      console.warn('[matrixClient] Сессия окончательно мертва. Завершаем уничтожение инстанса.')
+      deleteMatrixLocalStores()
+      clearMatrixClientStores(client)
       destroyMatrixClient()
-      
-      // Выбрасываем единый маркер ошибки для UI-слоя (React / Redux Thunk)
       throw new Error('MATRIX_UNAUTHORIZED')
     }
     
@@ -193,11 +164,12 @@ async function deleteMatrixIndexedDbStores(storeKey) {
   if (typeof indexedDB === 'undefined' || !storeKey) return
 
   const dbNames = [
-    `mtrx-sync-${storeKey}`,
-    `mtrx-crypto-${storeKey}`,
+    `matrix-js-sdk:mtrx-sync-${storeKey}`,
+    `matrix-js-sdk:mtrx-crypto-${storeKey}`,
     'matrix-js-sdk::matrix-sdk-crypto',
     'matrix-js-sdk::matrix-sdk-crypto-meta',
   ]
+  // console.log('--- [deleteMatrixIndexedDbStores] --- dbNames :', dbNames)
 
   await Promise.all(
     dbNames.map(
@@ -224,6 +196,7 @@ function destroyMatrixClient() {
 
 
 async function clearMatrixClientStores(client) {
+  // console.log('--- [clearMatrixClientStores] --- client :', client)
   if (!client) return
 
   await client.clearStores?.()
@@ -252,30 +225,6 @@ function watchMatrixSession(client, onLoggedOut) {
 }
 
 
-
-// Комнаты
-
-
-function resolveHomeserverUrl(uriMatrix = '') {
-  const url = (uriMatrix || localStorage.getItem(MTRX_HS_URL_KEY) || '').trim()
-  if (!url) {
-    throw new Error('Не задан URL homeserver Matrix.')
-  }
-
-  let parsedUrl
-  try {
-    parsedUrl = new URL(url)
-  } catch {
-    throw new Error('URL homeserver Matrix указан некорректно.')
-  }
-
-  if (!['http:', 'https:'].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
-    throw new Error('Homeserver должен использовать URL http или https без учетных данных.')
-  }
-
-  return parsedUrl.toString().replace(/\/$/, '')
-}
-
 function persistMatrixSession({
   homeserverUrl,
   login,
@@ -302,7 +251,7 @@ function persistMatrixSession({
   }
 }
 
-function clearMatrixSession() {
+function deleteMatrixLocalStores() {
   localStorage.removeItem(MTRX_ACCESS_TOKEN_KEY)
   localStorage.removeItem(MTRX_USER_ID_KEY)
   localStorage.removeItem(MTRX_DEVICE_ID_KEY)
@@ -461,15 +410,212 @@ function watchRoomChanges(onChange) {
 
 
 
+function getStoredMatrixData() {
+  const uriMatrix = localStorage.getItem(MTRX_HS_URL_KEY) || ''
+  const login     = localStorage.getItem(MTRX_LOGIN_KEY) || ''
+  const deviceId  = localStorage.getItem(MTRX_DEVICE_ID_KEY) || ''
+
+  return { uriMatrix, login, deviceId }
+}
+
+
+function resolveHomeserverUrl(uriMatrix = '') {
+  const url = (uriMatrix || localStorage.getItem(MTRX_HS_URL_KEY) || '').trim()
+  if (!url) {
+    throw new Error('Не задан URL homeserver Matrix.')
+  }
+
+  let parsedUrl
+  try {
+    parsedUrl = new URL(url)
+  } catch {
+    throw new Error('URL homeserver Matrix указан некорректно.')
+  }
+
+  if (!['http:', 'https:'].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
+    throw new Error('Homeserver должен использовать URL http или https без учетных данных.')
+  }
+
+  return parsedUrl.toString().replace(/\/$/, '')
+}
+
+
+async function loginMatrix({ login, password, uriMatrix }) {
+  const homeserverUrl = resolveHomeserverUrl(uriMatrix)
+  const tempClient = await createTempMatrixClient(homeserverUrl)
+
+  const { login: storedLogin, deviceId: storedLoginDeviceId } = getStoredMatrixData()
+  const storedDeviceId = storedLogin === login
+    ? storedLoginDeviceId || undefined
+    : undefined
+
+  const loginResponse = await tempClient.loginRequest({
+    type: 'm.login.password',
+    identifier: {
+      type: 'm.id.user',
+      user: login,
+    },
+    password,
+    device_id: storedDeviceId,
+    initial_device_display_name: DEVICE_DISPLAY_NAME,
+    refresh_token: true,
+  })
+  
+  if (typeof tempClient.stopClient === 'function') {
+    tempClient.stopClient()
+  }
+
+  let client = null
+  try {
+    client = await createMatrixClientFromSession({
+      baseUrl: homeserverUrl,
+      accessToken: loginResponse.access_token,
+      userId: loginResponse.user_id,
+      deviceId: loginResponse.device_id,
+      refreshToken: loginResponse.refresh_token,
+    })
+
+    persistMatrixSession({
+      homeserverUrl,
+      login,
+      accessToken: loginResponse.access_token,
+      userId: loginResponse.user_id,
+      deviceId: loginResponse.device_id,
+      refreshToken: loginResponse.refresh_token,
+    })
+
+    await startMatrixSync(client)
+
+    return {
+      client,
+      homeserverUrl,
+      userId: loginResponse.user_id,
+      deviceId: loginResponse.device_id,
+      displayName: await fetchDisplayName(client, loginResponse.user_id).catch(() => loginResponse.user_id),
+    }
+  } catch (error) {
+    destroyMatrixClient()
+    deleteMatrixLocalStores()
+    throw error
+  }
+}
+
+
+function getStoredMatrixSession() {
+  const homeserverUrl = (localStorage.getItem(MTRX_HS_URL_KEY) || '').trim()
+  const accessToken = localStorage.getItem(MTRX_ACCESS_TOKEN_KEY)
+  const userId = localStorage.getItem(MTRX_USER_ID_KEY)
+  const deviceId = localStorage.getItem(MTRX_DEVICE_ID_KEY)
+  const refreshToken = localStorage.getItem(MTRX_REFRESH_TOKEN_KEY)
+
+  if (
+    !homeserverUrl || homeserverUrl === 'undefined' ||
+    !accessToken || accessToken === 'undefined' ||
+    !userId || userId === 'undefined' || !userId.startsWith('@')
+  ) {
+    return null
+  }
+
+  return {
+    baseUrl: homeserverUrl, // Читаем из localStorage homeserverUrl, но возвращаем как baseUrl!
+    accessToken,
+    userId,
+    deviceId: deviceId === 'undefined' ? '' : (deviceId || ''),
+    refreshToken: refreshToken === 'undefined' ? '' : (refreshToken || ''),
+  }
+}
+
+
+async function restoreMatrixSession() {
+  const session = getStoredMatrixSession()
+  if (!session) return null
+
+  let client = null
+  try {
+    client = await createMatrixClientFromSession(session)
+    await startMatrixSync(client)
+  } catch (error) {
+    console.error("Критическая ошибка восстановления клиента Matrix:", error)
+    destroyMatrixClient()
+    deleteMatrixLocalStores()
+    throw error
+  }
+
+  const finalUserId = client.getUserId() || session.userId
+
+  return {
+    client,
+    homeserverUrl: session.baseUrl, // Меняем обращение с session.homeserverUrl на session.baseUrl
+    userId: finalUserId,
+    deviceId: session.deviceId || client.getDeviceId() || '',
+    displayName: await fetchDisplayName(client, finalUserId).catch(() => finalUserId),
+  }
+}
+
+
+function getActiveMatrixSession() {
+  const client = getMatrixClient()
+  if (!client?.clientRunning) return null
+
+  return {
+    client,
+    homeserverUrl: (localStorage.getItem(MTRX_HS_URL_KEY) || '').trim(),
+    userId: client.getUserId(),
+    deviceId: localStorage.getItem(MTRX_DEVICE_ID_KEY) || client.getDeviceId() || '',
+    displayName: null,
+  }
+}
+
+
+/*
+  clearMatrixClientStores(client)
+    > client.clearStores?.()
+    > deleteMatrixIndexedDbStores(client > storeKey)
+  destroyMatrixClient()
+    > matrixSessionCleanup?.()
+    > matrixClient.stopClient()
+*/
+async function logoutMatrix() {
+  const client = getMatrixClient()
+
+  if (client) {
+    try {
+      client.stopClient()
+    } catch {
+      // Игнорируем ошибки остановки
+    }
+    
+    try {
+      await client.logout()
+    } catch {
+      // Сессия на сервере могла уже истечь, игнорируем ошибку 401/403
+    }
+    await clearMatrixClientStores(client).catch(() => {})
+    destroyMatrixClient()
+  }
+
+  deleteMatrixLocalStores()
+}
+
+
+async function invalidateMatrixSession() {
+  const client = getMatrixClient()
+  if (client) {
+    await clearMatrixClientStores(client).catch(() => {})
+  }
+  destroyMatrixClient()
+  deleteMatrixLocalStores()
+}
+
+
 export {
   getMatrixClient,
   createTempMatrixClient,
   createMatrixClientFromSession,
   destroyMatrixClient,
   clearMatrixClientStores,
-  resolveHomeserverUrl,
   persistMatrixSession,
-  clearMatrixSession,
+  deleteMatrixLocalStores,
   fetchDisplayName,
   startMatrixSync,
   watchMatrixSession,
@@ -478,4 +624,11 @@ export {
   resolveRoomAvatarUrl,
   getJoinedRooms,
   watchRoomChanges,
+
+  loginMatrix,
+  getStoredMatrixData,
+  restoreMatrixSession,
+  getActiveMatrixSession,
+  logoutMatrix,
+  invalidateMatrixSession,
 }
