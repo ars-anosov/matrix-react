@@ -1,0 +1,17 @@
+root = true
+
+# Общие настройки для всех файлов
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Настройки для кода (JS, JSX, JSON, CSS, YAML и т.д.)
+[*.{js,jsx,mjs,cjs,json,css,scss,html,yaml,yml,md}]
+indent_style = space
+indent_size = 2
+
+# Для Markdown — отключаем trim_trailing_whitespace (там важны пробелы)
+[*.md]
+trim_trailing_whitespace = false
