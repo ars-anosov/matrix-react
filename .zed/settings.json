@@ -1,0 +1,10 @@
+{
+  "lsp": {
+    "json-language-server": {
+      "initialization_options": {
+        "provideFormatter": false,
+        "fileExtensions": [".json", ".jsonc"]
+      }
+    }
+  }
+}
