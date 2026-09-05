@@ -18,6 +18,7 @@ mtrx/src/
   containers/   — связка с Redux (MtrxContainer, MenuAppContainer)
   actions/      — Redux actions (thunk)
   reducers/     — Redux reducers (*Rdcr)
+  services/     — вся логика Matrix (matrixClient.js, matrixSdk.js)
   store/        — configureStore
   constants/    — константы action types, storage keys
   mock/         — mock API для dev (vite plugin)
@@ -45,6 +46,15 @@ npm run serve    # preview, порт 4173
 - Не расширяй объём правок без запроса. Для критичных изменений указывай риски и проверки.
 - Не добавляй TypeScript без явного запроса — проект на JavaScript (`.jsx`/`.js`).
 - Не меняй `mtrx/dist` вручную — только через `npm run build`.
+
+## Архитектура Matrix
+
+- Вся логика Matrix располагается в `mtrx/src/services/` (директория называется `services`, не `srvices`).
+- `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle.
+- Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают Matrix API напрямую.
+- Redux actions только валидируют UI-ввод, вызывают методы сервисов и преобразуют результат в Redux actions. Reducers не содержат Matrix-логики.
+- Новую Matrix-функцию сначала добавляй в подходящий сервис; наружу экспортируй небольшой доменный API вместо SDK-объектов.
+- Не дублируй `createClient`, `startClient`, `whoami`, `logout`, работу с токенами или обработку Matrix-событий в компонентах и actions.
 
 ## Эталон интерфейса
 

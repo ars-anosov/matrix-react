@@ -31,6 +31,7 @@ matrix-react/
 │   │   ├── containers/   # Redux-контейнеры
 │   │   ├── actions/      # Redux actions
 │   │   ├── reducers/     # Redux reducers
+│   │   ├── services/     # вся логика Matrix (matrixClient.js, matrixSdk.js)
 │   │   ├── store/        # store
 │   │   └── constants/    # константы
 │   ├── mock/             # mock API (vite plugin)
@@ -67,6 +68,16 @@ npm run serve    # preview, порт 4173
 ---
 
 ## Соглашения кода
+
+### Архитектура Matrix
+
+- Вся логика Matrix располагается в `mtrx/src/services/` (директория называется `services`, не `srvices`).
+- `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle.
+- Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают Matrix API напрямую.
+- Redux actions только валидируют UI-ввод, вызывают методы сервисов и преобразуют результат в Redux actions. Reducers не содержат Matrix-логики.
+- Новую Matrix-функцию сначала добавляй в подходящий сервис; наружу экспортируй небольшой доменный API вместо SDK-объектов.
+- Не дублируй `createClient`, `startClient`, `whoami`, `logout`, работу с токенами или обработку Matrix-событий в компонентах и actions.
+- Не дублируй низкоуровневую логику SDK.
 
 ### Redux
 

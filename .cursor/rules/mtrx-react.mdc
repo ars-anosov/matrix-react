@@ -20,8 +20,14 @@ alwaysApply: false
 
 ## Matrix
 
-- Работа с протоколом — через `matrix-js-sdk`; не дублировать низкоуровневую логику SDK.
 - Ключевые компоненты: `MtrxReg` (регистрация/вход), `MtrxPad` (чат), `AuthAd` (интеграция с AD).
+- Вся логика Matrix — в `mtrx/src/services/` (директория называется `services`, не `srvices`).
+- `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle.
+- Компоненты не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают Matrix API напрямую.
+- Redux actions только валидируют UI-ввод, вызывают методы сервисов и преобразуют результат в actions. Reducers не содержат Matrix-логики.
+- Новую Matrix-функцию сначала добавляй в подходящий сервис; наружу экспортируй небольшой доменный API вместо SDK-объектов.
+- Не дублируй `createClient`, `startClient`, `whoami`, `logout`, работу с токенами и обработку Matrix-событий в компонентах и actions.
+- Не дублируй низкоуровневую логику SDK.
 
 ## HTTP
 
