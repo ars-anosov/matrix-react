@@ -1,4 +1,4 @@
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (_event) => {
   self.skipWaiting(); // Принудительно активирует новый воркер
 });
 
@@ -28,7 +28,7 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'close-notification') {
     self.registration.getNotifications({ tag: event.data.tag }).then((notifications) => {
-      notifications.forEach(notification => notification.close());
+      notifications.forEach(notification => { notification.close(); });
     });
   }
 });

@@ -68,7 +68,6 @@ async function createMatrixClientFromSession({
 
   if (refreshToken) {
     clientOptions.tokenRefreshFunction = async (currentRefreshToken) => {
-      try {
         const response = await fetch(`${baseUrl}/_matrix/client/v3/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -106,9 +105,6 @@ async function createMatrixClientFromSession({
             ? new Date(Date.now() + tokenData.expires_in_ms)
             : undefined,
         }
-      } catch (error) {
-        throw error
-      }
     }
   }
 
@@ -360,7 +356,6 @@ async function resolveRoomAvatarUrl(client, room) {
       if (import.meta.env.DEV) {
         console.warn('[matrixClient] avatar fetch error', room.roomId, url, err)
       }
-      continue
     }
   }
 
@@ -370,10 +365,10 @@ async function resolveRoomAvatarUrl(client, room) {
 
 async function getJoinedRooms() {
   const client = getMatrixClient()
-  if (!client || !client.getRooms) return []
+  if (!client?.getRooms) return []
 
   const rooms = client.getRooms()
-    .filter(room => room && room.getMyMembership && room.getMyMembership() === 'join')
+    .filter(room => room?.getMyMembership && room.getMyMembership() === 'join')
     .sort((a, b) => getRoomDisplayName(a).localeCompare(getRoomDisplayName(b), undefined, { sensitivity: 'base' }))
 
   const resolvedRooms = []

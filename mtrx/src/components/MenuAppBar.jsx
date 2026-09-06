@@ -23,13 +23,11 @@ import { useTheme } from '@mui/material/styles'
 
 import MenuIcon         from '@mui/icons-material/Menu'
 import ChevronLeftIcon  from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 
 import AuthIco          from './AuthIco'
 import AuthAdInfo       from './AuthAdInfo'
 import MtrxIco          from './MtrxIco'
 import MtrxInfo         from './MtrxInfo'
-import MtrxPad          from './MtrxPad'
 import Copyright        from '../Copyright'
 
 

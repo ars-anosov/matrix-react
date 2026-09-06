@@ -52,8 +52,7 @@ function watchSessionAndDispatchClear(dispatch, operationId, client) {
   })
 }
 
-const handleRegister = function(formData = {}) {
-  return async (dispatch) => {
+const handleRegister = (formData = {}) => async (dispatch) => {
     const operationId = ++sessionOperationId
     const login = typeof formData.login === 'string' ? formData.login.trim() : ''
     const password = typeof formData.password === 'string' ? formData.password : ''
@@ -78,19 +77,15 @@ const handleRegister = function(formData = {}) {
       }
     }
   }
-}
 
-const handleRegClear = function() {
-  return async (dispatch) => {
+const handleRegClear = () => async (dispatch) => {
     sessionOperationId += 1
     restoreSessionPromise = null
     await logoutMatrix()
     dispatch({ type: MTRXCTL_CLEAR })
   }
-}
 
-const handleRestoreSession = function() {
-  return (dispatch, getState) => {
+const handleRestoreSession = () => (dispatch, getState) => {
     // Если в Redux статус уже success — ничего не делаем
     if (getState().mtrxControlRdcr.status === 'success') return
     // Если промис восстановления уже запущен — возвращаем его, избегая дублирования
@@ -133,16 +128,13 @@ const handleRestoreSession = function() {
 
     return restoreSessionPromise
   }
-}
 
-const handleChangeStore = function(storeDataKey, storeDataValue) {
-  return (dispatch) => {
+const handleChangeStore = (storeDataKey, storeDataValue) => (dispatch) => {
     dispatch({
       type: MTRXCTL_STORE_VALUE,
       payload: { storeDataKey, storeDataValue },
     })
   }
-}
 
 export {
   handleRegister,

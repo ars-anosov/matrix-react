@@ -22,7 +22,7 @@ export const mockEndpoints = [
   {
     path: '/user/ad',
     methods: ['POST'],
-    handler(req, res, { body }) {
+    handler(_req, res, { body }) {
       const login = typeof body.login === 'string' ? body.login : ''
       sendJson(res, 200, {
         ad_login: login,

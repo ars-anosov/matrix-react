@@ -49,7 +49,6 @@ function AdIco({ authControlRdcr }) {
           color: theme.palette.error.contrastText,
           pulse: false,
         }
-      case 'idle':
       default:
         return {
           icon: <IconAdminPanelSettings />,

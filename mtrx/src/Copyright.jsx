@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import PropTypes from 'prop-types'
 
 import {
@@ -44,13 +44,13 @@ function Copyright(props) {
       <span>
         Powered by
         matrix-js-sdk {dependencies['matrix-js-sdk']},
-        ky {dependencies['ky']}
+        ky {dependencies.ky}
         <br />
         react-dom {dependencies['react-dom']},
         react-redux {dependencies['react-redux']},
         @mui/material {dependencies['@mui/material']},
         <br />
-        vite {devDependencies['vite']},
+        vite {devDependencies.vite},
         @vitejs/plugin-react {devDependencies['@vitejs/plugin-react']}
         <br /><br />
       </span>

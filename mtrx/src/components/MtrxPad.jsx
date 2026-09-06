@@ -20,10 +20,7 @@ import MtrxRoomList from './MtrxRoomList'
 function MtrxPad(props) {
   if (import.meta.env.DEV) console.log('MtrxPad hook')
 
-  const {
-    mtrxControlRdcr, mtrxControlActions,
-    showInput
-  } = props
+  const { mtrxControlRdcr, mtrxControlActions } = props
 
   const [rooms, setRooms] = useState([])
   const [selectedRoomId, setSelectedRoomId] = useState('')

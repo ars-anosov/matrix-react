@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { mockApiPlugin } from './mock/vite-mock-api.js'
- 
+
 export default defineConfig({
   base: './', // делает ссылки относительными
   build: {
@@ -9,7 +9,7 @@ export default defineConfig({
     assetsDir: 'assets',
     chunkSizeWarningLimit: 1200,
     modulePreload: {
-      resolveDependencies: (filename, dependencies) => (
+      resolveDependencies: (_filename, dependencies) => (
         dependencies.filter(dependency => !dependency.includes('matrix-sdk'))
       ),
     },

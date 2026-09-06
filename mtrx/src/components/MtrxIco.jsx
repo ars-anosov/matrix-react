@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import { IconButton, keyframes, useTheme, alpha } from '@mui/material'
 
 import IconHub from '@mui/icons-material/Hub'
-import IconDeviceHub from '@mui/icons-material/DeviceHub'
 import IconLinkOff from '@mui/icons-material/LinkOff'
 import IconSync from '@mui/icons-material/Sync'
 
@@ -47,7 +46,6 @@ function MtrxIco({ mtrxControlRdcr }) {
           color: theme.palette.error.contrastText,
           pulse: false,
         }
-      case 'idle':
       default:
         return {
           icon: <IconHub />,

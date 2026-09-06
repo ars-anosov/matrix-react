@@ -7,9 +7,6 @@ import {
   MTRXCTL_CLEAR,
 } from '../constants/redux'
 
-import {
-  MTRX_HS_URL_KEY
-} from '../constants/storage'
 
 const initialState = {
   // --- UI ---

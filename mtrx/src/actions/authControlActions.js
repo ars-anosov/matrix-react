@@ -18,8 +18,7 @@ function dispatchAdAuthError(dispatch, errText) {
   })
 }
 
-const handleAdRegister = function(formData = {}) {
-  return async (dispatch) => {
+const handleAdRegister = (formData = {}) => async (dispatch) => {
     const login = typeof formData.login === 'string' ? formData.login.trim() : ''
     const password = typeof formData.password === 'string' ? formData.password.trim() : ''
     const uriAdAuth = typeof formData.uriAdAuth === 'string' ? formData.uriAdAuth.trim() : ''
@@ -56,24 +55,19 @@ const handleAdRegister = function(formData = {}) {
       dispatchAdAuthError(dispatch, detailMessage)
     }
   }
-}
 
-const handleAdAuthClear = function() {
-  return (dispatch) => {
+const handleAdAuthClear = () => (dispatch) => {
     // localStorage.removeItem('adLogin')
     localStorage.removeItem('adAuthExpireTime')
     dispatch({ type: AUTHCTL_CLEAR })
   }
-}
 
-const handleChangeStore = function(storeDataKey, storeDataValue) {
-  return (dispatch) => {
+const handleChangeStore = (storeDataKey, storeDataValue) => (dispatch) => {
     dispatch({
       type: AUTHCTL_STORE_VALUE,
       payload: { storeDataKey, storeDataValue },
     })
   }
-}
 
 export {
   handleAdRegister,
