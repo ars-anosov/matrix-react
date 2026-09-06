@@ -7,6 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "serve": "vite preview --host 0.0.0.0",
+    "deploy:rsync": "bash deploy.sh",
+    "deploy": "npm run build && npm run deploy:rsync",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write ."
