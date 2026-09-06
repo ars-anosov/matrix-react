@@ -1,7 +1,7 @@
-import Container        from '@mui/material/Container'
-import MenuAppContainer from './containers/MenuAppContainer'
-import MtrxContainer    from './containers/MtrxContainer.jsx'
-import Copyright        from './Copyright'
+import Container from "@mui/material/Container";
+import Copyright from "./Copyright";
+import MenuAppContainer from "./containers/MenuAppContainer";
+import MtrxContainer from "./containers/MtrxContainer.jsx";
 
 export default function App() {
   return (
@@ -10,13 +10,13 @@ export default function App() {
       sx={{
         p: 2,
         mt: 2,
-        border: '1px dashed grey',
+        border: "1px dashed grey",
         borderRadius: 5,
       }}
     >
       <MenuAppContainer />
       <MtrxContainer />
-      <Copyright showFull={true}/>
+      <Copyright showFull={true} />
     </Container>
-  )
+  );
 }

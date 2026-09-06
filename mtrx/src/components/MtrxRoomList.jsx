@@ -1,5 +1,3 @@
-import PropTypes from 'prop-types'
-
 import {
   Avatar,
   List,
@@ -7,24 +5,25 @@ import {
   ListItemButton,
   ListItemText,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
+import PropTypes from "prop-types";
 
-function getRoomInitial(name = '') {
-  return name.trim().charAt(0).toUpperCase() || '#'
+function getRoomInitial(name = "") {
+  return name.trim().charAt(0).toUpperCase() || "#";
 }
 
-function MtrxRoomList({ rooms, selectedRoomId = '', onSelect }) {
+function MtrxRoomList({ rooms, selectedRoomId = "", onSelect }) {
   if (rooms.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary" sx={{ px: 1, py: 2 }}>
         В этом аккаунте пока нет комнат.
       </Typography>
-    )
+    );
   }
 
   return (
     <List disablePadding aria-label="Список комнат">
-      {rooms.map(room => (
+      {rooms.map((room) => (
         <ListItemButton
           key={room.roomId}
           selected={room.roomId === selectedRoomId}
@@ -34,11 +33,11 @@ function MtrxRoomList({ rooms, selectedRoomId = '', onSelect }) {
             px: 1,
             py: 0.5,
             borderRadius: 2,
-            '&.Mui-selected': {
-              bgcolor: 'action.selected',
+            "&.Mui-selected": {
+              bgcolor: "action.selected",
             },
-            '&.Mui-selected:hover': {
-              bgcolor: 'action.selected',
+            "&.Mui-selected:hover": {
+              bgcolor: "action.selected",
             },
           }}
         >
@@ -46,7 +45,12 @@ function MtrxRoomList({ rooms, selectedRoomId = '', onSelect }) {
             <Avatar
               src={room.avatarUrl || undefined}
               alt=""
-              sx={{ width: 40, height: 40, bgcolor: 'primary.light', fontSize: 15 }}
+              sx={{
+                width: 40,
+                height: 40,
+                bgcolor: "primary.light",
+                fontSize: 15,
+              }}
             >
               {getRoomInitial(room.name)}
             </Avatar>
@@ -56,23 +60,29 @@ function MtrxRoomList({ rooms, selectedRoomId = '', onSelect }) {
             secondary={room.roomId}
             slotProps={{
               primary: { noWrap: true, fontSize: 14, fontWeight: 600 },
-              secondary: { noWrap: true, fontSize: 11, color: 'text.secondary' },
+              secondary: {
+                noWrap: true,
+                fontSize: 11,
+                color: "text.secondary",
+              },
             }}
           />
         </ListItemButton>
       ))}
     </List>
-  )
+  );
 }
 
 MtrxRoomList.propTypes = {
-  rooms: PropTypes.arrayOf(PropTypes.shape({
-    roomId: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    avatarUrl: PropTypes.string,
-  })).isRequired,
+  rooms: PropTypes.arrayOf(
+    PropTypes.shape({
+      roomId: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      avatarUrl: PropTypes.string,
+    }),
+  ).isRequired,
   selectedRoomId: PropTypes.string,
   onSelect: PropTypes.func.isRequired,
-}
+};
 
-export default MtrxRoomList
+export default MtrxRoomList;

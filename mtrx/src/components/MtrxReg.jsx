@@ -1,115 +1,124 @@
-import { useState, } from 'react'
-import PropTypes from 'prop-types'
-import { getStoredMatrixData } from '../services/matrixClient'
-
 import {
+  AccountCircle,
+  Close as IconClose,
+  Hub as IconHub,
+  Login as IconLogin,
+  Logout as IconLogout,
+  Lock,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
+import {
+  Alert,
+  Avatar,
   Box,
   Button,
+  Collapse,
+  IconButton,
+  InputAdornment,
   Paper,
   Stack,
   TextField,
   Typography,
-  Alert,
-  Collapse,
-  IconButton,
-  InputAdornment,
-  Avatar
-} from '@mui/material'
-
-import {
-  Login as IconLogin,
-  Logout as IconLogout,
-  Close as IconClose,
-  AccountCircle,
-  Lock,
-  Visibility,
-  VisibilityOff,
-  Hub as IconHub
-} from '@mui/icons-material'
+} from "@mui/material";
+import PropTypes from "prop-types";
+import { useState } from "react";
+import { getStoredMatrixData } from "../services/matrixClient";
 
 function MtrxReg(props) {
-  const {
-    mtrxControlRdcr,
-    mtrxControlActions,
-  } = props
-  
-  const [uriMatrix, setUriMatrix] = useState(() => getStoredMatrixData().uriMatrix)
-  const [login, setLogin] = useState(() => getStoredMatrixData().login)
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const { mtrxControlRdcr, mtrxControlActions } = props;
 
-  const isLoading = mtrxControlRdcr.status === 'loading'
-  const isError = mtrxControlRdcr.status === 'error'
-  const isSuccess = mtrxControlRdcr.status === 'success'
-  const responseData = mtrxControlRdcr.responseData
+  const [uriMatrix, setUriMatrix] = useState(
+    () => getStoredMatrixData().uriMatrix,
+  );
+  const [login, setLogin] = useState(() => getStoredMatrixData().login);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isLoading = mtrxControlRdcr.status === "loading";
+  const isError = mtrxControlRdcr.status === "error";
+  const isSuccess = mtrxControlRdcr.status === "success";
+  const responseData = mtrxControlRdcr.responseData;
 
   const handleSubmit = (event) => {
-    event.preventDefault()
-    if (!login.trim() || !password.trim()) return
-    mtrxControlActions.handleRegister({ login, password, uriMatrix })
-  }
+    event.preventDefault();
+    if (!login.trim() || !password.trim()) return;
+    mtrxControlActions.handleRegister({ login, password, uriMatrix });
+  };
 
   const handleReset = () => {
-    setLogin('')
-    setPassword('')
-    mtrxControlActions.handleRegClear()
-  }
+    setLogin("");
+    setPassword("");
+    mtrxControlActions.handleRegClear();
+  };
 
   const handleClose = () => {
-    mtrxControlActions.handleChangeStore('displayReg', false)
-  }
+    mtrxControlActions.handleChangeStore("displayReg", false);
+  };
 
-  const isSubmitDisabled = isLoading || isSuccess || !login.trim() || !password.trim() || (import.meta.env.DEV && !uriMatrix.trim())
+  const isSubmitDisabled =
+    isLoading ||
+    isSuccess ||
+    !login.trim() ||
+    !password.trim() ||
+    (import.meta.env.DEV && !uriMatrix.trim());
 
   return (
-    <Paper 
-      elevation={12} 
-      sx={{ 
-        maxWidth: 400, 
-        width: { xs: '80vw', sm: '100%' }, 
-        mx: 'auto', 
+    <Paper
+      elevation={12}
+      sx={{
+        maxWidth: 400,
+        width: { xs: "80vw", sm: "100%" },
+        mx: "auto",
         mt: 2,
-        p: { xs: 2, sm: 4 }, 
-        borderRadius: 3, 
-        position: 'relative',
-        boxSizing: 'border-box' 
+        p: { xs: 2, sm: 4 },
+        borderRadius: 3,
+        position: "relative",
+        boxSizing: "border-box",
       }}
     >
-      <IconButton 
-        onClick={handleClose} 
+      <IconButton
+        onClick={handleClose}
         disabled={isLoading}
-        sx={{ position: 'absolute', top: 4, right: 4 }}
+        sx={{ position: "absolute", top: 4, right: 4 }}
       >
         <IconClose color="action" />
       </IconButton>
 
-      <Stack spacing={1} sx={{ alignItems: 'center', mb: 4 }}>
-        <Avatar 
-          sx={{ 
-            width: 56, 
-            height: 56, 
-            backgroundColor: isSuccess ? 'success.light' : 'primary.light', 
+      <Stack spacing={1} sx={{ alignItems: "center", mb: 4 }}>
+        <Avatar
+          sx={{
+            width: 56,
+            height: 56,
+            backgroundColor: isSuccess ? "success.light" : "primary.light",
             mb: 1,
-            transition: 'background-color 0.3s ease'
+            transition: "background-color 0.3s ease",
           }}
         >
-          <IconHub sx={{ fontSize: 32, color: isSuccess ? 'success.main' : 'primary.main' }} />
+          <IconHub
+            sx={{
+              fontSize: 32,
+              color: isSuccess ? "success.main" : "primary.main",
+            }}
+          />
         </Avatar>
         <Typography variant="h5" fontWeight="600">
           Matrix
         </Typography>
-        
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ textAlign: "center" }}
+        >
           {isSuccess
-            ? (responseData?.display_name || responseData?.user_id || '')
-            : 'Введите учетные данные'
-          }
+            ? responseData?.display_name || responseData?.user_id || ""
+            : "Введите учетные данные"}
         </Typography>
       </Stack>
 
       <Box component="form" onSubmit={handleSubmit} noValidate>
         <Stack spacing={2.5}>
-          
           <TextField
             fullWidth
             required
@@ -136,7 +145,7 @@ function MtrxReg(props) {
             disabled={isLoading || isSuccess}
             id="MtrxRegPassword"
             label="Пароль"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             variant="outlined"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -189,7 +198,7 @@ function MtrxReg(props) {
                 size="large"
                 fullWidth
                 disabled={isSubmitDisabled}
-                sx={{ py: 1.3, fontWeight: 'bold', borderRadius: 2 }}
+                sx={{ py: 1.3, fontWeight: "bold", borderRadius: 2 }}
               >
                 Войти в систему
               </Button>
@@ -203,13 +212,12 @@ function MtrxReg(props) {
                 fullWidth
                 onClick={handleReset}
                 disabled={isLoading}
-                sx={{ py: 1.3, fontWeight: 'bold', borderRadius: 2 }}
+                sx={{ py: 1.3, fontWeight: "bold", borderRadius: 2 }}
               >
                 Выйти
               </Button>
             )}
           </Stack>
-
         </Stack>
       </Box>
 
@@ -219,7 +227,7 @@ function MtrxReg(props) {
         </Alert>
       </Collapse>
     </Paper>
-  )
+  );
 }
 
 MtrxReg.propTypes = {
@@ -238,6 +246,6 @@ MtrxReg.propTypes = {
     handleChangeStore: PropTypes.func.isRequired,
     handleRegClear: PropTypes.func.isRequired,
   }).isRequired,
-}
+};
 
-export default MtrxReg
+export default MtrxReg;

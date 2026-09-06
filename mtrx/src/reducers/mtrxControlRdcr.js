@@ -1,87 +1,86 @@
 import {
-  MTRXCTL_STORE_VALUE,
+  MTRXCTL_CLEAR,
   MTRXCTL_ERROR_ALERT,
+  MTRXCTL_STORE_VALUE,
+  MTRXCTL_SUBMIT_ERROR,
   MTRXCTL_SUBMIT_REQUEST,
   MTRXCTL_SUBMIT_SUCCESS,
-  MTRXCTL_SUBMIT_ERROR,
-  MTRXCTL_CLEAR,
-} from '../constants/redux'
-
+} from "../constants/redux";
 
 const initialState = {
   // --- UI ---
-  displayReg      :  true,
-  displayPad      : false,
-  displayControl  : true,
+  displayReg: true,
+  displayPad: false,
+  displayControl: true,
   // --- Auth ---
-  status          : 'idle', // 'idle' | 'loading' | 'success' | 'error'
-  responseData    : null,
+  status: "idle", // 'idle' | 'loading' | 'success' | 'error'
+  responseData: null,
   // Error alert
-  errComponent    : '',
-  errText         : '',
-}
+  errComponent: "",
+  errText: "",
+};
 
 export default function mtrxControlRdcr(state = initialState, action) {
   switch (action.type) {
     case MTRXCTL_SUBMIT_REQUEST:
       return {
         ...state,
-        status: 'loading',
+        status: "loading",
         displayReg: true,
         displayPad: false,
         responseData: null,
-        errComponent: '',
-        errText: '',
-      }
+        errComponent: "",
+        errText: "",
+      };
 
     case MTRXCTL_SUBMIT_SUCCESS:
       return {
         ...state,
-        status: 'success',
+        status: "success",
         displayReg: false,
         displayPad: true,
         responseData: action.payload.responseData,
-        errComponent: '',
-        errText: '',
-      }
+        errComponent: "",
+        errText: "",
+      };
 
     case MTRXCTL_SUBMIT_ERROR: {
-      const errText = action.payload.errText || 'Ошибка'
+      const errText = action.payload.errText || "Ошибка";
       return {
         ...state,
-        status: 'error',
+        status: "error",
         displayReg: true,
         displayPad: false,
         responseData: null,
-        errComponent: 'MtrxReg',
+        errComponent: "MtrxReg",
         errText,
-      }
+      };
     }
 
     case MTRXCTL_CLEAR:
       return {
         ...state,
-        status: 'idle',
+        status: "idle",
         displayPad: false,
         responseData: null,
-        errComponent: '',
-        errText: '',
-      }
+        errComponent: "",
+        errText: "",
+      };
 
     case MTRXCTL_STORE_VALUE:
       return {
         ...state,
         [action.payload.storeDataKey]: action.payload.storeDataValue,
-      }
+      };
 
     case MTRXCTL_ERROR_ALERT:
       return {
         ...state,
         errComponent: action.payload.errComponent,
         errText: action.payload.errText,
-      }
+      };
 
     default:
-      return state
+      return state;
   }
 }

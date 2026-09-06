@@ -1,93 +1,108 @@
-import { useMemo, useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { bindActionCreators } from 'redux'
-import { Grid, Box } from '@mui/material'
-
+import { Box, Grid } from "@mui/material";
+import { useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { bindActionCreators } from "redux";
+import * as authActions from "../actions/authControlActions.js";
 // Actions
-import * as mtrxActions from '../actions/mtrxControlActions.js'
-import * as authActions from '../actions/authControlActions.js'
+import * as mtrxActions from "../actions/mtrxControlActions.js";
 
 // Components
-import AuthAd from '../components/AuthAd.jsx'
-import MtrxReg from '../components/MtrxReg.jsx'
-import MtrxPad from '../components/MtrxPad.jsx'
+import AuthAd from "../components/AuthAd.jsx";
+import MtrxPad from "../components/MtrxPad.jsx";
+import MtrxReg from "../components/MtrxReg.jsx";
 
 const MtrxContainer = () => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
-  const mtrxControlRdcr = useSelector(state => state.mtrxControlRdcr)
-  const authControlRdcr = useSelector(state => state.authControlRdcr)
+  const mtrxControlRdcr = useSelector((state) => state.mtrxControlRdcr);
+  const authControlRdcr = useSelector((state) => state.authControlRdcr);
 
-  const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch])
-  const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch])
+  const mtrxControlActions = useMemo(
+    () => bindActionCreators(mtrxActions, dispatch),
+    [dispatch],
+  );
+  const authControlActions = useMemo(
+    () => bindActionCreators(authActions, dispatch),
+    [dispatch],
+  );
 
   useEffect(() => {
-    mtrxControlActions.handleRestoreSession()
-  }, [mtrxControlActions])
+    mtrxControlActions.handleRestoreSession();
+  }, [mtrxControlActions]);
 
-  const { displayAd, errComponent: authErrComponent } = authControlRdcr
-  const { displayReg, displayPad, errComponent } = mtrxControlRdcr
+  const { displayAd, errComponent: authErrComponent } = authControlRdcr;
+  const { displayReg, displayPad, errComponent } = mtrxControlRdcr;
 
-  const isOverlayActive = displayAd || authErrComponent === 'AuthAd'
-    || displayReg || errComponent === 'MtrxReg'
+  const isOverlayActive =
+    displayAd ||
+    authErrComponent === "AuthAd" ||
+    displayReg ||
+    errComponent === "MtrxReg";
 
   // Стили для оверлеев вынесены из тела рендера для производительности
   const centerOverlayStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
     zIndex: 10,
-    width: 'auto',
-    pointerEvents: 'auto'
-  }
+    width: "auto",
+    pointerEvents: "auto",
+  };
 
   return (
-    <Box 
-      sx={{ 
-        position: 'relative', 
-        width: '100%', 
-        minHeight: isOverlayActive ? '400px' : 'auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
+    <Box
+      sx={{
+        position: "relative",
+        width: "100%",
+        minHeight: isOverlayActive ? "400px" : "auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      
       {/* Центрирование AuthAd */}
-      {(displayAd || authErrComponent === 'AuthAd') && (
+      {(displayAd || authErrComponent === "AuthAd") && (
         <Box sx={centerOverlayStyle}>
-          <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />
+          <AuthAd
+            authControlRdcr={authControlRdcr}
+            authControlActions={authControlActions}
+          />
         </Box>
       )}
 
       {/* Центрирование MtrxReg */}
-      {(displayReg || errComponent === 'MtrxReg') && (
+      {(displayReg || errComponent === "MtrxReg") && (
         <Box sx={centerOverlayStyle}>
-          <MtrxReg mtrxControlRdcr={mtrxControlRdcr} mtrxControlActions={mtrxControlActions} />
+          <MtrxReg
+            mtrxControlRdcr={mtrxControlRdcr}
+            mtrxControlActions={mtrxControlActions}
+          />
         </Box>
       )}
 
-      <Grid 
-        container 
-        spacing={2} 
-        sx={{ 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          width: '100%' 
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
         }}
       >
-        
         {/* Мессенджер */}
-        {(displayPad || errComponent === 'MtrxPad') && (
-          <Grid size={{ xs: 12, md: 'auto' }}>
-            <MtrxPad mtrxControlRdcr={mtrxControlRdcr} mtrxControlActions={mtrxControlActions} showInput />
+        {(displayPad || errComponent === "MtrxPad") && (
+          <Grid size={{ xs: 12, md: "auto" }}>
+            <MtrxPad
+              mtrxControlRdcr={mtrxControlRdcr}
+              mtrxControlActions={mtrxControlActions}
+              showInput
+            />
           </Grid>
         )}
-
       </Grid>
     </Box>
-  )
-}
+  );
+};
 
-export default MtrxContainer
+export default MtrxContainer;

@@ -1,8 +1,8 @@
-import { combineReducers }  from 'redux'
-import mtrxControlRdcr      from './mtrxControlRdcr'
-import authControlRdcr      from './authControlRdcr'
+import { combineReducers } from "redux";
+import authControlRdcr from "./authControlRdcr";
+import mtrxControlRdcr from "./mtrxControlRdcr";
 
 export default combineReducers({
   mtrxControlRdcr,
   authControlRdcr,
-})
+});

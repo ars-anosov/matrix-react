@@ -1,82 +1,86 @@
-import { useState, useEffect } from 'react'
-import PropTypes from 'prop-types'
-import { getStoredMatrixData } from '../services/matrixClient'
-
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import MenuIcon from "@mui/icons-material/Menu";
 import {
-  Box,
-  Stack,
   AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Popover,
-  Drawer,
-  List,
-  ListItemButton,
-  ListItemText,
-  ListItemIcon,
+  Box,
   Checkbox,
   Divider,
-} from '@mui/material'
-
-import { useTheme } from '@mui/material/styles'
-
-import MenuIcon         from '@mui/icons-material/Menu'
-import ChevronLeftIcon  from '@mui/icons-material/ChevronLeft'
-
-import AuthIco          from './AuthIco'
-import AuthAdInfo       from './AuthAdInfo'
-import MtrxIco          from './MtrxIco'
-import MtrxInfo         from './MtrxInfo'
-import Copyright        from '../Copyright'
-
-
+  Drawer,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Popover,
+  Stack,
+  Toolbar,
+  Typography,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import PropTypes from "prop-types";
+import { useEffect, useState } from "react";
+import Copyright from "../Copyright";
+import { getStoredMatrixData } from "../services/matrixClient";
+import AuthAdInfo from "./AuthAdInfo";
+import AuthIco from "./AuthIco";
+import MtrxIco from "./MtrxIco";
+import MtrxInfo from "./MtrxInfo";
 
 const MENU_ITEMS_MTRX = [
-  { key: 'displayReg', primary: 'Matrix Вход', secondary: 'MtrxReg.jsx' },
-  { key: 'displayPad', primary: 'Matrix Мессенджер', secondary: 'MtrxPad.jsx' },
-  { key: 'displayControl', primary: 'Matrix Кругляш', secondary: 'MtrxIco.jsx' },
-]
+  { key: "displayReg", primary: "Matrix Вход", secondary: "MtrxReg.jsx" },
+  { key: "displayPad", primary: "Matrix Мессенджер", secondary: "MtrxPad.jsx" },
+  {
+    key: "displayControl",
+    primary: "Matrix Кругляш",
+    secondary: "MtrxIco.jsx",
+  },
+];
 
 const MENU_ITEMS_AUTH = [
-  { key: 'displayAd', primary: 'AD Авторизация', secondary: 'AuthAd.jsx' },
-  { key: 'displayControl', primary: 'AD Кругляш', secondary: 'AuthIco.jsx' },
-]
-
-
+  { key: "displayAd", primary: "AD Авторизация", secondary: "AuthAd.jsx" },
+  { key: "displayControl", primary: "AD Кругляш", secondary: "AuthIco.jsx" },
+];
 
 function MenuAppBar(props) {
-  const { mtrxControlRdcr, mtrxControlActions, authControlRdcr, authControlActions } = props
+  const {
+    mtrxControlRdcr,
+    mtrxControlActions,
+    authControlRdcr,
+    authControlActions,
+  } = props;
 
   useEffect(() => {
-    if (import.meta.env.DEV) console.log('MenuAppBar MOUNT')
+    if (import.meta.env.DEV) console.log("MenuAppBar MOUNT");
 
     return () => {
-      if (import.meta.env.DEV) console.log('MenuAppBar UNMOUNT')
-    }
-  }, [])
+      if (import.meta.env.DEV) console.log("MenuAppBar UNMOUNT");
+    };
+  }, []);
 
-  const theme = useTheme()
+  const theme = useTheme();
 
-  const rawToolbarHeight = theme?.mixins?.toolbar?.maxHeight
-  const toolbarHeight = typeof rawToolbarHeight === 'number'
-    ? rawToolbarHeight
-    : (rawToolbarHeight ? parseInt(String(rawToolbarHeight).replace('px', ''), 10) : 64)
+  const rawToolbarHeight = theme?.mixins?.toolbar?.maxHeight;
+  const toolbarHeight =
+    typeof rawToolbarHeight === "number"
+      ? rawToolbarHeight
+      : rawToolbarHeight
+        ? parseInt(String(rawToolbarHeight).replace("px", ""), 10)
+        : 64;
 
-    const [anchorEl_mtrxControl, setAnchorEl_mtrxControl] = useState(null)
-    const [anchorEl_adControl, setAnchorEl_adControl] = useState(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [anchorEl_mtrxControl, setAnchorEl_mtrxControl] = useState(null);
+  const [anchorEl_adControl, setAnchorEl_adControl] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleOpenMenu = () => setDrawerOpen(true)
-  const handleCloseMenu = () => setDrawerOpen(false)
+  const handleOpenMenu = () => setDrawerOpen(true);
+  const handleCloseMenu = () => setDrawerOpen(false);
 
   const toggleDisplayMtrx = (keyName) => {
-    mtrxControlActions.handleChangeStore(keyName, !mtrxControlRdcr[keyName])
-  }
+    mtrxControlActions.handleChangeStore(keyName, !mtrxControlRdcr[keyName]);
+  };
   const toggleDisplayAuth = (keyName) => {
-    authControlActions.handleChangeStore(keyName, !authControlRdcr[keyName])
-  }
-  
+    authControlActions.handleChangeStore(keyName, !authControlRdcr[keyName]);
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -99,21 +103,36 @@ function MenuAppBar(props) {
             onClose={handleCloseMenu}
             slotProps={{
               backdrop: {
-                sx: { backgroundColor: 'transparent' } 
-              }
+                sx: { backgroundColor: "transparent" },
+              },
             }}
           >
-            <Stack direction="row" spacing={2}
+            <Stack
+              direction="row"
+              spacing={2}
               sx={{ p: 1, height: toolbarHeight }}
             >
-              <Box component="img" src="img/Vite.png" sx={{ height: '100%', width: 'auto' }} alt="Vite" />
-              <Box component="img" src="img/React.png" sx={{ height: '100%', width: 'auto' }} alt="React" />
+              <Box
+                component="img"
+                src="img/Vite.png"
+                sx={{ height: "100%", width: "auto" }}
+                alt="Vite"
+              />
+              <Box
+                component="img"
+                src="img/React.png"
+                sx={{ height: "100%", width: "auto" }}
+                alt="React"
+              />
               <Box sx={{ flexGrow: 1 }} />
-              <IconButton onClick={handleCloseMenu} >
-                <ChevronLeftIcon color='primary' sx={{ height: '100%', width: 'auto' }} />
+              <IconButton onClick={handleCloseMenu}>
+                <ChevronLeftIcon
+                  color="primary"
+                  sx={{ height: "100%", width: "auto" }}
+                />
               </IconButton>
             </Stack>
-            
+
             <Divider />
 
             <List>
@@ -124,7 +143,7 @@ function MenuAppBar(props) {
                   <ListItemButton
                     key={item.key}
                     onClick={() => toggleDisplayMtrx(item.key)}
-                    sx={{ alignItems: 'flex-start' }}
+                    sx={{ alignItems: "flex-start" }}
                   >
                     <ListItemIcon>
                       <Checkbox
@@ -132,7 +151,7 @@ function MenuAppBar(props) {
                         checked={isChecked}
                         tabIndex={-1}
                         disableRipple
-                        slotProps={{ input: { 'aria-labelledby': labelId } }}
+                        slotProps={{ input: { "aria-labelledby": labelId } }}
                       />
                     </ListItemIcon>
                     <ListItemText
@@ -141,7 +160,7 @@ function MenuAppBar(props) {
                       secondary={item.secondary}
                     />
                   </ListItemButton>
-                )
+                );
               })}
             </List>
 
@@ -155,7 +174,7 @@ function MenuAppBar(props) {
                   <ListItemButton
                     key={item.key}
                     onClick={() => toggleDisplayAuth(item.key)}
-                    sx={{ alignItems: 'flex-start' }}
+                    sx={{ alignItems: "flex-start" }}
                   >
                     <ListItemIcon>
                       <Checkbox
@@ -163,7 +182,7 @@ function MenuAppBar(props) {
                         checked={isChecked}
                         tabIndex={-1}
                         disableRipple
-                        slotProps={{ input: { 'aria-labelledby': labelId } }}
+                        slotProps={{ input: { "aria-labelledby": labelId } }}
                       />
                     </ListItemIcon>
                     <ListItemText
@@ -172,23 +191,21 @@ function MenuAppBar(props) {
                       secondary={item.secondary}
                     />
                   </ListItemButton>
-                )
+                );
               })}
             </List>
 
-            <Box 
-              sx={{ 
-                mt: 'auto', // Выталкивает блок в самый низ контейнера
-                p: 2, 
-                textAlign: 'center' 
+            <Box
+              sx={{
+                mt: "auto", // Выталкивает блок в самый низ контейнера
+                p: 2,
+                textAlign: "center",
               }}
             >
               <Divider sx={{ mb: 2 }} />
-              <Copyright showFull={false}/>
+              <Copyright showFull={false} />
             </Box>
           </Drawer>
-
-
 
           <Typography variant="h6" component="div">
             Matrix
@@ -200,23 +217,23 @@ function MenuAppBar(props) {
             <Stack
               direction="row"
               spacing={1}
-              sx={{ cursor: 'pointer', alignItems: 'center' }}
+              sx={{ cursor: "pointer", alignItems: "center" }}
               onClick={(e) => setAnchorEl_mtrxControl(e.currentTarget)}
             >
               <Typography variant="caption" sx={{ pl: 1 }}>
-                {mtrxControlRdcr?.responseData?.display_name
-                  || mtrxControlRdcr?.responseData?.user_id
-                  || ''}
+                {mtrxControlRdcr?.responseData?.display_name ||
+                  mtrxControlRdcr?.responseData?.user_id ||
+                  ""}
               </Typography>
               <MtrxIco mtrxControlRdcr={mtrxControlRdcr} />
             </Stack>
           )}
 
           {authControlRdcr.displayControl && (
-            <Stack 
-              direction="row" 
-              spacing={1} 
-              sx={{ cursor: 'pointer', alignItems: 'center' }}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ cursor: "pointer", alignItems: "center" }}
               onClick={(e) => setAnchorEl_adControl(e.currentTarget)}
             >
               <Typography variant="caption" sx={{ pl: 1 }}>
@@ -225,7 +242,6 @@ function MenuAppBar(props) {
               <AuthIco authControlRdcr={authControlRdcr} />
             </Stack>
           )}
-
         </Toolbar>
       </AppBar>
 
@@ -234,11 +250,13 @@ function MenuAppBar(props) {
         open={Boolean(anchorEl_mtrxControl)}
         anchorEl={anchorEl_mtrxControl}
         onClose={() => setAnchorEl_mtrxControl(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        transformOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Box sx={{ p: 1 }}>
-          <Typography variant="body2">{getStoredMatrixData().uriMatrix}</Typography>
+          <Typography variant="body2">
+            {getStoredMatrixData().uriMatrix}
+          </Typography>
           <Divider />
           <MtrxInfo
             mtrxControlRdcr={mtrxControlRdcr}
@@ -249,17 +267,15 @@ function MenuAppBar(props) {
       </Popover>
 
       <Popover
-        id='adControl_id'
+        id="adControl_id"
         open={Boolean(anchorEl_adControl)}
         anchorEl={anchorEl_adControl}
         onClose={() => setAnchorEl_adControl(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        transformOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Box
-          sx={{ p: 1 }}
-        >
-          <Typography variant='body2'>{authControlRdcr.uriAdAuth}</Typography>
+        <Box sx={{ p: 1 }}>
+          <Typography variant="body2">{authControlRdcr.uriAdAuth}</Typography>
           <Divider />
           <AuthAdInfo
             authControlRdcr={authControlRdcr}
@@ -268,9 +284,8 @@ function MenuAppBar(props) {
           />
         </Box>
       </Popover>
-
     </Box>
-  )
+  );
 }
 
 MenuAppBar.propTypes = {
@@ -278,6 +293,6 @@ MenuAppBar.propTypes = {
   mtrxControlActions: PropTypes.object.isRequired,
   authControlRdcr: PropTypes.object,
   authControlActions: PropTypes.object,
-}
+};
 
-export default MenuAppBar
+export default MenuAppBar;

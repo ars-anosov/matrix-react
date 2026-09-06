@@ -1,60 +1,59 @@
-import { useEffect, useMemo } from 'react'
-import PropTypes from 'prop-types'
-import { IconButton, keyframes, useTheme, alpha } from '@mui/material'
-
-import IconHub from '@mui/icons-material/Hub'
-import IconLinkOff from '@mui/icons-material/LinkOff'
-import IconSync from '@mui/icons-material/Sync'
+import IconHub from "@mui/icons-material/Hub";
+import IconLinkOff from "@mui/icons-material/LinkOff";
+import IconSync from "@mui/icons-material/Sync";
+import { alpha, IconButton, keyframes, useTheme } from "@mui/material";
+import PropTypes from "prop-types";
+import { useEffect, useMemo } from "react";
 
 const pulse = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); transform: scale(1); }
   70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); transform: scale(1.05); }
   100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); transform: scale(1); }
-`
+`;
 
 function MtrxIco({ mtrxControlRdcr }) {
-  const theme = useTheme()
-  const status = mtrxControlRdcr?.status
+  const theme = useTheme();
+  const status = mtrxControlRdcr?.status;
 
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.log('MtrxIco MOUNT')
-      return () => console.log('MtrxIco UNMOUNT')
+      console.log("MtrxIco MOUNT");
+      return () => console.log("MtrxIco UNMOUNT");
     }
-  }, [])
+  }, []);
 
   const cfg = useMemo(() => {
     switch (status) {
-      case 'loading':
+      case "loading":
         return {
           icon: <IconSync />,
           bg: theme.palette.warning.main,
           color: theme.palette.warning.contrastText,
           pulse: true,
-        }
-      case 'success':
+        };
+      case "success":
         return {
           icon: <IconHub />,
           bg: alpha(theme.palette.common.white, 0.2),
           color: theme.palette.common.white,
           pulse: false,
-        }
-      case 'error':
+        };
+      case "error":
         return {
           icon: <IconLinkOff />,
           bg: theme.palette.error.dark,
           color: theme.palette.error.contrastText,
           pulse: false,
-        }
+        };
       default:
         return {
           icon: <IconHub />,
           bg: alpha(theme.palette.common.black, 0.2),
           color: theme.palette.action.disabled,
           pulse: false,
-        }
+        };
     }
-  }, [status, theme])
+  }, [status, theme]);
 
   return (
     <IconButton
@@ -66,29 +65,32 @@ function MtrxIco({ mtrxControlRdcr }) {
         backgroundColor: cfg.bg,
         color: cfg.color,
         border: `1px solid ${alpha(theme.palette.common.white, 0.3)}`,
-        animation: cfg.pulse ? `${pulse} 1.2s infinite` : 'none',
-        transition: theme.transitions.create(['background-color', 'transform', 'box-shadow'], {
-          duration: theme.transitions.duration.short,
-        }),
-        '&:hover': {
+        animation: cfg.pulse ? `${pulse} 1.2s infinite` : "none",
+        transition: theme.transitions.create(
+          ["background-color", "transform", "box-shadow"],
+          {
+            duration: theme.transitions.duration.short,
+          },
+        ),
+        "&:hover": {
           backgroundColor: cfg.bg,
-          filter: 'brightness(1.1)',
-          transform: 'translateY(-1px)',
+          filter: "brightness(1.1)",
+          transform: "translateY(-1px)",
         },
-        '& .MuiSvgIcon-root': {
-          fontSize: '1.6rem',
+        "& .MuiSvgIcon-root": {
+          fontSize: "1.6rem",
         },
       }}
     >
       {cfg.icon}
     </IconButton>
-  )
+  );
 }
 
 MtrxIco.propTypes = {
   mtrxControlRdcr: PropTypes.shape({
-    status: PropTypes.oneOf(['idle', 'loading', 'success', 'error']),
+    status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
   }).isRequired,
-}
+};
 
-export default MtrxIco
+export default MtrxIco;
