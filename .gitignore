@@ -1,5 +1,6 @@
 # Dependency directories
 node_modules/
+dist/
 
 # test app
 vite-react-app/

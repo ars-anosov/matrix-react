@@ -18,5 +18,5 @@ export default function App() {
       <MtrxContainer />
       <Copyright showFull={true} />
     </Container>
-  );
+  )
 }
