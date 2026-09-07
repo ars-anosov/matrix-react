@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-# Выкладка mtrx/dist на сервер по rsync/SSH.
+# Выкладка dist на сервер по rsync/SSH.
 # Переменные (опционально): DEPLOY_USER, DEPLOY_HOST, DEPLOY_PATH
 set -euo pipefail
 
 ROOT="$(pwd)"
+DIST="${ROOT}/dist"
+
+DEPLOY_USER="${DEPLOY_USER:-root}"
+DEPLOY_HOST="${DEPLOY_HOST:-ars-dev.ru}"
+DEPLOY_PATH="${DEPLOY_PATH:-/var/www/html/matrix-react/}"
 DIST="${ROOT}/dist"
 
 DEPLOY_USER="${DEPLOY_USER:-root}"

@@ -22,14 +22,5 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit",
     "source.organizeImports.biome": "explicit"
-  },
-  "biome.configurationPath": "mtrx/biome.json",
-  "biome.lsp.bin": {
-    "linux-x64": "./mtrx/node_modules/@biomejs/cli-linux-x64/biome",
-    "linux-arm64": "./mtrx/node_modules/@biomejs/cli-linux-arm64/biome",
-    "darwin-arm64": "./mtrx/node_modules/@biomejs/cli-darwin-arm64/biome",
-    "darwin-x64": "./mtrx/node_modules/@biomejs/cli-darwin-x64/biome",
-    "win32-x64": "./mtrx/node_modules/@biomejs/cli-win32-x64/biome.exe",
-    "win32-arm64": "./mtrx/node_modules/@biomejs/cli-win32-arm64/biome.exe"
   }
 }

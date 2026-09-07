@@ -6,7 +6,7 @@
 
 - Основное приложение: `mtrx/`
 - Исходники: `mtrx/src/`
-- Сборка: `npm run build` → `mtrx/dist`
+- Сборка: `npm run build` → `dist`
 
 ## Компоненты Matrix
 
