@@ -30,21 +30,23 @@
 
 ```
 matrix-react/
-├── mtrx/                 # рабочее приложение (Vite + React)
-│   ├── src/
-│   │   ├── components/   # UI-компоненты (MtrxReg, MtrxPad, AuthAd, …)
-│   │   ├── containers/   # Redux-контейнеры (MtrxContainer, MenuAppContainer)
-│   │   ├── actions/      # Redux actions (thunk)
-│   │   ├── reducers/     # Redux reducers (*Rdcr)
-│   │   ├── services/     # вся логика Matrix (matrixClient.js, matrixSdk.js)
-│   │   ├── store/        # configureStore
-│   │   ├── constants/    # action types, storage keys
-│   │   └── theme.js      # тема MUI
-│   ├── mock/             # mock API для dev (vite plugin)
-│   ├── dist/             # результат npm run build
-│   └── package.json
-├── tools/                # заметки по Node.js, Vite, MUI
-└── img/                  # скриншоты для README
+├── src/                  # рабочее приложение (Vite + React)
+│   ├── components/       # UI-компоненты (MtrxReg, MtrxPad, AuthAd, …)
+│   ├── containers/       # Redux-контейнеры (MtrxContainer, MenuAppContainer)
+│   ├── actions/          # Redux actions (thunk)
+│   ├── reducers/         # Redux reducers (*Rdcr)
+│   ├── services/         # вся логика Matrix (matrixClient.js, matrixSdk.js)
+│   ├── store/            # configureStore
+│   ├── constants/        # action types, storage keys
+│   ├── main.jsx          # точка входа (React root, Provider)
+│   └── theme.js          # тема MUI
+├── mock/                 # mock API для dev (vite plugin)
+├── public/               # статика: img/, sounds/, sw.js
+├── dist/                 # результат npm run build
+├── index.html            # точка входа Vite
+├── deploy.sh             # выкладка dist по rsync/SSH
+├── img/                  # скриншоты для README
+└── package.json
 ```
 
 ---
@@ -74,7 +76,7 @@ npm run serve    # preview, порт 4173
 
 ## Архитектура Matrix
 
-- Вся логика Matrix располагается в `mtrx/src/services/` (директория называется `services`, не `srvices`).
+- Вся логика Matrix располагается в `src/services/` (директория называется `services`, не `srvices`).
 - `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle.
 - Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage
   и не вызывают Matrix API напрямую.

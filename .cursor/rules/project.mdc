@@ -21,9 +21,11 @@ matrix-react/
 │   ├── constants/         # action types, storage keys
 │   └── theme.js           # тема MUI
 ├── mock/                  # mock API для dev (vite plugin)
+├── public/                # статика: img/, sounds/, sw.js
 ├── dist/                  # результат npm run build
 ├── package.json
-├── tools/                 # заметки по Node.js, Vite, MUI
+├── index.html             # точка входа Vite
+├── deploy.sh              # выкладка dist по rsync/SSH
 └── img/                   # скриншоты для README
 ```
 
