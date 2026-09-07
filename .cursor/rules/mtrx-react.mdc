@@ -1,16 +1,26 @@
 ---
-description: "Соглашения React/Redux/MUI для mtrx"
+description: \"Соглашения React/Redux/MUI для mtrx — синхронизировано с CLAUDE.md\"
 globs: mtrx/**/*.{jsx,js}
 alwaysApply: false
 ---
 
 # Соглашения кода mtrx
 
-## Компоненты
+## Архитектура Matrix
+
+- Вся логика Matrix располагается в `mtrx/src/services/` (директория называется `services`, не `srvices`).
+- `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle.
+- Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают Matrix API напрямую.
+- Redux actions только валидируют UI-ввод, вызывают методы сервисов и преобразуют результат в Redux actions. Reducers не содержат Matrix-логики.
+- Новую Matrix-функцию сначала добавлять в подходящий сервис; наружу экспортировать небольшой доменный API вместо SDK-объектов.
+- Не дублировать `createClient`, `startClient`, `whoami`, `logout`, работу с токенами или обработку Matrix-событий в компонентах/actions.
+- Не дублировать низкоуровневую логику SDK.
+
+## React
 
 - Функциональные компоненты, `PropTypes` для публичных props.
-- Презентационные — в `components/`, подключённые к store — в `containers/`.
-- UI — Material UI (`@mui/material`, `@mui/icons-material`).
+- Презентационные компоненты — в `components/`, подключённые к store — в `containers/`.
+- UI — только Material UI (`@mui/material`, `@mui/icons-material`).
 
 ## Redux
 
@@ -18,35 +28,21 @@ alwaysApply: false
 - Reducers: `mtrxControlRdcr`, `authControlRdcr`; actions: `mtrxControlActions`, `authControlActions`.
 - В контейнерах: `useSelector`, `bindActionCreators` + `useMemo`.
 
-## Matrix
+## Прочее
 
-- Ключевые компоненты: `MtrxReg` (регистрация/вход), `MtrxPad` (чат), `AuthAd` (интеграция с AD).
-- Вся логика Matrix — в `mtrx/src/services/` (директория называется `services`, не `srvices`).
-- `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle.
-- Компоненты не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают Matrix API напрямую.
-- Redux actions только валидируют UI-ввод, вызывают методы сервисов и преобразуют результат в actions. Reducers не содержат Matrix-логики.
-- Новую Matrix-функцию сначала добавляй в подходящий сервис; наружу экспортируй небольшой доменный API вместо SDK-объектов.
-- Не дублируй `createClient`, `startClient`, `whoami`, `logout`, работу с токенами и обработку Matrix-событий в компонентах и actions.
-- Не дублируй низкоуровневую логику SDK.
-
-## HTTP
-
-- Запросы — через `ky`; ошибки — `actions/utils/kyError.js`.
-
-## Стиль
-
-- Комментарии на русском, кратко и по делу.
-- `localStorage`-ключи — в `constants/storage.js`.
-- Vite: `base: './'` — сохранять относительные пути для деплоя из `dist`.
+- Ключи `localStorage` — в `constants/storage.js`.
+- Ошибки HTTP — `actions/utils/kyError.js`; запросы — через `ky`.
+- Vite `base: './'` — сохранять относительные пути для статического деплоя из `dist`.
 
 ## Эталон интерфейса
 
-- Для Matrix-чата используй [Cinny](https://github.com/cinnyapp/cinny) как референс UX и структуры экранов.
-- Предпочитай простой, элегантный, безопасный и современный интерфейс с ясной визуальной иерархией.
-- Используй идеи взаимодействия как ориентир, но не копируй код, ассеты или фирменный дизайн Cinny.
-- Реализуй решения средствами текущего JavaScript/React/MUI-стека; не переносить TypeScript-архитектуру Cinny.
+- Референс Matrix UX и структуры чат-клиента — [Cinny](https://github.com/cinnyapp/cinny).
+- Ориентир: простой, элегантный, безопасный и современный интерфейс для ежедневной переписки, с ясной визуальной иерархией.
+- Перенимать принципы взаимодействия и визуальной иерархии, но не копировать код, ассеты или фирменный дизайн напрямую.
+- Реализовывать средствами текущего стека (JavaScript, React, MUI, Redux, matrix-js-sdk).
 
-## Отступы
+## Стиль оформления
 
-- Используй отступ `2` пробела.
-- Для отступов используй только символы `Space`, символы табуляции `Tab` в код не добавляй.
+- Комментарии и документация — на русском, кратко и по делу.
+- Отступ — `2` пробела.
+- Для отступов использовать только символы `Space`; символы табуляции `Tab` в код не добавлять.
