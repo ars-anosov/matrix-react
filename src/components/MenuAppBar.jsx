@@ -20,7 +20,6 @@ import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import Copyright from "../Copyright";
-import { getStoredMatrixData } from "../services/matrixClient";
 import AuthAdInfo from "./AuthAdInfo";
 import AuthIco from "./AuthIco";
 import MtrxIco from "./MtrxIco";
@@ -255,7 +254,7 @@ function MenuAppBar(props) {
       >
         <Box sx={{ p: 1 }}>
           <Typography variant="body2">
-            {getStoredMatrixData().uriMatrix}
+            {mtrxControlRdcr.uriMatrix}
           </Typography>
           <Divider />
           <MtrxInfo

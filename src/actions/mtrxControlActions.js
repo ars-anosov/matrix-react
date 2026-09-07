@@ -1,5 +1,7 @@
 import {
   MTRXCTL_CLEAR,
+  MTRXCTL_SET_ROOMS,
+  MTRXCTL_STORE_MATRIX_DATA,
   MTRXCTL_STORE_VALUE,
   MTRXCTL_SUBMIT_ERROR,
   MTRXCTL_SUBMIT_REQUEST,
@@ -7,16 +9,20 @@ import {
 } from "../constants/redux";
 import {
   getActiveMatrixSession,
+  getJoinedRooms,
+  getStoredMatrixData,
   invalidateMatrixSession,
   loginMatrix,
   logoutMatrix,
   restoreMatrixSession,
   watchMatrixSession,
+  watchRoomChanges,
 } from "../services/matrixClient";
 import { getMatrixErrorMessage } from "./utils/matrixError";
 
 let restoreSessionPromise = null;
 let sessionOperationId = 0;
+let unsubscribeRoomChanges = null;
 
 function dispatchMatrixSuccess(dispatch, session) {
   dispatch({
@@ -87,7 +93,18 @@ const handleRegClear = () => async (dispatch) => {
   dispatch({ type: MTRXCTL_CLEAR });
 };
 
+const handleHydrateStoredMatrixData = () => (dispatch) => {
+  const { uriMatrix, login } = getStoredMatrixData();
+  dispatch({
+    type: MTRXCTL_STORE_MATRIX_DATA,
+    payload: { uriMatrix, login },
+  });
+};
+
 const handleRestoreSession = () => (dispatch, getState) => {
+  // Синхронно заполняем сохранённые uriMatrix/login до проверок статуса
+  dispatch(handleHydrateStoredMatrixData());
+
   // Если в Redux статус уже success — ничего не делаем
   if (getState().mtrxControlRdcr.status === "success") return;
   // Если промис восстановления уже запущен — возвращаем его, избегая дублирования
@@ -138,9 +155,35 @@ const handleChangeStore = (storeDataKey, storeDataValue) => (dispatch) => {
   });
 };
 
+const handleLoadRooms = () => async (dispatch) => {
+  try {
+    const rooms = await getJoinedRooms();
+    dispatch({ type: MTRXCTL_SET_ROOMS, payload: { rooms } });
+  } catch {
+    dispatch({ type: MTRXCTL_SET_ROOMS, payload: { rooms: [] } });
+  }
+};
+
+const handleStartRoomWatch = () => (dispatch) => {
+  if (unsubscribeRoomChanges) return;
+
+  unsubscribeRoomChanges = watchRoomChanges(() => {
+    dispatch(handleLoadRooms());
+  });
+};
+
+const handleStopRoomWatch = () => () => {
+  unsubscribeRoomChanges?.();
+  unsubscribeRoomChanges = null;
+};
+
 export {
   handleChangeStore,
+  handleHydrateStoredMatrixData,
+  handleLoadRooms,
   handleRegClear,
   handleRegister,
   handleRestoreSession,
+  handleStartRoomWatch,
+  handleStopRoomWatch,
 };

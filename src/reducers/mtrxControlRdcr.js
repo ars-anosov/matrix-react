@@ -1,6 +1,8 @@
 import {
   MTRXCTL_CLEAR,
   MTRXCTL_ERROR_ALERT,
+  MTRXCTL_SET_ROOMS,
+  MTRXCTL_STORE_MATRIX_DATA,
   MTRXCTL_STORE_VALUE,
   MTRXCTL_SUBMIT_ERROR,
   MTRXCTL_SUBMIT_REQUEST,
@@ -15,6 +17,10 @@ const initialState = {
   // --- Auth ---
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,
+  // --- Stored matrix data / rooms ---
+  uriMatrix: "",
+  login: "",
+  rooms: [],
   // Error alert
   errComponent: "",
   errText: "",
@@ -29,6 +35,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayReg: true,
         displayPad: false,
         responseData: null,
+        rooms: [],
         errComponent: "",
         errText: "",
       };
@@ -40,6 +47,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayReg: false,
         displayPad: true,
         responseData: action.payload.responseData,
+        rooms: [],
         errComponent: "",
         errText: "",
       };
@@ -52,6 +60,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayReg: true,
         displayPad: false,
         responseData: null,
+        rooms: [],
         errComponent: "MtrxReg",
         errText,
       };
@@ -63,6 +72,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         status: "idle",
         displayPad: false,
         responseData: null,
+        rooms: [],
         errComponent: "",
         errText: "",
       };
@@ -78,6 +88,19 @@ export default function mtrxControlRdcr(state = initialState, action) {
         ...state,
         errComponent: action.payload.errComponent,
         errText: action.payload.errText,
+      };
+
+    case MTRXCTL_STORE_MATRIX_DATA:
+      return {
+        ...state,
+        uriMatrix: action.payload.uriMatrix,
+        login: action.payload.login,
+      };
+
+    case MTRXCTL_SET_ROOMS:
+      return {
+        ...state,
+        rooms: action.payload.rooms,
       };
 
     default:

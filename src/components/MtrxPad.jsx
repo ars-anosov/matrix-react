@@ -10,7 +10,6 @@ import {
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
-import { getJoinedRooms, watchRoomChanges } from "../services/matrixClient";
 import MtrxRoomList from "./MtrxRoomList";
 
 function MtrxPad(props) {
@@ -18,7 +17,14 @@ function MtrxPad(props) {
 
   const { mtrxControlRdcr, mtrxControlActions } = props;
 
-  const [rooms, setRooms] = useState([]);
+  const {
+    handleChangeStore,
+    handleLoadRooms,
+    handleStartRoomWatch,
+    handleStopRoomWatch,
+  } = mtrxControlActions;
+
+  const rooms = mtrxControlRdcr.rooms || [];
   const [selectedRoomId, setSelectedRoomId] = useState("");
 
   useEffect(() => {
@@ -30,37 +36,23 @@ function MtrxPad(props) {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadRooms = async () => {
-      try {
-        const joinedRooms = await getJoinedRooms();
-        if (isMounted) setRooms(joinedRooms);
-      } catch {
-        if (isMounted) setRooms([]);
-      }
-    };
-
-    if (mtrxControlRdcr.status === "success") {
-      loadRooms();
-      const unsubscribe = watchRoomChanges(() => {
-        loadRooms();
-      });
-      return () => {
-        unsubscribe();
-        isMounted = false;
-      };
+    if (mtrxControlRdcr.status !== "success") {
+      setSelectedRoomId("");
+      return;
     }
 
-    setRooms([]);
-    setSelectedRoomId("");
-    return () => {
-      isMounted = false;
-    };
-  }, [mtrxControlRdcr.status]);
+    handleLoadRooms();
+    handleStartRoomWatch();
+    return () => handleStopRoomWatch();
+  }, [
+    mtrxControlRdcr.status,
+    handleLoadRooms,
+    handleStartRoomWatch,
+    handleStopRoomWatch,
+  ]);
 
   const handleClose = () => {
-    mtrxControlActions.handleChangeStore("displayPad", false);
+    handleChangeStore("displayPad", false);
   };
 
   return (

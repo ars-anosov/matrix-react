@@ -23,15 +23,12 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { getStoredMatrixData } from "../services/matrixClient";
 
 function MtrxReg(props) {
   const { mtrxControlRdcr, mtrxControlActions } = props;
 
-  const [uriMatrix, setUriMatrix] = useState(
-    () => getStoredMatrixData().uriMatrix,
-  );
-  const [login, setLogin] = useState(() => getStoredMatrixData().login);
+  const uriMatrix = mtrxControlRdcr.uriMatrix;
+  const login = mtrxControlRdcr.login;
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -47,7 +44,7 @@ function MtrxReg(props) {
   };
 
   const handleReset = () => {
-    setLogin("");
+    mtrxControlActions.handleChangeStore("login", "");
     setPassword("");
     mtrxControlActions.handleRegClear();
   };
@@ -127,7 +124,9 @@ function MtrxReg(props) {
             label="Логин"
             variant="outlined"
             value={login}
-            onChange={(event) => setLogin(event.target.value)}
+            onChange={(event) =>
+              mtrxControlActions.handleChangeStore("login", event.target.value)
+            }
             slotProps={{
               input: {
                 startAdornment: (
@@ -183,7 +182,12 @@ function MtrxReg(props) {
               variant="outlined"
               size="small"
               value={uriMatrix}
-              onChange={(event) => setUriMatrix(event.target.value)}
+              onChange={(event) =>
+                mtrxControlActions.handleChangeStore(
+                  "uriMatrix",
+                  event.target.value,
+                )
+              }
               sx={{ opacity: 0.8 }}
             />
           )}
@@ -233,6 +237,7 @@ function MtrxReg(props) {
 MtrxReg.propTypes = {
   mtrxControlRdcr: PropTypes.shape({
     uriMatrix: PropTypes.string,
+    login: PropTypes.string,
     status: PropTypes.string,
     errText: PropTypes.string,
     responseData: PropTypes.shape({
