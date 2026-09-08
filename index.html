@@ -8,8 +8,12 @@
   </head>
   <body>
     <script type="text/javascript">
-      localStorage.setItem('uriMatrix', 'https://matrix.ars-dev.ru')
-      localStorage.setItem('uriAdAuth', 'http://localhost:3000/user/ad')
+      if (!localStorage.getItem('uriMatrix')) {
+        localStorage.setItem('uriMatrix', 'https://matrix.ars-dev.ru');
+      }
+      if (!localStorage.getItem('uriAdAuth')) {
+        localStorage.setItem('uriAdAuth', 'http://localhost:3000/user/ad');
+      }
     </script>
     <div id="root"></div>
     <script type="module" src="src/main.jsx"></script>

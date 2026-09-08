@@ -17,6 +17,19 @@ let matrixSessionCleanup = null;
 // и не плодить blob-URL без revoke.
 const avatarUrlCache = new Map();
 
+function clearAvatarUrlCache() {
+  for (const url of avatarUrlCache.values()) {
+    if (typeof url === "string" && url.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // Игнорируем
+      }
+    }
+  }
+  avatarUrlCache.clear();
+}
+
 function getMatrixClient() {
   return matrixClient;
 }
@@ -209,6 +222,7 @@ async function deleteMatrixIndexedDbStores(storeKey) {
 }
 
 function destroyMatrixClient() {
+  clearAvatarUrlCache();
   if (!matrixClient) return;
 
   matrixSessionCleanup?.();

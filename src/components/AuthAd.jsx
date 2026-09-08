@@ -124,7 +124,7 @@ function AdAuth(props) {
           sx={{ textAlign: "center" }}
         >
           {isSuccess
-            ? responseData.ad_cn
+            ? responseData?.ad_cn || ""
             : "Введите учетные данные Active Directory"}
         </Typography>
       </Stack>
@@ -252,6 +252,10 @@ AdAuth.propTypes = {
     status: PropTypes.string,
     errText: PropTypes.string,
     responseData: PropTypes.shape({
+      ad_login: PropTypes.string,
+      ad_cn: PropTypes.string,
+      ad_title: PropTypes.string,
+      ad_department: PropTypes.string,
       sip_username: PropTypes.string,
       sip_secret: PropTypes.string,
     }),
