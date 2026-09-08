@@ -90,6 +90,7 @@ async function createMatrixClientFromSession({
         );
         deleteMatrixLocalStores();
         await deleteMatrixIndexedDbStores(storeKey);
+        getMatrixClient()?.emit?.("Session.logged_out");
         throw new Error("REFRESH_TOKEN_EXPIRED: Store cleared");
       }
 
@@ -127,8 +128,6 @@ async function createMatrixClientFromSession({
     await clientOptions.store.startup();
   }
 
-  // Rust crypto сам ведёт IndexedDB; IndexedDBCryptoStore нужен только
-  // для миграции с legacy crypto — у нас её нет.
   try {
     await client.initRustCrypto({
       useIndexedDB: true,

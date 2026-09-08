@@ -70,6 +70,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "idle",
+        displayReg: true,
         displayPad: false,
         responseData: null,
         rooms: [],
