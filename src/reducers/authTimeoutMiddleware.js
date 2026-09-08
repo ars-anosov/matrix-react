@@ -1,4 +1,5 @@
 import { AUTHCTL_CLEAR } from "../constants/redux";
+import { AD_AUTH_EXPIRE_TIME_KEY } from "../constants/storage";
 
 // Выносим переменную на уровень модуля.
 // Теперь она гарантированно существует в единственном экземпляре.
@@ -6,7 +7,7 @@ let intervalId = null;
 
 export const authTimeoutMiddleware = (store) => {
   const checkTokenExpiration = () => {
-    const expireTime = localStorage.getItem("adAuthExpireTime");
+    const expireTime = localStorage.getItem(AD_AUTH_EXPIRE_TIME_KEY);
 
     if (expireTime) {
       const now = Date.now();
@@ -18,7 +19,7 @@ export const authTimeoutMiddleware = (store) => {
           );
         }
 
-        localStorage.removeItem("adAuthExpireTime");
+        localStorage.removeItem(AD_AUTH_EXPIRE_TIME_KEY);
         store.dispatch({ type: AUTHCTL_CLEAR });
       }
     }
@@ -32,7 +33,7 @@ export const authTimeoutMiddleware = (store) => {
 
   return (next) => (action) => {
     if (action.type === AUTHCTL_CLEAR) {
-      localStorage.removeItem("adAuthExpireTime");
+      localStorage.removeItem(AD_AUTH_EXPIRE_TIME_KEY);
     }
 
     return next(action);

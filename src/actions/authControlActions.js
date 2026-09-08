@@ -6,7 +6,11 @@ import {
   AUTHCTL_SUBMIT_REQUEST,
   AUTHCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
-import { AD_URI_AUTH_KEY } from "../constants/storage";
+import {
+  AD_AUTH_EXPIRE_TIME_KEY,
+  AD_LOGIN_KEY,
+  AD_URI_AUTH_KEY,
+} from "../constants/storage";
 import { getApiErrorMessage } from "./utils/kyError";
 
 function dispatchAdAuthError(dispatch, errText) {
@@ -47,9 +51,9 @@ const handleAdRegister =
         })
         .json();
 
-      localStorage.setItem("adLogin", login);
+      localStorage.setItem(AD_LOGIN_KEY, login);
       const expireTime = Date.now() + 24 * 60 * 60 * 1000;
-      localStorage.setItem("adAuthExpireTime", expireTime);
+      localStorage.setItem(AD_AUTH_EXPIRE_TIME_KEY, expireTime);
 
       dispatch({
         type: AUTHCTL_SUBMIT_SUCCESS,
@@ -62,8 +66,7 @@ const handleAdRegister =
   };
 
 const handleAdAuthClear = () => (dispatch) => {
-  // localStorage.removeItem('adLogin')
-  localStorage.removeItem("adAuthExpireTime");
+  localStorage.removeItem(AD_AUTH_EXPIRE_TIME_KEY);
   dispatch({ type: AUTHCTL_CLEAR });
 };
 

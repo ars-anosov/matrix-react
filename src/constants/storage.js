@@ -6,3 +6,5 @@ export const MTRX_DEVICE_ID_KEY = "mtrxDeviceId";
 export const MTRX_REFRESH_TOKEN_KEY = "mtrxRefreshToken";
 
 export const AD_URI_AUTH_KEY = "uriAdAuth";
+export const AD_LOGIN_KEY = "adLogin";
+export const AD_AUTH_EXPIRE_TIME_KEY = "adAuthExpireTime";
