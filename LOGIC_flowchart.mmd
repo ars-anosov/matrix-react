@@ -1,0 +1,21 @@
+flowchart LR
+  UI["JSX<br/>MtrxContainer / Reg / Pad"]
+  Actions["Redux actions"]
+  Client["matrixClient"]
+  Store[("local store<br/>LS + IndexedDB")]
+
+  UI <-->|"status, rooms"| Actions
+  Actions <-->|"restore / login / rooms / logout"| Client
+  Client <-->|"токены, sync, crypto"| Store
+
+  UI -.->|"Restore: handleRestoreSession"| Actions
+  UI -.->|"Login: handleRegister (Reg)"| Actions
+  UI -.->|"Rooms: handleLoadRooms (Pad)"| Actions
+  UI -.->|"Logout: handleRegClear (Reg)"| Actions
+
+  Client -->|"restore: whoami()"| Who{"401?"}
+  Who -->|"да"| Dead["очистить store → CLEAR → Reg"]
+  Who -->|"ok / сеть"| Ok["session → Redux → Pad/Reg"]
+  Dead --> Store
+  Dead --> Actions
+  Ok --> Actions

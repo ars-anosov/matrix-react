@@ -7,17 +7,7 @@ import {
   MTRXCTL_SUBMIT_REQUEST,
   MTRXCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
-import {
-  getActiveMatrixSession,
-  getJoinedRooms,
-  getStoredMatrixData,
-  invalidateMatrixSession,
-  loginMatrix,
-  logoutMatrix,
-  restoreMatrixSession,
-  watchMatrixSession,
-  watchRoomChanges,
-} from "../services/matrixClient";
+import * as matrixClient from "../services/matrixClient";
 import { getMatrixErrorMessage } from "./utils/matrixError";
 
 let restoreSessionPromise = null;
@@ -44,12 +34,10 @@ function dispatchMtrxRegError(dispatch, errText) {
   });
 }
 
-function watchSessionAndDispatchClear(dispatch, operationId, client) {
-  if (!client) return;
-
-  watchMatrixSession(client, () => {
+function watchSessionAndDispatchClear(dispatch, operationId) {
+  matrixClient.watchMatrixSession(() => {
     if (operationId !== sessionOperationId) return;
-    invalidateMatrixSession().finally(() => {
+    matrixClient.invalidateMatrixSession().finally(() => {
       if (operationId === sessionOperationId) dispatch({ type: MTRXCTL_CLEAR });
     });
   });
@@ -74,10 +62,14 @@ const handleRegister =
     dispatch({ type: MTRXCTL_SUBMIT_REQUEST });
 
     try {
-      const session = await loginMatrix({ login, password, uriMatrix });
+      const session = await matrixClient.loginMatrix({
+        login,
+        password,
+        uriMatrix,
+      });
       if (operationId !== sessionOperationId) return;
 
-      watchSessionAndDispatchClear(dispatch, operationId, session.client);
+      watchSessionAndDispatchClear(dispatch, operationId);
       dispatchMatrixSuccess(dispatch, session);
     } catch (error) {
       if (operationId === sessionOperationId) {
@@ -89,12 +81,12 @@ const handleRegister =
 const handleRegClear = () => async (dispatch) => {
   sessionOperationId += 1;
   restoreSessionPromise = null;
-  await logoutMatrix();
+  await matrixClient.logoutMatrix();
   dispatch({ type: MTRXCTL_CLEAR });
 };
 
 const handleHydrateStoredMatrixData = () => (dispatch) => {
-  const { uriMatrix, login } = getStoredMatrixData();
+  const { uriMatrix, login } = matrixClient.getStoredMatrixData();
   dispatch({
     type: MTRXCTL_STORE_MATRIX_DATA,
     payload: { uriMatrix, login },
@@ -113,10 +105,10 @@ const handleRestoreSession = () => (dispatch, getState) => {
   const operationId = ++sessionOperationId;
 
   // Проверяем синхронную активную сессию
-  const activeSession = getActiveMatrixSession();
+  const activeSession = matrixClient.getActiveMatrixSession();
   if (activeSession) {
     // Обязательно подписываемся на события даже активной сессии
-    watchSessionAndDispatchClear(dispatch, operationId, activeSession.client);
+    watchSessionAndDispatchClear(dispatch, operationId);
     dispatchMatrixSuccess(dispatch, activeSession);
     return;
   }
@@ -124,12 +116,12 @@ const handleRestoreSession = () => (dispatch, getState) => {
   // Если активной сессии в памяти нет (перезагрузка страницы), запускаем асинхронное восстановление из хранилища
   restoreSessionPromise = (async () => {
     try {
-      const session = await restoreMatrixSession();
+      const session = await matrixClient.restoreMatrixSession();
 
       if (operationId !== sessionOperationId) return;
 
       if (session) {
-        watchSessionAndDispatchClear(dispatch, operationId, session.client);
+        watchSessionAndDispatchClear(dispatch, operationId);
         dispatchMatrixSuccess(dispatch, session);
       } else {
         // Если сохраненных токенов нет или они невалидны
@@ -157,7 +149,7 @@ const handleChangeStore = (storeDataKey, storeDataValue) => (dispatch) => {
 
 const handleLoadRooms = () => async (dispatch) => {
   try {
-    const rooms = await getJoinedRooms();
+    const rooms = await matrixClient.getJoinedRooms();
     dispatch({ type: MTRXCTL_SET_ROOMS, payload: { rooms } });
   } catch {
     dispatch({ type: MTRXCTL_SET_ROOMS, payload: { rooms: [] } });
@@ -167,7 +159,7 @@ const handleLoadRooms = () => async (dispatch) => {
 const handleStartRoomWatch = () => (dispatch) => {
   if (unsubscribeRoomChanges) return;
 
-  unsubscribeRoomChanges = watchRoomChanges(() => {
+  unsubscribeRoomChanges = matrixClient.watchRoomChanges(() => {
     dispatch(handleLoadRooms());
   });
 };

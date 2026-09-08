@@ -1,0 +1,41 @@
+sequenceDiagram
+  participant UI as JSX<br/>(MtrxContainer / Reg / Pad)
+  participant Actions as Redux actions
+  participant Client as matrixClient
+  participant Store as local store<br/>(LS + IndexedDB)
+
+  Note over UI,Store: Restore
+  UI->>Actions: handleRestoreSession
+  Actions->>Client: restore / getStored*
+  Client->>Store: читать токены / sync+crypto
+  Store-->>Client: session data
+  Client->>Client: whoami()
+  alt 401
+    Client->>Store: очистить LS + IDB
+    Client-->>Actions: MATRIX_UNAUTHORIZED → CLEAR
+    Actions-->>UI: показать Reg
+  else ok / сеть
+    Client-->>Actions: session → Redux
+    Actions-->>UI: status → Reg или Pad
+  end
+
+  Note over UI,Store: Login (MtrxReg)
+  UI->>Actions: handleRegister
+  Actions->>Client: loginMatrix
+  Client->>Client: login + startClient
+  Client->>Store: persist session
+  Client-->>Actions: session → Redux
+  Actions-->>UI: показать Pad
+
+  Note over UI,Store: Rooms (MtrxPad)
+  UI->>Actions: handleLoadRooms / watch*
+  Actions->>Client: getJoinedRooms / watch*
+  Client-->>Actions: rooms → Redux
+  Actions-->>UI: список комнат
+
+  Note over UI,Store: Logout (MtrxReg) / invalidate
+  UI->>Actions: handleRegClear
+  Actions->>Client: logout / invalidate
+  Client->>Store: очистить LS + IDB
+  Client-->>Actions: CLEAR → Redux
+  Actions-->>UI: показать Reg

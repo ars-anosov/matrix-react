@@ -13,18 +13,29 @@ const DEVICE_DISPLAY_NAME = "matrix-react";
 let matrixClient = null;
 let matrixSessionCleanup = null;
 
+// Кэш резолвнутых аватарок (mxc → objectURL), чтобы не фетчить повторно
+// и не плодить blob-URL без revoke.
+const avatarUrlCache = new Map();
+
 function getMatrixClient() {
   return matrixClient;
+}
+
+function buildStoreKey(userId, deviceId) {
+  return deviceId || userId;
+}
+
+function syncDbName(storeKey) {
+  return `mx-sync-${storeKey}`;
+}
+
+function cryptoDbPrefix(storeKey) {
+  return `mx-crypto-${storeKey}`;
 }
 
 async function createTempMatrixClient(baseUrl) {
   const { createClient } = await loadMatrixSdk();
   return createClient({ baseUrl });
-}
-
-function buildStoreKey(userId, deviceId) {
-  // return deviceId ? `${userId}::${deviceId}` : userId
-  return deviceId ? deviceId : userId;
 }
 
 async function createMatrixClientFromSession({
@@ -40,9 +51,11 @@ async function createMatrixClientFromSession({
     );
   }
 
-  const { createClient, IndexedDBStore, IndexedDBCryptoStore } =
-    await loadMatrixSdk();
+  const { createClient, IndexedDBStore } = await loadMatrixSdk();
   destroyMatrixClient();
+
+  const storeKey = buildStoreKey(userId, deviceId);
+  const cryptoPrefix = cryptoDbPrefix(storeKey);
 
   const clientOptions = {
     baseUrl,
@@ -50,28 +63,19 @@ async function createMatrixClientFromSession({
     userId,
     deviceId,
     refreshToken: refreshToken || undefined,
-    useAuthorizationHeader: true,
-    cryptoBackend: "rust",
   };
 
-  const storeKey = buildStoreKey(userId, deviceId);
-
-  if (
-    typeof indexedDB !== "undefined" &&
-    IndexedDBStore &&
-    IndexedDBCryptoStore
-  ) {
+  if (typeof indexedDB !== "undefined" && IndexedDBStore) {
     clientOptions.store = new IndexedDBStore({
       indexedDB,
       localStorage,
-      dbName: `mx-sync-${storeKey}`,
+      dbName: syncDbName(storeKey),
     });
-    clientOptions.cryptoStore = new IndexedDBCryptoStore(
-      indexedDB,
-      `mx-crypto-${storeKey}`,
-    );
   }
 
+  // Не вызываем client.refreshToken() из tokenRefreshFunction:
+  // он идёт через authedRequest и может задедлочить TokenRefresher.
+  // Прямой POST /refresh — рекомендуемый обходной путь для password-сессий.
   if (refreshToken) {
     clientOptions.tokenRefreshFunction = async (currentRefreshToken) => {
       const response = await fetch(`${baseUrl}/_matrix/client/v3/refresh`, {
@@ -80,13 +84,12 @@ async function createMatrixClientFromSession({
         body: JSON.stringify({ refresh_token: currentRefreshToken }),
       });
 
-      // === ПРОВЕРКА ВАЛИДНОСТИ ТОКЕНА ===
       if (response.status === 401) {
         console.warn(
-          "[tokenRefreshFunction] Рефреш-токен протух (401). Закрываем соединения и чистим хранилища...",
+          "[tokenRefreshFunction] Рефреш-токен протух (401). Чистим хранилища…",
         );
         deleteMatrixLocalStores();
-        deleteMatrixIndexedDbStores(storeKey);
+        await deleteMatrixIndexedDbStores(storeKey);
         throw new Error("REFRESH_TOKEN_EXPIRED: Store cleared");
       }
 
@@ -95,8 +98,9 @@ async function createMatrixClientFromSession({
       }
 
       const tokenData = await response.json();
-      if (!tokenData.access_token)
+      if (!tokenData.access_token) {
         throw new Error("Homeserver не вернул access token.");
+      }
 
       persistMatrixSession({
         homeserverUrl: baseUrl,
@@ -121,53 +125,57 @@ async function createMatrixClientFromSession({
 
   if (clientOptions.store) {
     await clientOptions.store.startup();
+  }
 
-    if (typeof client.initRustCrypto === "function") {
-      try {
-        await client.initRustCrypto({
-          useIndexedDB: true,
-          cryptoDatabasePrefix: `mx-crypto-${storeKey}`,
-        });
-      } catch (err) {
-        const message = String(err?.message || "");
+  // Rust crypto сам ведёт IndexedDB; IndexedDBCryptoStore нужен только
+  // для миграции с legacy crypto — у нас её нет.
+  try {
+    await client.initRustCrypto({
+      useIndexedDB: true,
+      cryptoDatabasePrefix: cryptoPrefix,
+    });
+  } catch (err) {
+    const message = String(err?.message || "");
 
-        if (message.includes("doesn't match the account in the constructor")) {
-          if (import.meta.env.DEV) {
-            console.warn(
-              "[matrixClient] обнаружено рассогласование device_id in IndexedDB, чищу store и пробую снова",
-              err,
-            );
-          }
-
-          await deleteMatrixIndexedDbStores(storeKey);
-          await clientOptions.store.startup();
-
-          await client.initRustCrypto({
-            useIndexedDB: true,
-            cryptoDatabasePrefix: `mx-crypto-${storeKey}`,
-          });
-        } else {
-          throw err;
-        }
+    if (message.includes("doesn't match the account in the constructor")) {
+      if (import.meta.env.DEV) {
+        console.warn(
+          "[matrixClient] рассогласование device_id в IndexedDB, чищу store и пробую снова",
+          err,
+        );
       }
+
+      await deleteMatrixIndexedDbStores(storeKey);
+      if (clientOptions.store) {
+        await clientOptions.store.startup();
+      }
+      await client.initRustCrypto({
+        useIndexedDB: true,
+        cryptoDatabasePrefix: cryptoPrefix,
+      });
+    } else {
+      throw err;
     }
   }
 
-  // === ПРОВЕРКА ВАЛИДНОСТИ ТОКЕНА ===
+  // Ранняя проверка токена до startClient (сеть/502 не считаем фатальными).
   try {
     await client.whoami();
   } catch (err) {
     if (err.httpStatus === 401) {
       console.warn(
-        "[matrixClient] Сессия окончательно мертва. Завершаем уничтожение инстанса.",
+        "[matrixClient] Сессия невалидна (401). Уничтожаем инстанс.",
       );
       deleteMatrixLocalStores();
-      clearMatrixClientStores(client);
-      destroyMatrixClient();
+      try {
+        client.stopClient();
+      } catch {
+        // Игнорируем
+      }
+      await clearMatrixClientStores(client);
       throw new Error("MATRIX_UNAUTHORIZED");
     }
 
-    // Ошибки сети (502, Тimeout) пропускаем
     console.warn(
       "[matrixClient] Не удалось проверить токен (возможно нет сети):",
       err,
@@ -181,11 +189,12 @@ async function createMatrixClientFromSession({
 async function deleteMatrixIndexedDbStores(storeKey) {
   if (typeof indexedDB === "undefined" || !storeKey) return;
 
+  const prefix = cryptoDbPrefix(storeKey);
   const dbNames = [
-    `matrix-js-sdk:mx-sync-${storeKey}`,
-    `mx-crypto-${storeKey}::matrix-sdk-crypto`,
+    `matrix-js-sdk:${syncDbName(storeKey)}`,
+    `${prefix}::matrix-sdk-crypto`,
+    `${prefix}::matrix-sdk-crypto-meta`,
   ];
-  // console.log('--- [deleteMatrixIndexedDbStores] --- dbNames :', dbNames)
 
   await Promise.all(
     dbNames.map(
@@ -205,33 +214,55 @@ function destroyMatrixClient() {
 
   matrixSessionCleanup?.();
   matrixSessionCleanup = null;
-  matrixClient.stopClient();
+
+  try {
+    matrixClient.stopClient();
+  } catch {
+    // Игнорируем ошибки остановки
+  }
+
   matrixClient = null;
 }
 
 async function clearMatrixClientStores(client) {
-  // console.log('--- [clearMatrixClientStores] --- client :', client)
   if (!client) return;
-
-  await client.clearStores?.();
 
   const userId = client.getUserId?.();
   const deviceId = client.getDeviceId?.();
+  const storeKey = userId ? buildStoreKey(userId, deviceId) : null;
+  const cryptoPrefix = storeKey ? cryptoDbPrefix(storeKey) : undefined;
 
-  if (userId) {
-    const storeKey = buildStoreKey(userId, deviceId);
+  // clearStores требует остановленный клиент и сам чистит sync + rust crypto IDB.
+  if (!client.clientRunning && typeof client.clearStores === "function") {
+    try {
+      await client.clearStores({ cryptoDatabasePrefix: cryptoPrefix });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn("[matrixClient] clearStores failed:", err);
+      }
+    }
+  }
+
+  if (storeKey) {
     await deleteMatrixIndexedDbStores(storeKey);
   }
 }
 
-function watchMatrixSession(client, onLoggedOut) {
+function watchMatrixSession(onLoggedOut) {
+  const client = getMatrixClient();
   if (!client || typeof client.on !== "function") return () => {};
 
+  matrixSessionCleanup?.();
+
   const handleLoggedOut = () => onLoggedOut?.();
+  // HttpApiEvent.SessionLoggedOut === "Session.logged_out"
   client.on("Session.logged_out", handleLoggedOut);
 
   const cleanup = () => {
     client.removeListener?.("Session.logged_out", handleLoggedOut);
+    if (matrixSessionCleanup === cleanup) {
+      matrixSessionCleanup = null;
+    }
   };
 
   matrixSessionCleanup = cleanup;
@@ -288,17 +319,12 @@ async function startMatrixSync(client) {
 function getRoomDisplayName(room) {
   if (!room) return "Без названия";
 
-  if (typeof room.name === "string" && room.name.trim()) return room.name;
+  // Room.name заполняется SDK после sync / из state
+  const name = typeof room.name === "string" ? room.name.trim() : "";
+  if (name) return name;
 
-  if (typeof room.getName === "function") {
-    const name = room.getName();
-    if (typeof name === "string" && name.trim()) return name;
-  }
-
-  if (typeof room.getCanonicalAlias === "function") {
-    const alias = room.getCanonicalAlias();
-    if (typeof alias === "string" && alias.trim()) return alias;
-  }
+  const alias = room.getCanonicalAlias?.();
+  if (typeof alias === "string" && alias.trim()) return alias;
 
   return room.roomId || "Без названия";
 }
@@ -306,37 +332,18 @@ function getRoomDisplayName(room) {
 function getRoomMxcAvatarUrl(room) {
   if (!room) return "";
 
-  if (typeof room.getMxcAvatarUrl === "function") {
-    const mxcUrl = room.getMxcAvatarUrl();
-    if (typeof mxcUrl === "string" && mxcUrl.trim()) return mxcUrl;
-  }
+  const mxcUrl = room.getMxcAvatarUrl?.();
+  if (typeof mxcUrl === "string" && mxcUrl.trim()) return mxcUrl;
 
-  if (typeof room.getAvatarUrl === "function") {
-    const avatarUrl = room.getAvatarUrl(
-      undefined,
-      64,
-      64,
-      "scale",
-      false,
-      true,
-    );
-    if (typeof avatarUrl === "string" && avatarUrl.trim()) return avatarUrl;
-  }
-
-  // Фолбэк: для DM без явного аватара комнаты берём аватар собеседника
-  if (typeof room.getAvatarFallbackMember === "function") {
-    const fallbackMember = room.getAvatarFallbackMember();
-    const memberMxcUrl = fallbackMember?.getMxcAvatarUrl?.();
-    if (typeof memberMxcUrl === "string" && memberMxcUrl.trim())
-      return memberMxcUrl;
+  // DM без аватара комнаты — аватар собеседника
+  const fallbackMember = room.getAvatarFallbackMember?.();
+  const memberMxcUrl = fallbackMember?.getMxcAvatarUrl?.();
+  if (typeof memberMxcUrl === "string" && memberMxcUrl.trim()) {
+    return memberMxcUrl;
   }
 
   return "";
 }
-
-// Кэш резолвнутых аватарок, чтобы не фетчить одно и то же на каждый sync
-// и не плодить blob-URL без revoke.
-const avatarUrlCache = new Map(); // mxcUrl -> objectURL (или '' если резолв не удался)
 
 async function resolveRoomAvatarUrl(client, room) {
   if (!client || !room) return "";
@@ -353,8 +360,8 @@ async function resolveRoomAvatarUrl(client, room) {
     ? { Authorization: `Bearer ${accessToken}` }
     : undefined;
 
-  // Сначала пробуем без авторизации (работает на большинстве серверов),
-  // затем — с авторизацией (нужно для серверов с MSC3916 / authenticated media).
+  // Сначала без авторизации, затем с auth (MSC3916 / authenticated media).
+  // Blob нужен: <img> не шлёт Authorization-заголовок.
   const attempts = [
     {
       url: client.mxcUrlToHttp(mxcUrl, 64, 64, "scale", false, true, false),
@@ -396,7 +403,7 @@ async function resolveRoomAvatarUrl(client, room) {
     }
   }
 
-  avatarUrlCache.set(mxcUrl, ""); // чтобы не долбить сервер повторно на каждый sync
+  avatarUrlCache.set(mxcUrl, "");
   return "";
 }
 
@@ -404,11 +411,10 @@ async function getJoinedRooms() {
   const client = getMatrixClient();
   if (!client?.getRooms) return [];
 
+  // KnownMembership.Join === "join"
   const rooms = client
     .getRooms()
-    .filter(
-      (room) => room?.getMyMembership && room.getMyMembership() === "join",
-    )
+    .filter((room) => room?.getMyMembership?.() === "join")
     .sort((a, b) =>
       getRoomDisplayName(a).localeCompare(getRoomDisplayName(b), undefined, {
         sensitivity: "base",
@@ -432,6 +438,7 @@ function watchRoomChanges(onChange) {
   const client = getMatrixClient();
   if (!client) return () => {};
 
+  // ClientEvent.Sync / ClientEvent.Room
   const handleSync = (state) => {
     if (["PREPARED", "SYNCING", "CATCHUP", "ERROR"].includes(state)) {
       onChange?.();
@@ -506,13 +513,10 @@ async function loginMatrix({ login, password, uriMatrix }) {
     refresh_token: true,
   });
 
-  if (typeof tempClient.stopClient === "function") {
-    tempClient.stopClient();
-  }
+  tempClient.stopClient?.();
 
-  let client = null;
   try {
-    client = await createMatrixClientFromSession({
+    const client = await createMatrixClientFromSession({
       baseUrl: homeserverUrl,
       accessToken: loginResponse.access_token,
       userId: loginResponse.user_id,
@@ -532,7 +536,6 @@ async function loginMatrix({ login, password, uriMatrix }) {
     await startMatrixSync(client);
 
     return {
-      client,
       homeserverUrl,
       userId: loginResponse.user_id,
       deviceId: loginResponse.device_id,
@@ -567,7 +570,7 @@ function getStoredMatrixSession() {
   }
 
   return {
-    baseUrl: homeserverUrl, // Читаем из localStorage homeserverUrl, но возвращаем как baseUrl!
+    baseUrl: homeserverUrl,
     accessToken,
     userId,
     deviceId: deviceId === "undefined" ? "" : deviceId || "",
@@ -593,8 +596,7 @@ async function restoreMatrixSession() {
   const finalUserId = client.getUserId() || session.userId;
 
   return {
-    client,
-    homeserverUrl: session.baseUrl, // Меняем обращение с session.homeserverUrl на session.baseUrl
+    homeserverUrl: session.baseUrl,
     userId: finalUserId,
     deviceId: session.deviceId || client.getDeviceId() || "",
     displayName: await fetchDisplayName(client, finalUserId).catch(
@@ -608,7 +610,6 @@ function getActiveMatrixSession() {
   if (!client?.clientRunning) return null;
 
   return {
-    client,
     homeserverUrl: (localStorage.getItem(MTRX_HS_URL_KEY) || "").trim(),
     userId: client.getUserId(),
     deviceId:
@@ -617,29 +618,21 @@ function getActiveMatrixSession() {
   };
 }
 
-/*
-  clearMatrixClientStores(client)
-    > client.clearStores?.()
-    > deleteMatrixIndexedDbStores(client > storeKey)
-  destroyMatrixClient()
-    > matrixSessionCleanup?.()
-    > matrixClient.stopClient()
-*/
 async function logoutMatrix() {
   const client = getMatrixClient();
 
   if (client) {
+    // logout(true) сам останавливает клиент до POST /logout
     try {
-      client.stopClient();
+      await client.logout(true);
     } catch {
-      // Игнорируем ошибки остановки
+      try {
+        client.stopClient();
+      } catch {
+        // Игнорируем
+      }
     }
 
-    try {
-      await client.logout();
-    } catch {
-      // Сессия на сервере могла уже истечь, игнорируем ошибку 401/403
-    }
     await clearMatrixClientStores(client).catch(() => {});
     destroyMatrixClient();
   }
@@ -650,32 +643,26 @@ async function logoutMatrix() {
 async function invalidateMatrixSession() {
   const client = getMatrixClient();
   if (client) {
+    try {
+      client.stopClient();
+    } catch {
+      // Игнорируем
+    }
     await clearMatrixClientStores(client).catch(() => {});
   }
   destroyMatrixClient();
   deleteMatrixLocalStores();
 }
 
+// Публичный доменный API — без SDK-объектов (MatrixClient / Room).
 export {
-  clearMatrixClientStores,
-  createMatrixClientFromSession,
-  createTempMatrixClient,
-  deleteMatrixLocalStores,
-  destroyMatrixClient,
-  fetchDisplayName,
   getActiveMatrixSession,
   getJoinedRooms,
-  getMatrixClient,
-  getRoomDisplayName,
-  getRoomMxcAvatarUrl,
   getStoredMatrixData,
   invalidateMatrixSession,
   loginMatrix,
   logoutMatrix,
-  persistMatrixSession,
-  resolveRoomAvatarUrl,
   restoreMatrixSession,
-  startMatrixSync,
   watchMatrixSession,
   watchRoomChanges,
 };
