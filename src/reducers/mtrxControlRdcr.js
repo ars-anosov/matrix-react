@@ -1,5 +1,6 @@
 import {
   MTRXCTL_CLEAR,
+  MTRXCTL_DEVICE_VERIFICATION_STORE,
   MTRXCTL_ERROR_ALERT,
   MTRXCTL_SET_ROOMS,
   MTRXCTL_STORE_MATRIX_DATA,
@@ -21,6 +22,14 @@ const initialState = {
   uriMatrix: "",
   login: "",
   rooms: [],
+  deviceVerification: {
+    status: "idle", // 'idle' | 'loading' | 'requested' | 'ready' | 'started' | 'success' | 'cancelled' | 'error'
+    verified: false,
+    supported: true,
+    initiatedByMe: false,
+    sas: null,
+    errText: "",
+  },
   // Error alert
   errComponent: "",
   errText: "",
@@ -36,6 +45,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayPad: false,
         responseData: null,
         rooms: [],
+        deviceVerification: initialState.deviceVerification,
         errComponent: "",
         errText: "",
       };
@@ -74,6 +84,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayPad: false,
         responseData: null,
         rooms: [],
+        deviceVerification: initialState.deviceVerification,
         errComponent: "",
         errText: "",
       };
@@ -102,6 +113,15 @@ export default function mtrxControlRdcr(state = initialState, action) {
       return {
         ...state,
         rooms: action.payload.rooms,
+      };
+
+    case MTRXCTL_DEVICE_VERIFICATION_STORE:
+      return {
+        ...state,
+        deviceVerification: {
+          ...state.deviceVerification,
+          ...action.payload,
+        },
       };
 
     default:

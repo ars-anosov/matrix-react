@@ -17,6 +17,11 @@ import { loadMatrixSdk } from "./matrixSdk.js";
 const DEVICE_DISPLAY_NAME = "matrix-react";
 
 let matrixSessionCleanup = null;
+let deviceVerificationCleanup = null;
+let activeDeviceVerificationRequest = null;
+let activeDeviceVerificationRequestCleanup = null;
+let activeDeviceVerificationVerifier = null;
+let secretStorageKeyCache = null;
 
 function buildStoreKey(userId, deviceId) {
   return deviceId || userId;
@@ -60,6 +65,8 @@ async function createMatrixClientFromSession({
     userId,
     deviceId,
     refreshToken: refreshToken || undefined,
+    verificationMethods: ["m.sas.v1"],
+    cryptoCallbacks: createCryptoCallbacks(),
   };
 
   if (typeof indexedDB !== "undefined" && IndexedDBStore) {
@@ -207,6 +214,13 @@ async function deleteMatrixIndexedDbStores(storeKey) {
 
 function destroyMatrixClient() {
   clearRoomAvatarCache();
+  deviceVerificationCleanup?.();
+  deviceVerificationCleanup = null;
+  activeDeviceVerificationRequestCleanup?.();
+  activeDeviceVerificationRequestCleanup = null;
+  activeDeviceVerificationRequest = null;
+  activeDeviceVerificationVerifier = null;
+  secretStorageKeyCache = null;
   const client = getMatrixClient();
   if (!client) return;
 
@@ -244,6 +258,240 @@ async function clearMatrixClientStores(client) {
   if (storeKey) {
     await deleteMatrixIndexedDbStores(storeKey);
   }
+}
+
+function createCryptoCallbacks() {
+  return {
+    // Ключ хранится только в памяти текущей сессии. Не сохраняем recovery key в localStorage.
+    cacheSecretStorageKey: (keyId, _keyInfo, privateKey) => {
+      secretStorageKeyCache = { keyId, privateKey };
+    },
+    getSecretStorageKey: async ({ keys }) => {
+      if (!secretStorageKeyCache || !keys[secretStorageKeyCache.keyId])
+        return null;
+      return [secretStorageKeyCache.keyId, secretStorageKeyCache.privateKey];
+    },
+  };
+}
+
+function getVerificationPhaseName(phase) {
+  return (
+    {
+      1: "unsent",
+      2: "requested",
+      3: "ready",
+      4: "started",
+      5: "cancelled",
+      6: "success",
+    }[phase] || "idle"
+  );
+}
+
+function getDeviceVerificationSnapshot() {
+  const request = activeDeviceVerificationRequest;
+  const verifier = activeDeviceVerificationVerifier || request?.verifier;
+  const sas = verifier?.getShowSasCallbacks?.()?.sas;
+
+  return {
+    status: request ? getVerificationPhaseName(request.phase) : "idle",
+    initiatedByMe: Boolean(request?.initiatedByMe),
+    sas: sas
+      ? {
+          emoji: sas.emoji || null,
+          decimal: sas.decimal || null,
+        }
+      : null,
+  };
+}
+
+function bindDeviceVerificationRequest(request, onChange) {
+  if (activeDeviceVerificationRequest === request) return;
+
+  activeDeviceVerificationRequestCleanup?.();
+  activeDeviceVerificationRequestCleanup = null;
+  activeDeviceVerificationRequest = request;
+  activeDeviceVerificationVerifier = null;
+
+  const handleRequestChange = async () => {
+    if (request.phase === 4 && request.verifier) {
+      bindDeviceVerificationVerifier(request.verifier, onChange);
+    }
+    const snapshot = getDeviceVerificationSnapshot();
+    onChange?.(snapshot);
+
+    if (request.phase === 6) {
+      try {
+        onChange?.({
+          ...snapshot,
+          ...(await getCurrentDeviceVerification()),
+        });
+      } catch {
+        // Состояние проверки уже завершено, статус устройства обновится при следующем запросе.
+      }
+    }
+  };
+
+  request.on?.("change", handleRequestChange);
+  const cleanup = () => request.removeListener?.("change", handleRequestChange);
+  activeDeviceVerificationRequestCleanup = cleanup;
+  handleRequestChange();
+
+  return cleanup;
+}
+
+function bindDeviceVerificationVerifier(verifier, onChange) {
+  if (activeDeviceVerificationVerifier === verifier) return;
+
+  activeDeviceVerificationVerifier = verifier;
+  verifier.on?.("show_sas", () => onChange?.(getDeviceVerificationSnapshot()));
+  verifier.on?.("cancel", () => onChange?.(getDeviceVerificationSnapshot()));
+  verifier.verify?.().catch(() => onChange?.(getDeviceVerificationSnapshot()));
+}
+
+function watchDeviceVerification(onChange) {
+  const client = getMatrixClient();
+  if (!client?.on) return () => {};
+
+  deviceVerificationCleanup?.();
+
+  const handleRequest = (request) => {
+    if (!request?.isSelfVerification) return;
+    bindDeviceVerificationRequest(request, onChange);
+  };
+
+  client.on("crypto.verificationRequestReceived", handleRequest);
+  deviceVerificationCleanup = () => {
+    client.removeListener?.(
+      "crypto.verificationRequestReceived",
+      handleRequest,
+    );
+    if (deviceVerificationCleanup === cleanup) deviceVerificationCleanup = null;
+  };
+  const cleanup = deviceVerificationCleanup;
+
+  const userId = client.getUserId?.();
+  const existingRequest = userId
+    ? client
+        .getCrypto?.()
+        ?.getVerificationRequestsToDeviceInProgress?.(userId)
+        ?.find((request) => request.isSelfVerification)
+    : null;
+  if (existingRequest) handleRequest(existingRequest);
+
+  return cleanup;
+}
+
+async function getCurrentDeviceVerification() {
+  const client = getMatrixClient();
+  const userId = client?.getUserId?.();
+  const deviceId = client?.getDeviceId?.();
+  const crypto = client?.getCrypto?.();
+
+  if (!client || !crypto || !userId || !deviceId) {
+    return { verified: false, supported: false };
+  }
+
+  const status = await crypto.getDeviceVerificationStatus(userId, deviceId);
+  // Для статуса проверки используем только cross-signing. isVerified() также
+  // учитывает локальное доверие и может показывать устройство проверенным раньше
+  // завершения проверки на другом доверенном устройстве.
+  const crossSigningVerified = Boolean(status?.crossSigningVerified);
+  return {
+    status: crossSigningVerified ? "success" : "idle",
+    verified: crossSigningVerified,
+    supported: Boolean(status),
+    crossSigningVerified,
+    localVerified: Boolean(status?.localVerified),
+  };
+}
+
+async function requestCurrentDeviceVerification(onChange) {
+  const crypto = getMatrixClient()?.getCrypto?.();
+  if (!crypto) throw new Error("Шифрование Matrix не инициализировано.");
+
+  const request = await crypto.requestOwnUserVerification();
+  bindDeviceVerificationRequest(request, onChange);
+  return getDeviceVerificationSnapshot();
+}
+
+async function acceptCurrentDeviceVerification() {
+  if (!activeDeviceVerificationRequest)
+    throw new Error("Запрос авторизации устройства не найден.");
+  await activeDeviceVerificationRequest.accept();
+  return getDeviceVerificationSnapshot();
+}
+
+async function startCurrentDeviceVerification(onChange) {
+  if (!activeDeviceVerificationRequest)
+    throw new Error("Запрос авторизации устройства не найден.");
+  const verifier =
+    await activeDeviceVerificationRequest.startVerification("m.sas.v1");
+  bindDeviceVerificationVerifier(verifier, onChange);
+  return getDeviceVerificationSnapshot();
+}
+
+async function confirmCurrentDeviceVerification() {
+  const sas = activeDeviceVerificationVerifier?.getShowSasCallbacks?.();
+  if (!sas) throw new Error("Коды проверки ещё не готовы.");
+  await sas.confirm();
+  return getDeviceVerificationSnapshot();
+}
+
+async function cancelCurrentDeviceVerification() {
+  await activeDeviceVerificationRequest?.cancel?.();
+  return getDeviceVerificationSnapshot();
+}
+
+async function verifyCurrentDeviceWithRecoveryKey(encodedRecoveryKey) {
+  const client = getMatrixClient();
+  const crypto = client?.getCrypto?.();
+  if (!crypto || !client)
+    throw new Error("Шифрование Matrix не инициализировано.");
+  if (typeof encodedRecoveryKey !== "string" || !encodedRecoveryKey.trim()) {
+    throw new Error("Введите recovery key.");
+  }
+
+  const { decodeRecoveryKey } = await import(
+    "matrix-js-sdk/lib/crypto-api/recovery-key.js"
+  );
+  const key = decodeRecoveryKey(encodedRecoveryKey.trim());
+  const keyId = await client.secretStorage?.getDefaultKeyId?.();
+  if (!keyId) {
+    throw new Error("В аккаунте не найден ключ Secret Storage.");
+  }
+
+  secretStorageKeyCache = { keyId, privateKey: key };
+  try {
+    // Cinny использует тот же безопасный путь: импорт ключей из Secret Storage
+    // и затем загрузка room keys из server-side backup.
+    await crypto.bootstrapCrossSigning({});
+    await crypto.bootstrapSecretStorage({});
+
+    try {
+      await crypto.loadSessionBackupPrivateKeyFromSecretStorage();
+      await crypto.restoreKeyBackup();
+    } catch (error) {
+      // Проверка устройства уже завершена; backup может отсутствовать у аккаунта.
+      if (import.meta.env.DEV) {
+        console.warn(
+          "[matrixClient] не удалось восстановить key backup",
+          error,
+        );
+      }
+    }
+  } catch (error) {
+    secretStorageKeyCache = null;
+    throw error;
+  }
+
+  return getCurrentDeviceVerification();
+}
+
+function clearCurrentDeviceVerification() {
+  activeDeviceVerificationRequestCleanup?.();
+  activeDeviceVerificationRequestCleanup = null;
+  activeDeviceVerificationRequest = null;
+  activeDeviceVerificationVerifier = null;
 }
 
 function watchMatrixSession(onLoggedOut) {
@@ -512,11 +760,21 @@ async function invalidateMatrixSession() {
 
 // Публичный доменный API — без SDK-объектов (MatrixClient / Room).
 export {
+  acceptCurrentDeviceVerification,
+  cancelCurrentDeviceVerification,
+  clearCurrentDeviceVerification,
+  confirmCurrentDeviceVerification,
   getActiveMatrixSession,
+  getCurrentDeviceVerification,
+  getDeviceVerificationSnapshot,
   getStoredMatrixData,
   invalidateMatrixSession,
   loginMatrix,
   logoutMatrix,
+  requestCurrentDeviceVerification,
   restoreMatrixSession,
+  startCurrentDeviceVerification,
+  verifyCurrentDeviceWithRecoveryKey,
+  watchDeviceVerification,
   watchMatrixSession,
 };

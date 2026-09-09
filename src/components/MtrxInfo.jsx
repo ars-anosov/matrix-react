@@ -1,10 +1,12 @@
 import {
   HowToReg as IconHowToReg,
   PersonOff as IconPersonOff,
+  VerifiedUser as IconVerifiedUser,
 } from "@mui/icons-material";
 import { IconButton, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import MtrxDeviceVerification from "./MtrxDeviceVerification";
 
 function MtrxInfo(props) {
   const { mtrxControlRdcr, mtrxControlActions, showFull = false } = props;
@@ -13,12 +15,16 @@ function MtrxInfo(props) {
     console.log("MtrxInfo render");
   }
 
+  const verification = mtrxControlRdcr?.deviceVerification || {};
+  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
+
   useEffect(() => {
     if (import.meta.env.DEV) console.log("MtrxInfo MOUNT");
+    mtrxControlActions?.handleLoadDeviceVerification?.();
     return () => {
       if (import.meta.env.DEV) console.log("MtrxInfo UNMOUNT");
     };
-  }, []);
+  }, [mtrxControlActions]);
 
   const toggleAuth = () => {
     mtrxControlActions?.handleChangeStore(
@@ -28,6 +34,8 @@ function MtrxInfo(props) {
   };
 
   const isAuthorized = mtrxControlRdcr?.status === "success";
+  const isDeviceVerified =
+    verification.status === "success" && verification.verified === true;
   const authButtonColor = isAuthorized ? "success" : "error";
 
   return (
@@ -73,7 +81,31 @@ device_id:\t${mtrxControlRdcr?.responseData?.device_id || ""}`}
             {isAuthorized ? <IconHowToReg /> : <IconPersonOff />}
           </IconButton>
         </Tooltip>
+        {isAuthorized && (
+          <Tooltip
+            title={
+              isDeviceVerified
+                ? "Устройство авторизовано"
+                : "Устройство не авторизовано для E2EE"
+            }
+          >
+            <IconButton
+              aria-label="Проверка устройства"
+              color={isDeviceVerified ? "success" : "error"}
+              onClick={() => setIsVerificationOpen(true)}
+            >
+              <IconVerifiedUser />
+            </IconButton>
+          </Tooltip>
+        )}
       </Stack>
+
+      <MtrxDeviceVerification
+        open={isVerificationOpen}
+        verification={verification}
+        mtrxControlActions={mtrxControlActions}
+        onClose={() => setIsVerificationOpen(false)}
+      />
     </Paper>
   );
 }

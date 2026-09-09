@@ -108,9 +108,15 @@ function getRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
   const events = room?.getLiveTimeline?.()?.getEvents?.() || [];
 
   return events
-    .filter((event) => event?.getType?.() === "m.room.message")
+    .filter((event) => {
+      if (event?.getType?.() === "m.room.message") return true;
+      return event?.isEncrypted?.() && event.getClearContent?.();
+    })
     .map((event, index) => {
-      const content = event.getContent?.() || {};
+      const content =
+        event.getType?.() === "m.room.message"
+          ? event.getContent?.() || {}
+          : event.getClearContent?.() || {};
       const body = typeof content.body === "string" ? content.body : "";
       const formattedBody =
         content.format === "org.matrix.custom.html" &&
@@ -123,7 +129,10 @@ function getRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
       const senderId = event.getSender?.() || "";
       const member = room.getMember?.(senderId);
       const sender =
-        member?.name || member?.rawDisplayName || senderId || "Неизвестный пользователь";
+        member?.name ||
+        member?.rawDisplayName ||
+        senderId ||
+        "Неизвестный пользователь";
       const timestamp = Number(event.getTs?.()) || 0;
 
       return {
@@ -180,13 +189,19 @@ function watchRoomChanges(onChange) {
   const handleRoom = () => {
     onChange?.();
   };
+  const handleDecrypted = () => {
+    onChange?.();
+  };
 
   client.on("sync", handleSync);
   client.on("Room", handleRoom);
+  // После восстановления key backup SDK расшифровывает события асинхронно.
+  client.on("Event.decrypted", handleDecrypted);
 
   return () => {
     client.removeListener("sync", handleSync);
     client.removeListener("Room", handleRoom);
+    client.removeListener("Event.decrypted", handleDecrypted);
   };
 }
 

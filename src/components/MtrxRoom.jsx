@@ -1,10 +1,4 @@
-import {
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { List, ListItem, ListItemText, Paper, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { Fragment } from "react";
 
@@ -53,9 +47,13 @@ function getSafeHref(value) {
 
   try {
     const baseUrl =
-      typeof window === "undefined" ? "http://localhost" : window.location.origin;
+      typeof window === "undefined"
+        ? "http://localhost"
+        : window.location.origin;
     const url = new URL(value, baseUrl);
-    return ["http:", "https:", "mailto:"].includes(url.protocol) ? url.href : null;
+    return ["http:", "https:", "mailto:"].includes(url.protocol)
+      ? url.href
+      : null;
   } catch {
     return null;
   }
@@ -141,7 +139,11 @@ function MtrxRoom({ room }) {
           sx={{ maxHeight: 300, overflowY: "auto", mt: 2 }}
         >
           {messages.map((message) => (
-            <ListItem key={message.eventId} disableGutters alignItems="flex-start">
+            <ListItem
+              key={message.eventId}
+              disableGutters
+              alignItems="flex-start"
+            >
               <ListItemText
                 primary={renderMessageBody(message)}
                 secondary={getMessageSecondary(message)}
