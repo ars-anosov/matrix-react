@@ -6,13 +6,13 @@ import {
   MTRX_REFRESH_TOKEN_KEY,
   MTRX_USER_ID_KEY,
 } from "../constants/storage";
-import { loadMatrixSdk } from "./matrixSdk.js";
-import { clearRoomAvatarCache } from "./matrixRooms.js";
 import {
   clearMatrixClient,
   getMatrixClient,
   setMatrixClient,
 } from "./matrixClientStore.js";
+import { clearRoomAvatarCache } from "./matrixRooms.js";
+import { loadMatrixSdk } from "./matrixSdk.js";
 
 const DEVICE_DISPLAY_NAME = "matrix-react";
 
@@ -313,7 +313,6 @@ async function startMatrixSync(client) {
   if (client.clientRunning) return;
   await client.startClient({ initialSyncLimit: 10 });
 }
-
 
 function getStoredMatrixData() {
   const uriMatrix = localStorage.getItem(MTRX_HS_URL_KEY) || "";

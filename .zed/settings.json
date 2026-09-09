@@ -1,14 +1,11 @@
 {
-  "file_scan_exclusions": [
-    "**/node_modules",
-    "**/dist",
-    "**/.git"
-  ],
+  "file_scan_exclusions": ["**/node_modules", "**/dist", "**/.git"],
   "global_lsp_settings": {
     "request_timeout": 15
   },
   "languages": {
     "JavaScript": {
+      "language_servers": ["vtsls", "biome"],
       "formatter": {
         "language_server": {
           "name": "biome"
@@ -20,7 +17,7 @@
       }
     },
     "JSON": {
-      "language_servers": ["!json-language-server", "..."],
+      "language_servers": ["biome"],
       "formatter": {
         "language_server": {
           "name": "biome"
@@ -28,7 +25,7 @@
       }
     },
     "JSONC": {
-      "language_servers": ["!json-language-server", "..."],
+      "language_servers": ["biome"],
       "formatter": {
         "language_server": {
           "name": "biome"

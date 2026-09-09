@@ -94,12 +94,7 @@ async function resolveRoomAvatarUrl(client, room) {
       return objectUrl;
     } catch (err) {
       if (import.meta.env.DEV) {
-        console.warn(
-          "[matrixRooms] avatar fetch error",
-          room.roomId,
-          url,
-          err,
-        );
+        console.warn("[matrixRooms] avatar fetch error", room.roomId, url, err);
       }
     }
   }

@@ -103,11 +103,7 @@ function MtrxPad(props) {
         }}
       >
         <Box sx={{ minWidth: 0, overflowY: "auto", pr: 1 }}>
-          <Typography
-            variant="subtitle2"
-            color="text.secondary"
-            sx={{ mb: 1 }}
-          >
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
             Комнаты
           </Typography>
 
