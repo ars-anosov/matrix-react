@@ -22,7 +22,11 @@ function MtrxRoomList({ rooms, selectedRoomId = "", onSelect }) {
   }
 
   return (
-    <List disablePadding aria-label="Список комнат">
+    <List
+      disablePadding
+      aria-label="Список комнат"
+      sx={{ maxHeight: 360, overflowY: "auto" }}
+    >
       {rooms.map((room) => (
         <ListItemButton
           key={room.roomId}
@@ -57,7 +61,7 @@ function MtrxRoomList({ rooms, selectedRoomId = "", onSelect }) {
           </ListItemAvatar>
           <ListItemText
             primary={room.name}
-            secondary={room.roomId}
+            // secondary={room.roomId}
             slotProps={{
               primary: { noWrap: true, fontSize: 14, fontWeight: 600 },
               secondary: {

@@ -8,6 +8,7 @@ import {
   MTRXCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
 import * as matrixClient from "../services/matrixClient";
+import * as matrixRooms from "../services/matrixRooms";
 import { getMatrixErrorMessage } from "./utils/matrixError";
 
 let restoreSessionPromise = null;
@@ -149,7 +150,7 @@ const handleChangeStore = (storeDataKey, storeDataValue) => (dispatch) => {
 
 const handleLoadRooms = () => async (dispatch) => {
   try {
-    const rooms = await matrixClient.getJoinedRooms();
+    const rooms = await matrixRooms.getJoinedRooms();
     dispatch({ type: MTRXCTL_SET_ROOMS, payload: { rooms } });
   } catch {
     dispatch({ type: MTRXCTL_SET_ROOMS, payload: { rooms: [] } });
@@ -159,7 +160,7 @@ const handleLoadRooms = () => async (dispatch) => {
 const handleStartRoomWatch = () => (dispatch) => {
   if (unsubscribeRoomChanges) return;
 
-  unsubscribeRoomChanges = matrixClient.watchRoomChanges(() => {
+  unsubscribeRoomChanges = matrixRooms.watchRoomChanges(() => {
     dispatch(handleLoadRooms());
   });
 };

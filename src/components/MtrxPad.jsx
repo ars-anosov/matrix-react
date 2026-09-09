@@ -10,6 +10,7 @@ import {
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
+import MtrxRoom from "./MtrxRoom";
 import MtrxRoomList from "./MtrxRoomList";
 
 function MtrxPad(props) {
@@ -26,6 +27,7 @@ function MtrxPad(props) {
 
   const rooms = mtrxControlRdcr.rooms || [];
   const [selectedRoomId, setSelectedRoomId] = useState("");
+  const selectedRoom = rooms.find((room) => room.roomId === selectedRoomId);
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log("MtrxPad MOUNT");
@@ -59,8 +61,8 @@ function MtrxPad(props) {
     <Paper
       elevation={8}
       sx={{
-        minWidth: 320,
-        maxWidth: 500,
+        minWidth: { xs: 320, sm: 640 },
+        maxWidth: 900,
         width: "100%",
         minHeight: 200,
         mx: "auto",
@@ -89,16 +91,36 @@ function MtrxPad(props) {
 
       <Divider sx={{ mb: 1 }} />
 
-      <Box sx={{ maxHeight: 360, overflowY: "auto", pr: 1 }}>
-        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-          Комнаты
-        </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "minmax(200px, 0.35fr) minmax(0, 1fr)",
+          },
+          gap: 2,
+          maxHeight: 400,
+        }}
+      >
+        <Box sx={{ minWidth: 0, overflowY: "auto", pr: 1 }}>
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            sx={{ mb: 1 }}
+          >
+            Комнаты
+          </Typography>
 
-        <MtrxRoomList
-          rooms={rooms}
-          selectedRoomId={selectedRoomId}
-          onSelect={(room) => setSelectedRoomId(room.roomId)}
-        />
+          <MtrxRoomList
+            rooms={rooms}
+            selectedRoomId={selectedRoomId}
+            onSelect={(room) => setSelectedRoomId(room.roomId)}
+          />
+        </Box>
+
+        <Box sx={{ minWidth: 0, overflowY: "auto" }}>
+          {selectedRoom && <MtrxRoom room={selectedRoom} />}
+        </Box>
       </Box>
     </Paper>
   );
