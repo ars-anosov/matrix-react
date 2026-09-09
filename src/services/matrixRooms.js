@@ -3,6 +3,7 @@ import { getMatrixClient } from "./matrixClientStore.js";
 // Кэш резолвнутых аватарок (mxc → objectURL), чтобы не фетчить повторно
 // и не плодить blob-URL без revoke.
 const avatarUrlCache = new Map();
+const ROOM_MESSAGES_LIMIT = 20;
 
 function clearRoomAvatarCache() {
   for (const url of avatarUrlCache.values()) {
@@ -103,6 +104,40 @@ async function resolveRoomAvatarUrl(client, room) {
   return "";
 }
 
+function getRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
+  const events = room?.getLiveTimeline?.()?.getEvents?.() || [];
+
+  return events
+    .filter((event) => event?.getType?.() === "m.room.message")
+    .map((event, index) => {
+      const content = event.getContent?.() || {};
+      const body = typeof content.body === "string" ? content.body : "";
+      const formattedBody =
+        content.format === "org.matrix.custom.html" &&
+        typeof content.formatted_body === "string"
+          ? content.formatted_body
+          : "";
+
+      if (!body.trim() && !formattedBody.trim()) return null;
+
+      const senderId = event.getSender?.() || "";
+      const member = room.getMember?.(senderId);
+      const sender =
+        member?.name || member?.rawDisplayName || senderId || "Неизвестный пользователь";
+      const timestamp = Number(event.getTs?.()) || 0;
+
+      return {
+        eventId: event.getId?.() || `${senderId}-${timestamp}-${index}`,
+        sender,
+        body,
+        formattedBody,
+        timestamp,
+      };
+    })
+    .filter(Boolean)
+    .slice(-limit);
+}
+
 async function getJoinedRooms() {
   const client = getMatrixClient();
   if (!client?.getRooms) return [];
@@ -124,6 +159,7 @@ async function getJoinedRooms() {
       roomId: room.roomId,
       name: getRoomDisplayName(room),
       avatarUrl: await resolveRoomAvatarUrl(client, room),
+      messages: getRoomMessages(room),
     });
   }
 
