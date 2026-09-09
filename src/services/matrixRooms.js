@@ -47,11 +47,10 @@ function getRoomMxcAvatarUrl(room) {
   return "";
 }
 
-async function resolveRoomAvatarUrl(client, room) {
-  if (!client || !room) return "";
-
-  const mxcUrl = getRoomMxcAvatarUrl(room);
-  if (!mxcUrl || typeof client.mxcUrlToHttp !== "function") return "";
+async function resolveMxcAvatarUrl(client, mxcUrl, contextId = "") {
+  if (!client || !mxcUrl || typeof client.mxcUrlToHttp !== "function") {
+    return "";
+  }
 
   if (avatarUrlCache.has(mxcUrl)) {
     return avatarUrlCache.get(mxcUrl);
@@ -82,7 +81,7 @@ async function resolveRoomAvatarUrl(client, room) {
         if (import.meta.env.DEV) {
           console.warn(
             "[matrixRooms] avatar fetch failed",
-            room.roomId,
+            contextId,
             url,
             response.status,
           );
@@ -95,13 +94,24 @@ async function resolveRoomAvatarUrl(client, room) {
       return objectUrl;
     } catch (err) {
       if (import.meta.env.DEV) {
-        console.warn("[matrixRooms] avatar fetch error", room.roomId, url, err);
+        console.warn("[matrixRooms] avatar fetch error", contextId, url, err);
       }
     }
   }
 
   avatarUrlCache.set(mxcUrl, "");
   return "";
+}
+
+async function resolveRoomAvatarUrl(client, room) {
+  return resolveMxcAvatarUrl(client, getRoomMxcAvatarUrl(room), room?.roomId);
+}
+
+async function resolveMemberAvatarUrl(client, room, senderId) {
+  const member = room?.getMember?.(senderId);
+  const mxcUrl = member?.getMxcAvatarUrl?.();
+
+  return resolveMxcAvatarUrl(client, mxcUrl, room?.roomId);
 }
 
 function getRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
@@ -137,6 +147,7 @@ function getRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
 
       return {
         eventId: event.getId?.() || `${senderId}-${timestamp}-${index}`,
+        senderId,
         sender,
         body,
         formattedBody,
@@ -164,11 +175,26 @@ async function getJoinedRooms() {
   const resolvedRooms = [];
 
   for (const room of rooms) {
+    const messages = getRoomMessages(room);
+    const senderIds = [
+      ...new Set(messages.map((message) => message.senderId).filter(Boolean)),
+    ];
+    const senderAvatarEntries = await Promise.all(
+      senderIds.map(async (senderId) => [
+        senderId,
+        await resolveMemberAvatarUrl(client, room, senderId),
+      ]),
+    );
+    const senderAvatarUrls = new Map(senderAvatarEntries);
+
     resolvedRooms.push({
       roomId: room.roomId,
       name: getRoomDisplayName(room),
       avatarUrl: await resolveRoomAvatarUrl(client, room),
-      messages: getRoomMessages(room),
+      messages: messages.map((message) => ({
+        ...message,
+        avatarUrl: senderAvatarUrls.get(message.senderId) || "",
+      })),
     });
   }
 

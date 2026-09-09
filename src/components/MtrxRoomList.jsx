@@ -12,10 +12,27 @@ function getRoomInitial(name = "") {
   return name.trim().charAt(0).toUpperCase() || "#";
 }
 
-function MtrxRoomList({ rooms, selectedRoomId = "", onSelect }) {
+function MtrxRoomList({
+  rooms,
+  selectedRoomId = "",
+  onSelect,
+  fullHeight = false,
+}) {
   if (rooms.length === 0) {
     return (
-      <Typography variant="body2" color="text.secondary" sx={{ px: 1, py: 2 }}>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{
+          height: fullHeight ? "100%" : undefined,
+          display: fullHeight ? "flex" : undefined,
+          alignItems: fullHeight ? "center" : undefined,
+          justifyContent: fullHeight ? "center" : undefined,
+          px: 1,
+          py: 2,
+          textAlign: "center",
+        }}
+      >
         В этом аккаунте пока нет комнат.
       </Typography>
     );
@@ -25,7 +42,12 @@ function MtrxRoomList({ rooms, selectedRoomId = "", onSelect }) {
     <List
       disablePadding
       aria-label="Список комнат"
-      sx={{ maxHeight: 360, overflowY: "auto" }}
+      sx={{
+        height: fullHeight ? "100%" : undefined,
+        maxHeight: fullHeight ? undefined : 360,
+        overflowY: "auto",
+        scrollbarWidth: "thin",
+      }}
     >
       {rooms.map((room) => (
         <ListItemButton
@@ -87,6 +109,7 @@ MtrxRoomList.propTypes = {
   ).isRequired,
   selectedRoomId: PropTypes.string,
   onSelect: PropTypes.func.isRequired,
+  fullHeight: PropTypes.bool,
 };
 
 export default MtrxRoomList;
