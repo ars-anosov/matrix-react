@@ -23,14 +23,12 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { AD_LOGIN_KEY } from "../constants/storage";
+import { getStoredAdLogin } from "../services/adAuth";
 
 function AdAuth(props) {
   const { authControlRdcr, authControlActions } = props;
 
-  const [login, setLogin] = useState(
-    () => localStorage.getItem(AD_LOGIN_KEY) || "",
-  );
+  const [login, setLogin] = useState(() => getStoredAdLogin());
   const [password, setPassword] = useState("");
   const [uriAdAuth, setUriAdAuth] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +45,7 @@ function AdAuth(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!login.trim() || !password.trim()) return;
+    if (!login.trim() || !password) return;
     authControlActions.handleAdRegister({ login, password, uriAdAuth });
   };
 
@@ -66,7 +64,7 @@ function AdAuth(props) {
     isLoading ||
     isSuccess ||
     !login.trim() ||
-    !password.trim() ||
+    !password ||
     (import.meta.env.DEV && !uriAdAuth.trim());
 
   return (

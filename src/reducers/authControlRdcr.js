@@ -7,12 +7,12 @@ import {
   AUTHCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
 
-import { AD_URI_AUTH_KEY } from "../constants/storage";
+import { getStoredAdAuthUri } from "../services/adAuth";
 
 const initialState = {
   displayAd: false,
   displayControl: false,
-  uriAdAuth: localStorage.getItem(AD_URI_AUTH_KEY) || "",
+  uriAdAuth: getStoredAdAuthUri(),
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,
   errComponent: "",
