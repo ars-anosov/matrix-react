@@ -8,8 +8,8 @@ import * as mtrxActions from "../actions/mtrxControlActions.js";
 
 // Components
 import AuthAd from "../components/AuthAd.jsx";
-import MtrxPad from "../components/MtrxPad.jsx";
 import MtrxReg from "../components/MtrxReg.jsx";
+import MtrxPadContainer from "./MtrxPadContainer.jsx";
 
 const MtrxContainer = () => {
   const dispatch = useDispatch();
@@ -93,11 +93,7 @@ const MtrxContainer = () => {
         {/* Мессенджер */}
         {(displayPad || errComponent === "MtrxPad") && (
           <Grid size={{ xs: 12, md: "auto" }}>
-            <MtrxPad
-              mtrxControlRdcr={mtrxControlRdcr}
-              mtrxControlActions={mtrxControlActions}
-              showInput
-            />
+            <MtrxPadContainer />
           </Grid>
         )}
       </Grid>

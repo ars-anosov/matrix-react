@@ -114,7 +114,7 @@ async function resolveMemberAvatarUrl(client, room, senderId) {
   return resolveMxcAvatarUrl(client, mxcUrl, room?.roomId);
 }
 
-function getRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
+function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
   const events = room?.getLiveTimeline?.()?.getEvents?.() || [];
 
   return events
@@ -158,77 +158,129 @@ function getRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
     .slice(-limit);
 }
 
-async function getJoinedRooms() {
+function getJoinedRoomIds() {
   const client = getMatrixClient();
   if (!client?.getRooms) return [];
 
   // KnownMembership.Join === "join"
-  const rooms = client
+  return client
     .getRooms()
     .filter((room) => room?.getMyMembership?.() === "join")
     .sort((a, b) =>
       getRoomDisplayName(a).localeCompare(getRoomDisplayName(b), undefined, {
         sensitivity: "base",
       }),
-    );
-
-  const resolvedRooms = [];
-
-  for (const room of rooms) {
-    const messages = getRoomMessages(room);
-    const senderIds = [
-      ...new Set(messages.map((message) => message.senderId).filter(Boolean)),
-    ];
-    const senderAvatarEntries = await Promise.all(
-      senderIds.map(async (senderId) => [
-        senderId,
-        await resolveMemberAvatarUrl(client, room, senderId),
-      ]),
-    );
-    const senderAvatarUrls = new Map(senderAvatarEntries);
-
-    resolvedRooms.push({
-      roomId: room.roomId,
-      name: getRoomDisplayName(room),
-      avatarUrl: await resolveRoomAvatarUrl(client, room),
-      messages: messages.map((message) => ({
-        ...message,
-        avatarUrl: senderAvatarUrls.get(message.senderId) || "",
-      })),
-    });
-  }
-
-  return resolvedRooms;
+    )
+    .map((room) => room.roomId);
 }
 
-function watchRoomChanges(onChange) {
+async function getRoomMeta(roomId) {
   const client = getMatrixClient();
-  if (!client) return () => {};
+  const room = client?.getRoom?.(roomId);
+  if (!room) return null;
 
-  // ClientEvent.Sync / ClientEvent.Room
-  const handleSync = (state) => {
-    if (["PREPARED", "SYNCING", "CATCHUP", "ERROR"].includes(state)) {
-      onChange?.();
+  return {
+    roomId,
+    name: getRoomDisplayName(room),
+    avatarUrl: await resolveRoomAvatarUrl(client, room),
+  };
+}
+
+async function getRoomMessages(roomId, limit = ROOM_MESSAGES_LIMIT) {
+  const client = getMatrixClient();
+  const room = client?.getRoom?.(roomId);
+  if (!room) return [];
+
+  const messages = buildRoomMessages(room, limit);
+  const senderIds = [
+    ...new Set(messages.map((message) => message.senderId).filter(Boolean)),
+  ];
+  const senderAvatarEntries = await Promise.all(
+    senderIds.map(async (senderId) => [
+      senderId,
+      await resolveMemberAvatarUrl(client, room, senderId),
+    ]),
+  );
+  const senderAvatarUrls = new Map(senderAvatarEntries);
+
+  return messages.map((message) => ({
+    ...message,
+    avatarUrl: senderAvatarUrls.get(message.senderId) || "",
+  }));
+}
+
+// Дельта-подписка на список комнат: INITIALIZE / PUT / DELETE одного roomId.
+function watchRoomList(onChange) {
+  const client = getMatrixClient();
+  if (!client?.on) return () => {};
+
+  const handleRoom = (room) => {
+    if (room?.getMyMembership?.() === "join") {
+      onChange?.({ type: "PUT", roomId: room.roomId });
     }
   };
 
-  const handleRoom = () => {
-    onChange?.();
-  };
-  const handleDecrypted = () => {
-    onChange?.();
+  const handleMembershipChange = (room) => {
+    if (room?.getMyMembership?.() === "join") {
+      onChange?.({ type: "PUT", roomId: room.roomId });
+    } else {
+      onChange?.({ type: "DELETE", roomId: room.roomId });
+    }
   };
 
-  client.on("sync", handleSync);
+  const handleDeleteRoom = (roomId) => {
+    onChange?.({ type: "DELETE", roomId });
+  };
+
+  onChange?.({ type: "INITIALIZE", roomIds: getJoinedRoomIds() });
+
   client.on("Room", handleRoom);
-  // После восстановления key backup SDK расшифровывает события асинхронно.
-  client.on("Event.decrypted", handleDecrypted);
+  client.on("Room.myMembership", handleMembershipChange);
+  client.on("deleteRoom", handleDeleteRoom);
 
   return () => {
-    client.removeListener("sync", handleSync);
     client.removeListener("Room", handleRoom);
+    client.removeListener("Room.myMembership", handleMembershipChange);
+    client.removeListener("deleteRoom", handleDeleteRoom);
+  };
+}
+
+// Подписка на сообщения активной комнаты (данные — в SDK, отдаём сериализуемый снимок).
+function watchRoomMessages(roomId, onChange) {
+  const client = getMatrixClient();
+  if (!client?.on || !roomId) return () => {};
+
+  let disposed = false;
+
+  const emit = async () => {
+    if (disposed) return;
+    const messages = await getRoomMessages(roomId);
+    if (!disposed) onChange?.(messages);
+  };
+
+  const handleTimeline = (_event, room) => {
+    if (room?.roomId === roomId) emit();
+  };
+  const handleDecrypted = (event) => {
+    if (event?.getRoomId?.() === roomId) emit();
+  };
+
+  client.on("Room.timeline", handleTimeline);
+  client.on("Event.decrypted", handleDecrypted);
+  emit();
+
+  return () => {
+    disposed = true;
+    client.removeListener("Room.timeline", handleTimeline);
     client.removeListener("Event.decrypted", handleDecrypted);
   };
 }
 
-export { clearRoomAvatarCache, getJoinedRooms, watchRoomChanges };
+export {
+  clearRoomAvatarCache,
+  getJoinedRoomIds,
+  getRoomMessages,
+  getRoomMeta,
+  watchRoomList,
+  watchRoomMessages,
+};

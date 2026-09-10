@@ -1,41 +1,59 @@
 sequenceDiagram
-  participant UI as JSX<br/>(MtrxContainer / Reg / Pad)
-  participant Actions as Redux actions
+  participant UI as React<br/>(MtrxContainer / MtrxPadContainer)
+  participant Redux as Redux<br/>(actions + индекс)
+  participant Rooms as matrixRooms
   participant Client as matrixClient
+  participant SDK as matrix-js-sdk
   participant Store as local store<br/>(LS + IndexedDB)
 
   Note over UI,Store: Restore
-  UI->>Actions: handleRestoreSession
-  Actions->>Client: restore / getStored*
-  Client->>Store: читать токены / sync+crypto
+  UI->>Redux: handleRestoreSession
+  Redux->>Client: restoreMatrixSession
+  Client->>Store: читать токены / sync + crypto
   Store-->>Client: session data
   Client->>Client: whoami()
   alt 401
     Client->>Store: очистить LS + IDB
-    Client-->>Actions: MATRIX_UNAUTHORIZED → CLEAR
-    Actions-->>UI: показать Reg
+    Client-->>Redux: MATRIX_UNAUTHORIZED → CLEAR
+    Redux-->>UI: показать Reg
   else ok / сеть
-    Client-->>Actions: session → Redux
-    Actions-->>UI: status → Reg или Pad
+    Client-->>Redux: session → status
+    Redux-->>UI: показать Pad
   end
 
   Note over UI,Store: Login (MtrxReg)
-  UI->>Actions: handleRegister
-  Actions->>Client: loginMatrix
+  UI->>Redux: handleRegister
+  Redux->>Client: loginMatrix
   Client->>Client: login + startClient
   Client->>Store: persist session
-  Client-->>Actions: session → Redux
-  Actions-->>UI: показать Pad
+  Client-->>Redux: session → status
+  Redux-->>UI: показать Pad
 
-  Note over UI,Store: Rooms (MtrxPad)
-  UI->>Actions: handleLoadRooms / watch*
-  Actions->>Client: getJoinedRooms / watch*
-  Client-->>Actions: rooms → Redux
-  Actions-->>UI: список комнат
+  Note over UI,Store: Список комнат (дельта)
+  UI->>Redux: handleStartRoomWatch
+  Redux->>Rooms: watchRoomList
+  Rooms->>SDK: on Room / Room.myMembership / deleteRoom
+  Rooms-->>Redux: INITIALIZE (roomIds)
+  Redux->>Rooms: getRoomMeta(roomId)
+  Rooms->>SDK: read Room
+  SDK-->>Rooms: name / avatarUrl
+  Rooms-->>Redux: roomsMeta (STORE)
+  SDK-->>Rooms: PUT / DELETE (roomId)
+  Rooms-->>Redux: PUT / DELETE → индекс
+
+  Note over UI,Store: Выбор комнаты + сообщения
+  UI->>Redux: handleSelectRoom(roomId)
+  Redux-->>UI: selectedRoomId
+  UI->>Rooms: watchRoomMessages(roomId)
+  Rooms->>SDK: read Timeline (getRoomMessages)
+  SDK-->>Rooms: сообщения (сериализуемый снимок)
+  Rooms-->>UI: messages → MtrxRoom
+  SDK-->>Rooms: Room.timeline / Event.decrypted
+  Rooms-->>UI: обновлённые сообщения
 
   Note over UI,Store: Logout (MtrxReg) / invalidate
-  UI->>Actions: handleRegClear
-  Actions->>Client: logout / invalidate
+  UI->>Redux: handleRegClear
+  Redux->>Client: logout / invalidate
   Client->>Store: очистить LS + IDB
-  Client-->>Actions: CLEAR → Redux
-  Actions-->>UI: показать Reg
+  Client-->>Redux: CLEAR → Redux
+  Redux-->>UI: показать Reg

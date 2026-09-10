@@ -10,6 +10,15 @@ alwaysApply: false
 
 - Вся логика Matrix располагается в `src/services/` (директория называется `services`, не `srvices`).
 - `matrixClient.js` отвечает за MatrixClient, sync, crypto/store, токены, session lifecycle.
+- matrix-js-sdk — единственный источник истины для данных Matrix: комнаты, таймлайн,
+  сообщения и члены хранятся в SDK и не дублируются в Redux.
+- Redux хранит только лёгкий индекс, необходимый для UI: список `roomId`, выбранную комнату,
+  метаданные списка (name/avatar) и при необходимости счётчики. Полные комнаты и сообщения
+  в Redux не кладутся.
+- Сообщения и таймлайн читаются из сервиса по требованию для активной комнаты
+  (`getRoomMeta`, `getRoomMessages`), не сериализуются в стор.
+- Подписки на события SDK строятся по дельтам (INITIALIZE / PUT / DELETE одного `roomId`),
+  а не полным перечитыванием списка.
 - Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают Matrix API напрямую.
 - Redux actions только валидируют UI-ввод, вызывают методы сервисов и преобразуют результат в Redux actions. Reducers не содержат Matrix-логики.
 - Новую Matrix-функцию сначала добавлять в подходящий сервис; наружу экспортировать небольшой доменный API вместо SDK-объектов.
@@ -27,6 +36,10 @@ alwaysApply: false
 - Action types — константы в `constants/redux.js` (префиксы `MTRXCTL_`, `AUTHCTL_`).
 - Reducers: `mtrxControlRdcr`, `authControlRdcr`; actions: `mtrxControlActions`, `authControlActions`.
 - В контейнерах: `useSelector`, `bindActionCreators` + `useMemo`.
+- Redux — только view-model и UI-состояние. Данные Matrix (комнаты/сообщения) в сторе не хранить —
+  только лёгкий индекс: `roomIds`, `selectedRoomId`, метаданные списка (`roomsMeta`).
+- Список комнат обновлять дельтами (INITIALIZE/PUT/DELETE одного `roomId`), не перезаписывать
+  весь массив на каждое событие SDK.
 
 ## Прочее
 

@@ -1,7 +1,11 @@
 import {
   MTRXCTL_CLEAR,
   MTRXCTL_DEVICE_VERIFICATION_STORE,
-  MTRXCTL_SET_ROOMS,
+  MTRXCTL_ROOM_LIST_DELETE,
+  MTRXCTL_ROOM_LIST_INITIALIZE,
+  MTRXCTL_ROOM_LIST_PUT,
+  MTRXCTL_ROOM_META_STORE,
+  MTRXCTL_SET_SELECTED_ROOM,
   MTRXCTL_STORE_MATRIX_DATA,
   MTRXCTL_STORE_VALUE,
   MTRXCTL_SUBMIT_ERROR,
@@ -14,7 +18,7 @@ import { getMatrixErrorMessage } from "./utils/matrixError";
 
 let restoreSessionPromise = null;
 let sessionOperationId = 0;
-let unsubscribeRoomChanges = null;
+let unsubscribeRoomList = null;
 let unsubscribeDeviceVerification = null;
 
 function dispatchDeviceVerification(dispatch, payload = {}) {
@@ -286,26 +290,54 @@ const handleChangeStore = (storeDataKey, storeDataValue) => (dispatch) => {
   });
 };
 
-const handleLoadRooms = () => async (dispatch) => {
+const handleLoadRoomMeta = (roomId) => async (dispatch) => {
   try {
-    const rooms = await matrixRooms.getJoinedRooms();
-    dispatch({ type: MTRXCTL_SET_ROOMS, payload: { rooms } });
+    const meta = await matrixRooms.getRoomMeta(roomId);
+    if (meta) {
+      dispatch({ type: MTRXCTL_ROOM_META_STORE, payload: { roomId, meta } });
+    }
   } catch {
-    dispatch({ type: MTRXCTL_SET_ROOMS, payload: { rooms: [] } });
+    // Игнорируем: список остаётся, метаданные подтянем при следующем событии.
   }
 };
 
-const handleStartRoomWatch = () => (dispatch) => {
-  if (unsubscribeRoomChanges) return;
+const handleRoomListInitialize = (roomIds) => (dispatch) => {
+  dispatch({ type: MTRXCTL_ROOM_LIST_INITIALIZE, payload: { roomIds } });
+  roomIds.forEach((roomId) => {
+    dispatch(handleLoadRoomMeta(roomId));
+  });
+};
 
-  unsubscribeRoomChanges = matrixRooms.watchRoomChanges(() => {
-    dispatch(handleLoadRooms());
+const handleRoomListPut = (roomId) => (dispatch) => {
+  dispatch({ type: MTRXCTL_ROOM_LIST_PUT, payload: { roomId } });
+  dispatch(handleLoadRoomMeta(roomId));
+};
+
+const handleRoomListDelete = (roomId) => (dispatch) => {
+  dispatch({ type: MTRXCTL_ROOM_LIST_DELETE, payload: { roomId } });
+};
+
+const handleStartRoomWatch = () => (dispatch) => {
+  if (unsubscribeRoomList) return;
+
+  unsubscribeRoomList = matrixRooms.watchRoomList((delta) => {
+    if (delta.type === "INITIALIZE") {
+      dispatch(handleRoomListInitialize(delta.roomIds));
+    } else if (delta.type === "PUT") {
+      dispatch(handleRoomListPut(delta.roomId));
+    } else if (delta.type === "DELETE") {
+      dispatch(handleRoomListDelete(delta.roomId));
+    }
   });
 };
 
 const handleStopRoomWatch = () => () => {
-  unsubscribeRoomChanges?.();
-  unsubscribeRoomChanges = null;
+  unsubscribeRoomList?.();
+  unsubscribeRoomList = null;
+};
+
+const handleSelectRoom = (roomId) => (dispatch) => {
+  dispatch({ type: MTRXCTL_SET_SELECTED_ROOM, payload: { roomId } });
 };
 
 export {
@@ -316,11 +348,11 @@ export {
   handleConfirmDeviceVerification,
   handleHydrateStoredMatrixData,
   handleLoadDeviceVerification,
-  handleLoadRooms,
   handleRegClear,
   handleRegister,
   handleRequestDeviceVerification,
   handleRestoreSession,
+  handleSelectRoom,
   handleStartDeviceVerification,
   handleStartRoomWatch,
   handleStopRoomWatch,

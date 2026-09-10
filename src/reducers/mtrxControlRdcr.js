@@ -2,7 +2,11 @@ import {
   MTRXCTL_CLEAR,
   MTRXCTL_DEVICE_VERIFICATION_STORE,
   MTRXCTL_ERROR_ALERT,
-  MTRXCTL_SET_ROOMS,
+  MTRXCTL_ROOM_LIST_DELETE,
+  MTRXCTL_ROOM_LIST_INITIALIZE,
+  MTRXCTL_ROOM_LIST_PUT,
+  MTRXCTL_ROOM_META_STORE,
+  MTRXCTL_SET_SELECTED_ROOM,
   MTRXCTL_STORE_MATRIX_DATA,
   MTRXCTL_STORE_VALUE,
   MTRXCTL_SUBMIT_ERROR,
@@ -18,10 +22,13 @@ const initialState = {
   // --- Auth ---
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,
-  // --- Stored matrix data / rooms ---
+  // --- Stored matrix data ---
   uriMatrix: "",
   login: "",
-  rooms: [],
+  // --- Индекс комнат (данные — в SDK) ---
+  roomIds: [],
+  selectedRoomId: "",
+  roomsMeta: {},
   deviceVerification: {
     status: "idle", // 'idle' | 'loading' | 'requested' | 'ready' | 'started' | 'success' | 'cancelled' | 'error'
     verified: false,
@@ -35,6 +42,12 @@ const initialState = {
   errText: "",
 };
 
+const emptyRooms = {
+  roomIds: [],
+  selectedRoomId: "",
+  roomsMeta: {},
+};
+
 export default function mtrxControlRdcr(state = initialState, action) {
   switch (action.type) {
     case MTRXCTL_SUBMIT_REQUEST:
@@ -44,7 +57,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayReg: true,
         displayPad: false,
         responseData: null,
-        rooms: [],
+        ...emptyRooms,
         deviceVerification: initialState.deviceVerification,
         errComponent: "",
         errText: "",
@@ -57,7 +70,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayReg: false,
         displayPad: true,
         responseData: action.payload.responseData,
-        rooms: [],
+        ...emptyRooms,
         errComponent: "",
         errText: "",
       };
@@ -70,7 +83,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayReg: true,
         displayPad: false,
         responseData: null,
-        rooms: [],
+        ...emptyRooms,
         errComponent: "MtrxReg",
         errText,
       };
@@ -83,7 +96,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayReg: true,
         displayPad: false,
         responseData: null,
-        rooms: [],
+        ...emptyRooms,
         deviceVerification: initialState.deviceVerification,
         errComponent: "",
         errText: "",
@@ -109,10 +122,50 @@ export default function mtrxControlRdcr(state = initialState, action) {
         login: action.payload.login,
       };
 
-    case MTRXCTL_SET_ROOMS:
+    case MTRXCTL_ROOM_LIST_INITIALIZE:
       return {
         ...state,
-        rooms: action.payload.rooms,
+        roomIds: action.payload.roomIds,
+      };
+
+    case MTRXCTL_ROOM_LIST_PUT: {
+      const roomId = action.payload.roomId;
+      if (state.roomIds.includes(roomId)) return state;
+      return {
+        ...state,
+        roomIds: [...state.roomIds, roomId],
+      };
+    }
+
+    case MTRXCTL_ROOM_LIST_DELETE: {
+      const roomId = action.payload.roomId;
+      const roomsMeta = { ...state.roomsMeta };
+      delete roomsMeta[roomId];
+
+      return {
+        ...state,
+        roomIds: state.roomIds.filter((id) => id !== roomId),
+        selectedRoomId:
+          state.selectedRoomId === roomId ? "" : state.selectedRoomId,
+        roomsMeta,
+      };
+    }
+
+    case MTRXCTL_ROOM_META_STORE: {
+      const { roomId, meta } = action.payload;
+      return {
+        ...state,
+        roomsMeta: {
+          ...state.roomsMeta,
+          [roomId]: meta,
+        },
+      };
+    }
+
+    case MTRXCTL_SET_SELECTED_ROOM:
+      return {
+        ...state,
+        selectedRoomId: action.payload.roomId,
       };
 
     case MTRXCTL_DEVICE_VERIFICATION_STORE:

@@ -11,7 +11,6 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
 
 import MtrxRoom from "./MtrxRoom";
 import MtrxRoomList from "./MtrxRoomList";
@@ -32,50 +31,13 @@ function getRoomCountLabel(count) {
   return `${count} комнат`;
 }
 
-function MtrxPad(props) {
-  if (import.meta.env.DEV) console.log("MtrxPad hook");
-
-  const { mtrxControlRdcr, mtrxControlActions } = props;
-
-  const {
-    handleChangeStore,
-    handleLoadRooms,
-    handleStartRoomWatch,
-    handleStopRoomWatch,
-  } = mtrxControlActions;
-
-  const rooms = mtrxControlRdcr.rooms || [];
-  const [selectedRoomId, setSelectedRoomId] = useState("");
-  const selectedRoom = rooms.find((room) => room.roomId === selectedRoomId);
-
-  useEffect(() => {
-    if (import.meta.env.DEV) console.log("MtrxPad MOUNT");
-
-    return () => {
-      if (import.meta.env.DEV) console.log("MtrxPad UNMOUNT");
-    };
-  }, []);
-
-  useEffect(() => {
-    if (mtrxControlRdcr.status !== "success") {
-      setSelectedRoomId("");
-      return;
-    }
-
-    handleLoadRooms();
-    handleStartRoomWatch();
-    return () => handleStopRoomWatch();
-  }, [
-    mtrxControlRdcr.status,
-    handleLoadRooms,
-    handleStartRoomWatch,
-    handleStopRoomWatch,
-  ]);
-
-  const handleClose = () => {
-    handleChangeStore("displayPad", false);
-  };
-
+function MtrxPad({
+  rooms,
+  selectedRoomId,
+  selectedRoom,
+  onSelectRoom,
+  onClose,
+}) {
   return (
     <Paper
       elevation={8}
@@ -121,7 +83,7 @@ function MtrxPad(props) {
         </Box>
         <IconButton
           aria-label="Закрыть мессенджер"
-          onClick={handleClose}
+          onClick={onClose}
           sx={{ flexShrink: 0 }}
         >
           <IconClose color="action" />
@@ -164,7 +126,7 @@ function MtrxPad(props) {
           <MtrxRoomList
             rooms={rooms}
             selectedRoomId={selectedRoomId}
-            onSelect={(room) => setSelectedRoomId(room.roomId)}
+            onSelect={(room) => onSelectRoom(room.roomId)}
             fullHeight
           />
         </Box>
@@ -205,9 +167,17 @@ function MtrxPad(props) {
 }
 
 MtrxPad.propTypes = {
-  mtrxControlRdcr: PropTypes.object.isRequired,
-  mtrxControlActions: PropTypes.object.isRequired,
-  showInput: PropTypes.bool.isRequired,
+  rooms: PropTypes.arrayOf(
+    PropTypes.shape({
+      roomId: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      avatarUrl: PropTypes.string,
+    }),
+  ).isRequired,
+  selectedRoomId: PropTypes.string,
+  selectedRoom: PropTypes.object,
+  onSelectRoom: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 export default MtrxPad;
