@@ -9,8 +9,10 @@ import {
   Avatar,
   Box,
   Button,
+  CircularProgress,
   Grid,
   IconButton,
+  InputAdornment,
   Paper,
   Stack,
   TextField,
@@ -18,6 +20,43 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+
+// Единый стиль кнопок диалога — согласован с MtrxReg.
+const BUTTON_SX = { py: 1.3, fontWeight: "bold", borderRadius: 2 };
+
+// Плитка одного emoji-кода SAS.
+const EMOJI_TILE_SX = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 0.25,
+  py: 1.25,
+  px: 0.5,
+  minHeight: 64,
+  borderRadius: 2,
+  border: "1px solid",
+  borderColor: "divider",
+  backgroundColor: "action.hover",
+  transition: (theme) =>
+    theme.transitions.create(["border-color", "background-color"]),
+  "&:hover": {
+    borderColor: "primary.main",
+    backgroundColor: "action.selected",
+  },
+};
+
+// Единое состояние ожидания: спиннер + подпись.
+function renderWaiting(text) {
+  return (
+    <Stack spacing={2} sx={{ alignItems: "center", py: 1 }}>
+      <CircularProgress size={28} />
+      <Typography align="center" color="text.secondary">
+        {text}
+      </Typography>
+    </Stack>
+  );
+}
 
 function MtrxDeviceVerification(props) {
   const { open, verification, mtrxControlActions, onClose } = props;
@@ -49,19 +88,14 @@ function MtrxDeviceVerification(props) {
 
   const renderContent = () => {
     if (status === "loading") {
-      return (
-        <Typography align="center">
-          Создаём запрос на авторизацию устройства…
-        </Typography>
-      );
+      return renderWaiting("Создаём запрос на авторизацию устройства…");
     }
 
     if (status === "requested") {
       return verification.initiatedByMe ? (
-        <Typography>
-          Запрос отправлен на другое устройство. Примите его там, чтобы
-          продолжить.
-        </Typography>
+        renderWaiting(
+          "Запрос отправлен на другое устройство. Примите его там, чтобы продолжить.",
+        )
       ) : (
         <Stack spacing={1.5}>
           <Typography>
@@ -70,9 +104,11 @@ function MtrxDeviceVerification(props) {
           </Typography>
           <Button
             variant="contained"
+            size="large"
             fullWidth
             startIcon={<IconSecurity />}
             onClick={handleAcceptDeviceVerification}
+            sx={BUTTON_SX}
           >
             Принять запрос
           </Button>
@@ -89,23 +125,21 @@ function MtrxDeviceVerification(props) {
           </Typography>
           <Button
             variant="contained"
+            size="large"
             fullWidth
             onClick={handleStartDeviceVerification}
+            sx={BUTTON_SX}
           >
             Начать проверку
           </Button>
         </Stack>
       ) : (
-        <Typography>Ожидаем запуск проверки на другом устройстве…</Typography>
+        renderWaiting("Ожидаем запуск проверки на другом устройстве…")
       );
     }
 
     if (status === "started" && emoji.length === 0) {
-      return (
-        <Typography align="center">
-          Готовим emoji-коды для сравнения…
-        </Typography>
-      );
+      return renderWaiting("Готовим emoji-коды для сравнения…");
     }
 
     if (status === "started") {
@@ -115,21 +149,19 @@ function MtrxDeviceVerification(props) {
             Сравните эти emoji с кодами на другом устройстве. Они должны
             совпадать и идти в том же порядке.
           </Typography>
-          <Grid container spacing={1} justifyContent="center">
-            {emoji.map(([symbol, name]) => (
-              <Grid key={`${symbol}-${name}`} size={{ xs: 4, sm: 3 }}>
-                <Box
-                  sx={{
-                    p: 0.75,
-                    textAlign: "center",
-                    backgroundColor: "action.hover",
-                    borderRadius: 1.5,
-                  }}
-                >
-                  <Typography variant="h4" component="span" display="block">
+          <Grid container spacing={1.5} sx={{ justifyContent: "center" }}>
+            {emoji.map(([symbol, name], index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: SAS emoji-код может содержать повторы, порядок задан протоколом
+              <Grid key={`${symbol}-${name}-${index}`} size={{ xs: 4, sm: 3 }}>
+                <Box sx={EMOJI_TILE_SX}>
+                  <Typography
+                    variant="h4"
+                    component="span"
+                    sx={{ lineHeight: 1 }}
+                  >
                     {symbol}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" color="text.secondary" noWrap>
                     {name}
                   </Typography>
                 </Box>
@@ -140,16 +172,20 @@ function MtrxDeviceVerification(props) {
             <Button
               variant="contained"
               color="success"
+              size="large"
               onClick={handleConfirmDeviceVerification}
               fullWidth
+              sx={BUTTON_SX}
             >
               Совпадают
             </Button>
             <Button
               variant="outlined"
               color="error"
+              size="large"
               onClick={handleCancelDeviceVerification}
               fullWidth
+              sx={BUTTON_SX}
             >
               Не совпадают
             </Button>
@@ -160,12 +196,14 @@ function MtrxDeviceVerification(props) {
 
     if (isSuccess) {
       return (
-        <Stack spacing={1} alignItems="center">
-          <Typography variant="h6">Устройство авторизовано</Typography>
-          <Typography color="text.secondary" align="center">
+        <Alert severity="success" sx={{ borderRadius: 2 }}>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Устройство авторизовано
+          </Typography>
+          <Typography variant="body2">
             Matrix может передавать этому устройству ключи шифрования.
           </Typography>
-        </Stack>
+        </Alert>
       );
     }
 
@@ -175,7 +213,7 @@ function MtrxDeviceVerification(props) {
 
     if (status === "error") {
       return (
-        <Alert severity="error" sx={{ borderRadius: 1.5 }}>
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
           {verification.errText || "Не удалось авторизовать устройство."}
         </Alert>
       );
@@ -186,9 +224,11 @@ function MtrxDeviceVerification(props) {
         <Typography>Авторизуйте текущую сессию с другого устройства</Typography>
         <Button
           variant="contained"
+          size="large"
           fullWidth
           startIcon={<IconSecurity />}
           onClick={handleRequestDeviceVerification}
+          sx={BUTTON_SX}
         >
           Запрос устройству
         </Button>
@@ -204,14 +244,25 @@ function MtrxDeviceVerification(props) {
             required
             id="MtrxDeviceVerificationRecoveryKey"
             variant="outlined"
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <IconVpnKey color="action" />
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
         </Box>
         <Button
           variant="contained"
+          size="large"
           fullWidth
           startIcon={<IconVpnKey />}
           onClick={() => handleVerifyDeviceWithRecoveryKey(recoveryKey)}
           disabled={!recoveryKey.trim()}
+          sx={BUTTON_SX}
         >
           recovery key
         </Button>

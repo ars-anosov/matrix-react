@@ -1,3 +1,4 @@
+import { CryptoEvent } from "matrix-js-sdk/lib/crypto-api/CryptoEvent.js";
 import {
   MTRX_ACCESS_TOKEN_KEY,
   MTRX_DEVICE_ID_KEY,
@@ -348,23 +349,51 @@ function bindDeviceVerificationVerifier(verifier, onChange) {
   verifier.verify?.().catch(() => onChange?.(getDeviceVerificationSnapshot()));
 }
 
+// Перечитывает статус текущего устройства и отдаёт объединённый снапшот наружу.
+// Cross-signing секреты и подпись устройства приходят отдельными to-device
+// событиями уже после завершения SAS, поэтому verified становится true не в
+// момент phase 6, а с задержкой — по этим событиям статус обновляется заново.
+async function emitDeviceVerificationStatus(onChange) {
+  try {
+    onChange?.({
+      ...getDeviceVerificationSnapshot(),
+      ...(await getCurrentDeviceVerification()),
+    });
+  } catch {
+    // Устройство ещё не готово — статус обновится при следующем событии crypto.
+  }
+}
+
 function watchDeviceVerification(onChange) {
   const client = getMatrixClient();
   if (!client?.on) return () => {};
 
   deviceVerificationCleanup?.();
 
+  const crypto = client.getCrypto?.();
+
   const handleRequest = (request) => {
     if (!request?.isSelfVerification) return;
     bindDeviceVerificationRequest(request, onChange);
   };
 
+  // Rust-crypto сообщает об изменении доверия/списка устройств асинхронно;
+  // по этим событиям доводим статус устройства до актуального.
+  const handleCryptoTrustChange = () => {
+    emitDeviceVerificationStatus(onChange);
+  };
+
   client.on("crypto.verificationRequestReceived", handleRequest);
+  crypto?.on?.(CryptoEvent.UserTrustStatusChanged, handleCryptoTrustChange);
+  crypto?.on?.(CryptoEvent.DevicesUpdated, handleCryptoTrustChange);
+
   deviceVerificationCleanup = () => {
     client.removeListener?.(
       "crypto.verificationRequestReceived",
       handleRequest,
     );
+    crypto?.off?.(CryptoEvent.UserTrustStatusChanged, handleCryptoTrustChange);
+    crypto?.off?.(CryptoEvent.DevicesUpdated, handleCryptoTrustChange);
     if (deviceVerificationCleanup === cleanup) deviceVerificationCleanup = null;
   };
   const cleanup = deviceVerificationCleanup;
