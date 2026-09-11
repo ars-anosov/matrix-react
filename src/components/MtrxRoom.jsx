@@ -12,6 +12,8 @@ import {
 import PropTypes from "prop-types";
 import { Fragment, useEffect, useRef } from "react";
 
+import { HEADER_BACKGROUND } from "../constants/ui.js";
+
 const ALLOWED_FORMATTED_TAGS = new Set([
   "A",
   "B",
@@ -200,6 +202,7 @@ function MtrxRoom({ room, fullHeight = false }) {
           px: 2,
           py: 1.5,
           flexShrink: 0,
+          bgcolor: HEADER_BACKGROUND,
         }}
       >
         <Avatar
@@ -229,9 +232,9 @@ function MtrxRoom({ room, fullHeight = false }) {
             color="text.secondary"
             noWrap
             title={room.roomId}
-            sx={{ display: "block", fontFamily: "monospace" }}
+            sx={{ display: "block" }}
           >
-            {room.roomId}
+            {room.subtitle || room.roomId}
           </Typography>
         </Box>
         {messages.length > 0 && (
@@ -442,6 +445,7 @@ MtrxRoom.propTypes = {
     roomId: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     avatarUrl: PropTypes.string,
+    subtitle: PropTypes.string,
     messages: PropTypes.arrayOf(
       PropTypes.shape({
         eventId: PropTypes.string.isRequired,

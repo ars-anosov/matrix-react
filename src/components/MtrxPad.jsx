@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 
+import { HEADER_BACKGROUND } from "../constants/ui.js";
 import MtrxRoom from "./MtrxRoom";
 import MtrxRoomList from "./MtrxRoomList";
 
@@ -52,7 +53,6 @@ function MtrxPad({
         minHeight: { xs: 500, sm: 600 },
         mx: "auto",
         mt: 2,
-        p: { xs: 1, sm: 1.5 },
         borderRadius: 3,
         position: "relative",
         display: "flex",
@@ -61,14 +61,24 @@ function MtrxPad({
         overflow: "hidden",
       }}
     >
+      <IconButton
+        aria-label="Закрыть мессенджер"
+        onClick={onClose}
+        sx={{ position: "absolute", top: 4, right: 4, zIndex: 1 }}
+      >
+        <IconClose color="action" />
+      </IconButton>
+
       <Stack
         direction="row"
         sx={{
           minHeight: 48,
-          px: 0.5,
+          pl: { xs: 1.5, sm: 2 },
+          pr: 6,
+          py: 0.5,
           alignItems: "center",
-          justifyContent: "space-between",
           flexShrink: 0,
+          bgcolor: HEADER_BACKGROUND,
         }}
       >
         <Box sx={{ minWidth: 0 }}>
@@ -81,13 +91,6 @@ function MtrxPad({
               : "Нет доступных комнат"}
           </Typography>
         </Box>
-        <IconButton
-          aria-label="Закрыть мессенджер"
-          onClick={onClose}
-          sx={{ flexShrink: 0 }}
-        >
-          <IconClose color="action" />
-        </IconButton>
       </Stack>
 
       <Divider sx={{ flexShrink: 0 }} />
@@ -106,7 +109,7 @@ function MtrxPad({
             sm: "minmax(0, 1fr)",
           },
           gap: { xs: 1, sm: 1.5 },
-          pt: { xs: 1, sm: 1.5 },
+          p: { xs: 1, sm: 1.5 },
           overflow: "hidden",
         }}
       >
@@ -172,6 +175,7 @@ MtrxPad.propTypes = {
       roomId: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
       avatarUrl: PropTypes.string,
+      subtitle: PropTypes.string,
     }),
   ).isRequired,
   selectedRoomId: PropTypes.string,

@@ -137,6 +137,7 @@ function AdAuth(props) {
             id="adAuthLogin"
             label="Логин"
             variant="outlined"
+            autoComplete="username"
             value={login}
             onChange={(event) => setLogin(event.target.value)}
             slotProps={{
@@ -158,6 +159,7 @@ function AdAuth(props) {
             id="adAuthPassword"
             label="Пароль"
             type={showPassword ? "text" : "password"}
+            autoComplete={showPassword ? "off" : "current-password"}
             variant="outlined"
             value={password}
             onChange={(event) => setPassword(event.target.value)}

@@ -348,6 +348,7 @@ export {
   handleConfirmDeviceVerification,
   handleHydrateStoredMatrixData,
   handleLoadDeviceVerification,
+  handleLoadRoomMeta,
   handleRegClear,
   handleRegister,
   handleRequestDeviceVerification,

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
 import * as mtrxActions from "../actions/mtrxControlActions.js";
 import MtrxPad from "../components/MtrxPad.jsx";
+import { ROOM_STATUS_REFRESH_MS } from "../constants/ui.js";
 import * as matrixRooms from "../services/matrixRooms.js";
 
 // Читает сообщения активной комнаты из сервиса (SDK — источник истины),
@@ -42,12 +43,22 @@ const MtrxPadContainer = () => {
     return () => actions.handleStopRoomWatch();
   }, [status, actions]);
 
+  useEffect(() => {
+    if (!selectedRoomId || status !== "success") return undefined;
+
+    const refresh = () => actions.handleLoadRoomMeta(selectedRoomId);
+    refresh();
+    const timer = window.setInterval(refresh, ROOM_STATUS_REFRESH_MS);
+    return () => window.clearInterval(timer);
+  }, [selectedRoomId, status, actions]);
+
   const rooms = useMemo(
     () =>
       roomIds.map((roomId) => ({
         roomId,
         name: roomsMeta[roomId]?.name || roomId,
         avatarUrl: roomsMeta[roomId]?.avatarUrl || "",
+        subtitle: roomsMeta[roomId]?.subtitle || "",
       })),
     [roomIds, roomsMeta],
   );
@@ -60,6 +71,7 @@ const MtrxPadContainer = () => {
       roomId: selectedRoomId,
       name: meta?.name || selectedRoomId,
       avatarUrl: meta?.avatarUrl || "",
+      subtitle: meta?.subtitle || "",
       messages,
     };
   }, [selectedRoomId, roomsMeta, messages]);

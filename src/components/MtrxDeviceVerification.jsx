@@ -199,6 +199,7 @@ function MtrxDeviceVerification(props) {
             value={recoveryKey}
             onChange={(event) => setRecoveryKey(event.target.value)}
             type="password"
+            autoComplete="off"
             fullWidth
             required
             id="MtrxDeviceVerificationRecoveryKey"

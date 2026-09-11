@@ -1,9 +1,9 @@
+import { ROOM_MESSAGES_LIMIT } from "../constants/ui.js";
 import { getMatrixClient } from "./matrixClientStore.js";
 
 // Кэш резолвнутых аватарок (mxc → objectURL), чтобы не фетчить повторно
 // и не плодить blob-URL без revoke.
 const avatarUrlCache = new Map();
-const ROOM_MESSAGES_LIMIT = 20;
 
 function clearRoomAvatarCache() {
   for (const url of avatarUrlCache.values()) {
@@ -174,6 +174,74 @@ function getJoinedRoomIds() {
     .map((room) => room.roomId);
 }
 
+const PRESENCE_LABELS = {
+  online: "в сети",
+  unavailable: "отошёл",
+  offline: "не в сети",
+};
+
+function getMembersLabel(count) {
+  const remainder = count % 10;
+  const lastTwoDigits = count % 100;
+
+  if (remainder === 1 && lastTwoDigits !== 11) return `${count} участник`;
+  if (
+    remainder >= 2 &&
+    remainder <= 4 &&
+    (lastTwoDigits < 10 || lastTwoDigits >= 20)
+  ) {
+    return `${count} участника`;
+  }
+
+  return `${count} участников`;
+}
+
+// Собеседник личной комнаты: только 1-на-1, иначе это группа.
+function getRoomPeer(room, myUserId) {
+  const joinedCount = room?.getJoinedMemberCount?.() || 0;
+  if (joinedCount > 2) return null;
+
+  const fallbackMember = room?.getAvatarFallbackMember?.();
+  if (fallbackMember?.userId && fallbackMember.userId !== myUserId) {
+    return fallbackMember;
+  }
+
+  const joined = room?.getJoinedMembers?.() || [];
+  if (joined.length === 2) {
+    return joined.find((member) => member.userId !== myUserId) || null;
+  }
+
+  return null;
+}
+
+// Статус собеседника берём напрямую (presence в sync-фильтр не запрошен).
+async function getPeerStatusText(client, peer) {
+  if (typeof client?.getPresence !== "function" || !peer?.userId) {
+    return peer?.name || peer?.userId || "";
+  }
+
+  try {
+    const status = await client.getPresence(peer.userId);
+    const statusMsg =
+      typeof status?.status_msg === "string" ? status.status_msg.trim() : "";
+    if (statusMsg) return statusMsg;
+
+    return PRESENCE_LABELS[status?.presence] || peer.name || peer.userId || "";
+  } catch {
+    return peer.name || peer.userId || "";
+  }
+}
+
+async function getRoomSubtitle(client, room) {
+  const myUserId = client?.getUserId?.();
+  const peer = getRoomPeer(room, myUserId);
+
+  if (peer) return getPeerStatusText(client, peer);
+
+  const count = room?.getJoinedMemberCount?.() || 0;
+  return count > 0 ? getMembersLabel(count) : "";
+}
+
 async function getRoomMeta(roomId) {
   const client = getMatrixClient();
   const room = client?.getRoom?.(roomId);
@@ -183,6 +251,7 @@ async function getRoomMeta(roomId) {
     roomId,
     name: getRoomDisplayName(room),
     avatarUrl: await resolveRoomAvatarUrl(client, room),
+    subtitle: await getRoomSubtitle(client, room),
   };
 }
 

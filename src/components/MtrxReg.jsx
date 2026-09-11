@@ -123,6 +123,7 @@ function MtrxReg(props) {
             id="MtrxRegLogin"
             label="Логин"
             variant="outlined"
+            autoComplete="username"
             value={login}
             onChange={(event) =>
               mtrxControlActions.handleChangeStore("login", event.target.value)
@@ -145,6 +146,7 @@ function MtrxReg(props) {
             id="MtrxRegPassword"
             label="Пароль"
             type={showPassword ? "text" : "password"}
+            autoComplete={showPassword ? "off" : "current-password"}
             variant="outlined"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
