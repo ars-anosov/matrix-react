@@ -7,11 +7,7 @@ import {
   MTRX_REFRESH_TOKEN_KEY,
   MTRX_USER_ID_KEY,
 } from "../constants/storage";
-import {
-  clearMatrixClient,
-  getMatrixClient,
-  setMatrixClient,
-} from "./matrixClientStore.js";
+import { clearMatrixClient, getMatrixClient, setMatrixClient } from "./matrixClientStore.js";
 import { clearRoomAvatarCache } from "./matrixRooms.js";
 import { loadMatrixSdk } from "./matrixSdk.js";
 
@@ -41,17 +37,17 @@ async function createTempMatrixClient(baseUrl) {
   return createClient({ baseUrl });
 }
 
-async function createMatrixClientFromSession({
-  baseUrl,
-  accessToken,
-  userId,
-  deviceId,
-  refreshToken,
-}) {
+/**
+ * Создаёт MatrixClient по сохранённой сессии: IndexedDB-стор, Rust crypto,
+ * автообновление access token и ранняя проверка токена через `whoami`.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/functions/matrix.createClient.html
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html
+ * @see https://spec.matrix.org/latest/client-server-api/#using-access-tokens
+ */
+async function createMatrixClientFromSession({ baseUrl, accessToken, userId, deviceId, refreshToken }) {
   if (!baseUrl || typeof baseUrl !== "string") {
-    throw new Error(
-      `[createMatrixClientFromSession] Невалидный baseUrl: ${baseUrl}`,
-    );
+    throw new Error(`[createMatrixClientFromSession] Невалидный baseUrl: ${baseUrl}`);
   }
 
   const { createClient, IndexedDBStore } = await loadMatrixSdk();
@@ -90,9 +86,7 @@ async function createMatrixClientFromSession({
       });
 
       if (response.status === 401) {
-        console.warn(
-          "[tokenRefreshFunction] Рефреш-токен протух (401). Чистим хранилища…",
-        );
+        console.warn("[tokenRefreshFunction] Рефреш-токен протух (401). Чистим хранилища…");
         deleteMatrixLocalStores();
         await deleteMatrixIndexedDbStores(storeKey);
         getMatrixClient()?.emit?.("Session.logged_out");
@@ -120,9 +114,7 @@ async function createMatrixClientFromSession({
       return {
         accessToken: tokenData.access_token,
         refreshToken: tokenData.refresh_token || currentRefreshToken,
-        expiry: tokenData.expires_in_ms
-          ? new Date(Date.now() + tokenData.expires_in_ms)
-          : undefined,
+        expiry: tokenData.expires_in_ms ? new Date(Date.now() + tokenData.expires_in_ms) : undefined,
       };
     };
   }
@@ -143,10 +135,7 @@ async function createMatrixClientFromSession({
 
     if (message.includes("doesn't match the account in the constructor")) {
       if (import.meta.env.DEV) {
-        console.warn(
-          "[matrixClient] рассогласование device_id в IndexedDB, чищу store и пробую снова",
-          err,
-        );
+        console.warn("[matrixClient] рассогласование device_id в IndexedDB, чищу store и пробую снова", err);
       }
 
       await deleteMatrixIndexedDbStores(storeKey);
@@ -167,9 +156,7 @@ async function createMatrixClientFromSession({
     await client.whoami();
   } catch (err) {
     if (err.httpStatus === 401) {
-      console.warn(
-        "[matrixClient] Сессия невалидна (401). Уничтожаем инстанс.",
-      );
+      console.warn("[matrixClient] Сессия невалидна (401). Уничтожаем инстанс.");
       deleteMatrixLocalStores();
       try {
         client.stopClient();
@@ -180,10 +167,7 @@ async function createMatrixClientFromSession({
       throw new Error("MATRIX_UNAUTHORIZED");
     }
 
-    console.warn(
-      "[matrixClient] Не удалось проверить токен (возможно нет сети):",
-      err,
-    );
+    console.warn("[matrixClient] Не удалось проверить токен (возможно нет сети):", err);
   }
 
   setMatrixClient(client);
@@ -268,8 +252,7 @@ function createCryptoCallbacks() {
       secretStorageKeyCache = { keyId, privateKey };
     },
     getSecretStorageKey: async ({ keys }) => {
-      if (!secretStorageKeyCache || !keys[secretStorageKeyCache.keyId])
-        return null;
+      if (!secretStorageKeyCache || !keys[secretStorageKeyCache.keyId]) return null;
       return [secretStorageKeyCache.keyId, secretStorageKeyCache.privateKey];
     },
   };
@@ -364,6 +347,12 @@ async function emitDeviceVerificationStatus(onChange) {
   }
 }
 
+/**
+ * Подписка на входящие запросы проверки устройства и изменения доверия.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/modules/crypto-api.html
+ * @see https://spec.matrix.org/latest/client-server-api/#device-verification
+ */
 function watchDeviceVerification(onChange) {
   const client = getMatrixClient();
   if (!client?.on) return () => {};
@@ -388,10 +377,7 @@ function watchDeviceVerification(onChange) {
   crypto?.on?.(CryptoEvent.DevicesUpdated, handleCryptoTrustChange);
 
   deviceVerificationCleanup = () => {
-    client.removeListener?.(
-      "crypto.verificationRequestReceived",
-      handleRequest,
-    );
+    client.removeListener?.("crypto.verificationRequestReceived", handleRequest);
     crypto?.off?.(CryptoEvent.UserTrustStatusChanged, handleCryptoTrustChange);
     crypto?.off?.(CryptoEvent.DevicesUpdated, handleCryptoTrustChange);
     if (deviceVerificationCleanup === cleanup) deviceVerificationCleanup = null;
@@ -410,6 +396,12 @@ function watchDeviceVerification(onChange) {
   return cleanup;
 }
 
+/**
+ * Читает статус проверки текущего устройства (cross-signing).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/interfaces/crypto-api.CryptoApi.html#getdeviceverificationstatus
+ * @see https://spec.matrix.org/latest/client-server-api/#device-verification
+ */
 async function getCurrentDeviceVerification() {
   const client = getMatrixClient();
   const userId = client?.getUserId?.();
@@ -434,6 +426,12 @@ async function getCurrentDeviceVerification() {
   };
 }
 
+/**
+ * Инициирует проверку текущего устройства (SAS) с других доверенных устройств.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/interfaces/crypto-api.CryptoApi.html#requestownuserverification
+ * @see https://spec.matrix.org/latest/client-server-api/#device-verification
+ */
 async function requestCurrentDeviceVerification(onChange) {
   const crypto = getMatrixClient()?.getCrypto?.();
   if (!crypto) throw new Error("Шифрование Matrix не инициализировано.");
@@ -444,17 +442,20 @@ async function requestCurrentDeviceVerification(onChange) {
 }
 
 async function acceptCurrentDeviceVerification() {
-  if (!activeDeviceVerificationRequest)
-    throw new Error("Запрос авторизации устройства не найден.");
+  if (!activeDeviceVerificationRequest) throw new Error("Запрос авторизации устройства не найден.");
   await activeDeviceVerificationRequest.accept();
   return getDeviceVerificationSnapshot();
 }
 
+/**
+ * Запускает SAS-проверку (`m.sas.v1`) для активного запроса.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/interfaces/crypto-api.CryptoApi.html#requestownuserverification
+ * @see https://spec.matrix.org/latest/client-server-api/#device-verification
+ */
 async function startCurrentDeviceVerification(onChange) {
-  if (!activeDeviceVerificationRequest)
-    throw new Error("Запрос авторизации устройства не найден.");
-  const verifier =
-    await activeDeviceVerificationRequest.startVerification("m.sas.v1");
+  if (!activeDeviceVerificationRequest) throw new Error("Запрос авторизации устройства не найден.");
+  const verifier = await activeDeviceVerificationRequest.startVerification("m.sas.v1");
   bindDeviceVerificationVerifier(verifier, onChange);
   return getDeviceVerificationSnapshot();
 }
@@ -471,18 +472,23 @@ async function cancelCurrentDeviceVerification() {
   return getDeviceVerificationSnapshot();
 }
 
+/**
+ * Проверяет устройство через recovery key из Secret Storage и восстанавливает
+ * cross-signing и key backup.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/functions/crypto-api.decodeRecoveryKey.html
+ * @see https://matrix-org.github.io/matrix-js-sdk/interfaces/crypto-api.CryptoApi.html#bootstrapcrosssigning
+ * @see https://spec.matrix.org/latest/client-server-api/#secret-storage
+ */
 async function verifyCurrentDeviceWithRecoveryKey(encodedRecoveryKey) {
   const client = getMatrixClient();
   const crypto = client?.getCrypto?.();
-  if (!crypto || !client)
-    throw new Error("Шифрование Matrix не инициализировано.");
+  if (!crypto || !client) throw new Error("Шифрование Matrix не инициализировано.");
   if (typeof encodedRecoveryKey !== "string" || !encodedRecoveryKey.trim()) {
     throw new Error("Введите recovery key.");
   }
 
-  const { decodeRecoveryKey } = await import(
-    "matrix-js-sdk/lib/crypto-api/recovery-key.js"
-  );
+  const { decodeRecoveryKey } = await import("matrix-js-sdk/lib/crypto-api/recovery-key.js");
   const key = decodeRecoveryKey(encodedRecoveryKey.trim());
   const keyId = await client.secretStorage?.getDefaultKeyId?.();
   if (!keyId) {
@@ -502,10 +508,7 @@ async function verifyCurrentDeviceWithRecoveryKey(encodedRecoveryKey) {
     } catch (error) {
       // Проверка устройства уже завершена; backup может отсутствовать у аккаунта.
       if (import.meta.env.DEV) {
-        console.warn(
-          "[matrixClient] не удалось восстановить key backup",
-          error,
-        );
+        console.warn("[matrixClient] не удалось восстановить key backup", error);
       }
     }
   } catch (error) {
@@ -523,6 +526,12 @@ function clearCurrentDeviceVerification() {
   activeDeviceVerificationVerifier = null;
 }
 
+/**
+ * Подписка на принудительный logout со стороны сервера.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html
+ * @see https://spec.matrix.org/latest/client-server-api/#syncing
+ */
 function watchMatrixSession(onLoggedOut) {
   const client = getMatrixClient();
   if (!client || typeof client.on !== "function") return () => {};
@@ -544,14 +553,7 @@ function watchMatrixSession(onLoggedOut) {
   return cleanup;
 }
 
-function persistMatrixSession({
-  homeserverUrl,
-  login,
-  accessToken,
-  userId,
-  deviceId,
-  refreshToken,
-}) {
+function persistMatrixSession({ homeserverUrl, login, accessToken, userId, deviceId, refreshToken }) {
   localStorage.setItem(MTRX_HS_URL_KEY, homeserverUrl);
   localStorage.setItem(MTRX_LOGIN_KEY, login);
   localStorage.setItem(MTRX_ACCESS_TOKEN_KEY, accessToken);
@@ -586,6 +588,12 @@ async function fetchDisplayName(client, userId) {
   }
 }
 
+/**
+ * Запускает синхронизацию (`/sync`) с ограничением начальной выдачи.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#startclient
+ * @see https://spec.matrix.org/latest/client-server-api/#syncing
+ */
 async function startMatrixSync(client) {
   if (client.clientRunning) return;
   await client.startClient({ initialSyncLimit: 10 });
@@ -612,27 +620,25 @@ function resolveHomeserverUrl(uriMatrix = "") {
     throw new Error("URL homeserver Matrix указан некорректно.");
   }
 
-  if (
-    !["http:", "https:"].includes(parsedUrl.protocol) ||
-    parsedUrl.username ||
-    parsedUrl.password
-  ) {
-    throw new Error(
-      "Homeserver должен использовать URL http или https без учетных данных.",
-    );
+  if (!["http:", "https:"].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
+    throw new Error("Homeserver должен использовать URL http или https без учетных данных.");
   }
 
   return parsedUrl.toString().replace(/\/$/, "");
 }
 
+/**
+ * Вход по логину и паролю (`m.login.password`), сохранение сессии и запуск sync.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#loginrequest
+ * @see https://spec.matrix.org/latest/client-server-api/#login
+ */
 async function loginMatrix({ login, password, uriMatrix }) {
   const homeserverUrl = resolveHomeserverUrl(uriMatrix);
   const tempClient = await createTempMatrixClient(homeserverUrl);
 
-  const { login: storedLogin, deviceId: storedLoginDeviceId } =
-    getStoredMatrixData();
-  const storedDeviceId =
-    storedLogin === login ? storedLoginDeviceId || undefined : undefined;
+  const { login: storedLogin, deviceId: storedLoginDeviceId } = getStoredMatrixData();
+  const storedDeviceId = storedLogin === login ? storedLoginDeviceId || undefined : undefined;
 
   const loginResponse = await tempClient.loginRequest({
     type: "m.login.password",
@@ -672,9 +678,7 @@ async function loginMatrix({ login, password, uriMatrix }) {
       homeserverUrl,
       userId: loginResponse.user_id,
       deviceId: loginResponse.device_id,
-      displayName: await fetchDisplayName(client, loginResponse.user_id).catch(
-        () => loginResponse.user_id,
-      ),
+      displayName: await fetchDisplayName(client, loginResponse.user_id).catch(() => loginResponse.user_id),
     };
   } catch (error) {
     destroyMatrixClient();
@@ -711,6 +715,12 @@ function getStoredMatrixSession() {
   };
 }
 
+/**
+ * Восстанавливает клиент из сохранённой сессии (access token) и запускает sync.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#startclient
+ * @see https://spec.matrix.org/latest/client-server-api/#using-access-tokens
+ */
 async function restoreMatrixSession() {
   const session = getStoredMatrixSession();
   if (!session) return null;
@@ -732,12 +742,15 @@ async function restoreMatrixSession() {
     homeserverUrl: session.baseUrl,
     userId: finalUserId,
     deviceId: session.deviceId || client.getDeviceId() || "",
-    displayName: await fetchDisplayName(client, finalUserId).catch(
-      () => finalUserId,
-    ),
+    displayName: await fetchDisplayName(client, finalUserId).catch(() => finalUserId),
   };
 }
 
+/**
+ * Возвращает сериализуемый снимок активной сессии или `null`.
+ *
+ * @see https://spec.matrix.org/latest/client-server-api/#using-access-tokens
+ */
 function getActiveMatrixSession() {
   const client = getMatrixClient();
   if (!client?.clientRunning) return null;
@@ -745,12 +758,17 @@ function getActiveMatrixSession() {
   return {
     homeserverUrl: (localStorage.getItem(MTRX_HS_URL_KEY) || "").trim(),
     userId: client.getUserId(),
-    deviceId:
-      localStorage.getItem(MTRX_DEVICE_ID_KEY) || client.getDeviceId() || "",
+    deviceId: localStorage.getItem(MTRX_DEVICE_ID_KEY) || client.getDeviceId() || "",
     displayName: null,
   };
 }
 
+/**
+ * Завершает сессию на сервере, чистит локальные и IndexedDB-хранилища.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#logout
+ * @see https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3logout
+ */
 async function logoutMatrix() {
   const client = getMatrixClient();
 
@@ -773,6 +791,12 @@ async function logoutMatrix() {
   deleteMatrixLocalStores();
 }
 
+/**
+ * Локально инвалидирует сессию без запроса к серверу (например, при 401).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#clearstores
+ * @see https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3logout
+ */
 async function invalidateMatrixSession() {
   const client = getMatrixClient();
   if (client) {

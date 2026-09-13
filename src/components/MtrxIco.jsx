@@ -66,12 +66,9 @@ function MtrxIco({ mtrxControlRdcr }) {
         color: cfg.color,
         border: `1px solid ${alpha(theme.palette.common.white, 0.3)}`,
         animation: cfg.pulse ? `${pulse} 1.2s infinite` : "none",
-        transition: theme.transitions.create(
-          ["background-color", "transform", "box-shadow"],
-          {
-            duration: theme.transitions.duration.short,
-          },
-        ),
+        transition: theme.transitions.create(["background-color", "transform", "box-shadow"], {
+          duration: theme.transitions.duration.short,
+        }),
         "&:hover": {
           backgroundColor: cfg.bg,
           filter: "brightness(1.1)",

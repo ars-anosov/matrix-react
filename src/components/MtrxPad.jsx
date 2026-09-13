@@ -1,15 +1,5 @@
-import {
-  Close as IconClose,
-  ForumOutlined as IconForum,
-} from "@mui/icons-material";
-import {
-  Box,
-  Divider,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Close as IconClose, ForumOutlined as IconForum } from "@mui/icons-material";
+import { Box, Divider, IconButton, Paper, Stack, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
 import { HEADER_BACKGROUND } from "../constants/ui.js";
@@ -21,24 +11,14 @@ function getRoomCountLabel(count) {
   const lastTwoDigits = count % 100;
 
   if (remainder === 1 && lastTwoDigits !== 11) return `${count} комната`;
-  if (
-    remainder >= 2 &&
-    remainder <= 4 &&
-    (lastTwoDigits < 10 || lastTwoDigits >= 20)
-  ) {
+  if (remainder >= 2 && remainder <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20)) {
     return `${count} комнаты`;
   }
 
   return `${count} комнат`;
 }
 
-function MtrxPad({
-  rooms,
-  selectedRoomId,
-  selectedRoom,
-  onSelectRoom,
-  onClose,
-}) {
+function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose }) {
   return (
     <Paper
       elevation={8}
@@ -86,9 +66,7 @@ function MtrxPad({
             Matrix мессенджер
           </Typography>
           <Typography variant="caption" color="text.secondary" noWrap>
-            {rooms.length > 0
-              ? getRoomCountLabel(rooms.length)
-              : "Нет доступных комнат"}
+            {rooms.length > 0 ? getRoomCountLabel(rooms.length) : "Нет доступных комнат"}
           </Typography>
         </Box>
       </Stack>
@@ -155,12 +133,8 @@ function MtrxPad({
               }}
             >
               <IconForum sx={{ fontSize: 40, opacity: 0.55 }} />
-              <Typography variant="body1">
-                Выберите комнату, чтобы открыть чат
-              </Typography>
-              <Typography variant="caption">
-                Список комнат находится слева
-              </Typography>
+              <Typography variant="body1">Выберите комнату, чтобы открыть чат</Typography>
+              <Typography variant="caption">Список комнат находится слева</Typography>
             </Paper>
           )}
         </Box>

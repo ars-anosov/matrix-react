@@ -27,15 +27,11 @@ function MtrxInfo(props) {
   }, [mtrxControlActions]);
 
   const toggleAuth = () => {
-    mtrxControlActions?.handleChangeStore(
-      "displayReg",
-      !mtrxControlRdcr?.displayReg,
-    );
+    mtrxControlActions?.handleChangeStore("displayReg", !mtrxControlRdcr?.displayReg);
   };
 
   const isAuthorized = mtrxControlRdcr?.status === "success";
-  const isDeviceVerified =
-    verification.status === "success" && verification.verified === true;
+  const isDeviceVerified = verification.status === "success" && verification.verified === true;
   const authButtonColor = isAuthorized ? "success" : "error";
 
   return (
@@ -71,24 +67,14 @@ device_id:\t${mtrxControlRdcr?.responseData?.device_id || ""}`}
         </Typography>
       )}
 
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{ mt: 2, justifyContent: "space-between", alignItems: "center" }}
-      >
+      <Stack direction="row" spacing={1} sx={{ mt: 2, justifyContent: "space-between", alignItems: "center" }}>
         <Tooltip title={isAuthorized ? "Деавторизоваться" : "Авторизоваться"}>
           <IconButton color={authButtonColor} onClick={toggleAuth}>
             {isAuthorized ? <IconHowToReg /> : <IconPersonOff />}
           </IconButton>
         </Tooltip>
         {isAuthorized && (
-          <Tooltip
-            title={
-              isDeviceVerified
-                ? "Устройство авторизовано"
-                : "Устройство не авторизовано для E2EE"
-            }
-          >
+          <Tooltip title={isDeviceVerified ? "Устройство авторизовано" : "Устройство не авторизовано для E2EE"}>
             <IconButton
               aria-label="Проверка устройства"
               color={isDeviceVerified ? "success" : "error"}

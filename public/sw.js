@@ -12,28 +12,24 @@ self.addEventListener("notificationclick", (event) => {
 
   // Фокусируемся на вкладке нашего приложения
   event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        // Если вкладка уже открыта, переводим на неё фокус
-        for (const client of clientList) {
-          if ("focus" in client) return client.focus();
-        }
-        // Если вкладка была закрыта, открываем её заново (укажите ваш url)
-        if (clients.openWindow) return clients.openWindow("/");
-      }),
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // Если вкладка уже открыта, переводим на неё фокус
+      for (const client of clientList) {
+        if ("focus" in client) return client.focus();
+      }
+      // Если вкладка была закрыта, открываем её заново (укажите ваш url)
+      if (clients.openWindow) return clients.openWindow("/");
+    }),
   );
 });
 
 // 2. Слушаем системные сообщения из React-приложения (опционально, если нужно закрывать пуш из кода)
 self.addEventListener("message", (event) => {
   if (event.data && event.data.action === "close-notification") {
-    self.registration
-      .getNotifications({ tag: event.data.tag })
-      .then((notifications) => {
-        notifications.forEach((notification) => {
-          notification.close();
-        });
+    self.registration.getNotifications({ tag: event.data.tag }).then((notifications) => {
+      notifications.forEach((notification) => {
+        notification.close();
       });
+    });
   }
 });

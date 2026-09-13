@@ -9,9 +9,7 @@ export const authTimeoutMiddleware = (store) => {
   const checkTokenExpiration = () => {
     if (isAdAuthSessionExpired()) {
       if (import.meta.env.DEV) {
-        console.warn(
-          "Время сессии истекло (вызов из Middleware). Очищаем данные.",
-        );
+        console.warn("Время сессии истекло (вызов из Middleware). Очищаем данные.");
       }
 
       clearAdAuthSession();

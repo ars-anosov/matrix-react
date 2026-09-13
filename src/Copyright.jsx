@@ -29,15 +29,12 @@ function Copyright(props) {
     >
       {showFull && (
         <span>
-          Powered by matrix-js-sdk {dependencies["matrix-js-sdk"]}, ky{" "}
-          {dependencies.ky}
+          Powered by matrix-js-sdk {dependencies["matrix-js-sdk"]}, ky {dependencies.ky}
           <br />
-          react-dom {dependencies["react-dom"]}, react-redux{" "}
-          {dependencies["react-redux"]}, @mui/material{" "}
+          react-dom {dependencies["react-dom"]}, react-redux {dependencies["react-redux"]}, @mui/material{" "}
           {dependencies["@mui/material"]},
           <br />
-          vite {devDependencies.vite}, @vitejs/plugin-react{" "}
-          {devDependencies["@vitejs/plugin-react"]}, @biomejs/biome{" "}
+          vite {devDependencies.vite}, @vitejs/plugin-react {devDependencies["@vitejs/plugin-react"]}, @biomejs/biome{" "}
           {devDependencies["@biomejs/biome"]}
           <br />
           <br />

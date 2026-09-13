@@ -54,11 +54,7 @@ function MtrxReg(props) {
   };
 
   const isSubmitDisabled =
-    isLoading ||
-    isSuccess ||
-    !login.trim() ||
-    !password.trim() ||
-    (import.meta.env.DEV && !uriMatrix.trim());
+    isLoading || isSuccess || !login.trim() || !password.trim() || (import.meta.env.DEV && !uriMatrix.trim());
 
   return (
     <Paper
@@ -74,11 +70,7 @@ function MtrxReg(props) {
         boxSizing: "border-box",
       }}
     >
-      <IconButton
-        onClick={handleClose}
-        disabled={isLoading}
-        sx={{ position: "absolute", top: 4, right: 4 }}
-      >
+      <IconButton onClick={handleClose} disabled={isLoading} sx={{ position: "absolute", top: 4, right: 4 }}>
         <IconClose color="action" />
       </IconButton>
 
@@ -103,14 +95,8 @@ function MtrxReg(props) {
           Matrix
         </Typography>
 
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ textAlign: "center" }}
-        >
-          {isSuccess
-            ? responseData?.display_name || responseData?.user_id || ""
-            : "Введите учетные данные"}
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
+          {isSuccess ? responseData?.display_name || responseData?.user_id || "" : "Введите учетные данные"}
         </Typography>
       </Stack>
 
@@ -125,9 +111,7 @@ function MtrxReg(props) {
             variant="outlined"
             autoComplete="username"
             value={login}
-            onChange={(event) =>
-              mtrxControlActions.handleChangeStore("login", event.target.value)
-            }
+            onChange={(event) => mtrxControlActions.handleChangeStore("login", event.target.value)}
             slotProps={{
               input: {
                 startAdornment: (
@@ -184,12 +168,7 @@ function MtrxReg(props) {
               variant="outlined"
               size="small"
               value={uriMatrix}
-              onChange={(event) =>
-                mtrxControlActions.handleChangeStore(
-                  "uriMatrix",
-                  event.target.value,
-                )
-              }
+              onChange={(event) => mtrxControlActions.handleChangeStore("uriMatrix", event.target.value)}
               sx={{ opacity: 0.8 }}
             />
           )}

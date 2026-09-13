@@ -18,13 +18,10 @@ function dispatchAdAuthError(dispatch, errText) {
 const handleAdRegister =
   (formData = {}) =>
   async (dispatch) => {
-    const login =
-      typeof formData.login === "string" ? formData.login.trim() : "";
+    const login = typeof formData.login === "string" ? formData.login.trim() : "";
     // Пароль не тримим: пробелы могут быть частью учётных данных.
-    const password =
-      typeof formData.password === "string" ? formData.password : "";
-    const uriAdAuth =
-      typeof formData.uriAdAuth === "string" ? formData.uriAdAuth.trim() : "";
+    const password = typeof formData.password === "string" ? formData.password : "";
+    const uriAdAuth = typeof formData.uriAdAuth === "string" ? formData.uriAdAuth.trim() : "";
 
     if (!login || !password) {
       dispatchAdAuthError(dispatch, "Заполните логин и пароль.");

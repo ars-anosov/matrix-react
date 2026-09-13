@@ -17,14 +17,8 @@ const MtrxContainer = () => {
   const mtrxControlRdcr = useSelector((state) => state.mtrxControlRdcr);
   const authControlRdcr = useSelector((state) => state.authControlRdcr);
 
-  const mtrxControlActions = useMemo(
-    () => bindActionCreators(mtrxActions, dispatch),
-    [dispatch],
-  );
-  const authControlActions = useMemo(
-    () => bindActionCreators(authActions, dispatch),
-    [dispatch],
-  );
+  const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
+  const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch]);
 
   useEffect(() => {
     mtrxControlActions.handleRestoreSession();
@@ -33,11 +27,7 @@ const MtrxContainer = () => {
   const { displayAd, errComponent: authErrComponent } = authControlRdcr;
   const { displayReg, displayPad, errComponent } = mtrxControlRdcr;
 
-  const isOverlayActive =
-    displayAd ||
-    authErrComponent === "AuthAd" ||
-    displayReg ||
-    errComponent === "MtrxReg";
+  const isOverlayActive = displayAd || authErrComponent === "AuthAd" || displayReg || errComponent === "MtrxReg";
 
   // Стили для оверлеев вынесены из тела рендера для производительности
   const centerOverlayStyle = {
@@ -64,20 +54,14 @@ const MtrxContainer = () => {
       {/* Центрирование AuthAd */}
       {(displayAd || authErrComponent === "AuthAd") && (
         <Box sx={centerOverlayStyle}>
-          <AuthAd
-            authControlRdcr={authControlRdcr}
-            authControlActions={authControlActions}
-          />
+          <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />
         </Box>
       )}
 
       {/* Центрирование MtrxReg */}
       {(displayReg || errComponent === "MtrxReg") && (
         <Box sx={centerOverlayStyle}>
-          <MtrxReg
-            mtrxControlRdcr={mtrxControlRdcr}
-            mtrxControlActions={mtrxControlActions}
-          />
+          <MtrxReg mtrxControlRdcr={mtrxControlRdcr} mtrxControlActions={mtrxControlActions} />
         </Box>
       )}
 

@@ -145,8 +145,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
       return {
         ...state,
         roomIds: state.roomIds.filter((id) => id !== roomId),
-        selectedRoomId:
-          state.selectedRoomId === roomId ? "" : state.selectedRoomId,
+        selectedRoomId: state.selectedRoomId === roomId ? "" : state.selectedRoomId,
         roomsMeta,
       };
     }

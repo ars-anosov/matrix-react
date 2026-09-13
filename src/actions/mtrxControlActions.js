@@ -30,8 +30,8 @@ function dispatchDeviceVerification(dispatch, payload = {}) {
 
 function watchDeviceVerificationAndDispatch(dispatch) {
   unsubscribeDeviceVerification?.();
-  unsubscribeDeviceVerification = matrixClient.watchDeviceVerification(
-    (snapshot) => dispatchDeviceVerification(dispatch, snapshot),
+  unsubscribeDeviceVerification = matrixClient.watchDeviceVerification((snapshot) =>
+    dispatchDeviceVerification(dispatch, snapshot),
   );
 }
 
@@ -68,12 +68,9 @@ const handleRegister =
   (formData = {}) =>
   async (dispatch) => {
     const operationId = ++sessionOperationId;
-    const login =
-      typeof formData.login === "string" ? formData.login.trim() : "";
-    const password =
-      typeof formData.password === "string" ? formData.password : "";
-    const uriMatrix =
-      typeof formData.uriMatrix === "string" ? formData.uriMatrix.trim() : "";
+    const login = typeof formData.login === "string" ? formData.login.trim() : "";
+    const password = typeof formData.password === "string" ? formData.password : "";
+    const uriMatrix = typeof formData.uriMatrix === "string" ? formData.uriMatrix.trim() : "";
 
     if (!login || !password) {
       dispatchMtrxRegError(dispatch, "Заполните логин и пароль.");
@@ -182,8 +179,8 @@ const handleLoadDeviceVerification = () => async (dispatch) => {
 const handleRequestDeviceVerification = () => async (dispatch) => {
   dispatchDeviceVerification(dispatch, { status: "loading", errText: "" });
   try {
-    const snapshot = await matrixClient.requestCurrentDeviceVerification(
-      (nextSnapshot) => dispatchDeviceVerification(dispatch, nextSnapshot),
+    const snapshot = await matrixClient.requestCurrentDeviceVerification((nextSnapshot) =>
+      dispatchDeviceVerification(dispatch, nextSnapshot),
     );
     dispatchDeviceVerification(dispatch, snapshot);
   } catch (error) {
@@ -208,8 +205,8 @@ const handleAcceptDeviceVerification = () => async (dispatch) => {
 
 const handleStartDeviceVerification = () => async (dispatch) => {
   try {
-    const snapshot = await matrixClient.startCurrentDeviceVerification(
-      (nextSnapshot) => dispatchDeviceVerification(dispatch, nextSnapshot),
+    const snapshot = await matrixClient.startCurrentDeviceVerification((nextSnapshot) =>
+      dispatchDeviceVerification(dispatch, nextSnapshot),
     );
     dispatchDeviceVerification(dispatch, snapshot);
   } catch (error) {
@@ -237,8 +234,7 @@ const handleConfirmDeviceVerification = () => async (dispatch) => {
 const handleVerifyDeviceWithRecoveryKey = (recoveryKey) => async (dispatch) => {
   dispatchDeviceVerification(dispatch, { status: "loading", errText: "" });
   try {
-    const verification =
-      await matrixClient.verifyCurrentDeviceWithRecoveryKey(recoveryKey);
+    const verification = await matrixClient.verifyCurrentDeviceWithRecoveryKey(recoveryKey);
     dispatchDeviceVerification(dispatch, verification);
   } catch (error) {
     dispatchDeviceVerification(dispatch, {

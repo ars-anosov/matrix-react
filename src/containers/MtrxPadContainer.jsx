@@ -25,14 +25,9 @@ function useRoomMessages(roomId) {
 
 const MtrxPadContainer = () => {
   const dispatch = useDispatch();
-  const actions = useMemo(
-    () => bindActionCreators(mtrxActions, dispatch),
-    [dispatch],
-  );
+  const actions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { roomIds, roomsMeta, selectedRoomId, status } = useSelector(
-    (state) => state.mtrxControlRdcr,
-  );
+  const { roomIds, roomsMeta, selectedRoomId, status } = useSelector((state) => state.mtrxControlRdcr);
 
   const messages = useRoomMessages(selectedRoomId);
 

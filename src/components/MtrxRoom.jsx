@@ -1,14 +1,5 @@
 import { ForumOutlined as IconForum } from "@mui/icons-material";
-import {
-  Avatar,
-  Box,
-  Divider,
-  List,
-  ListItem,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Avatar, Box, Divider, List, ListItem, Paper, Stack, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { Fragment, useEffect, useRef } from "react";
 
@@ -40,14 +31,7 @@ const ALLOWED_FORMATTED_TAGS = new Set([
   "UL",
 ]);
 
-const AVATAR_COLORS = [
-  "primary.main",
-  "secondary.main",
-  "info.main",
-  "success.main",
-  "warning.dark",
-  "error.main",
-];
+const AVATAR_COLORS = ["primary.main", "secondary.main", "info.main", "success.main", "warning.dark", "error.main"];
 
 function formatMessageTime(timestamp) {
   if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
@@ -77,10 +61,7 @@ function getInitials(value = "") {
 }
 
 function getAvatarColor(value = "") {
-  const hash = Array.from(value).reduce(
-    (result, character) => result + character.charCodeAt(0),
-    0,
-  );
+  const hash = Array.from(value).reduce((result, character) => result + character.charCodeAt(0), 0);
 
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
@@ -90,11 +71,7 @@ function getMessageCountLabel(count) {
   const lastTwoDigits = count % 100;
 
   if (remainder === 1 && lastTwoDigits !== 11) return `${count} сообщение`;
-  if (
-    remainder >= 2 &&
-    remainder <= 4 &&
-    (lastTwoDigits < 10 || lastTwoDigits >= 20)
-  ) {
+  if (remainder >= 2 && remainder <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20)) {
     return `${count} сообщения`;
   }
 
@@ -106,9 +83,7 @@ function renderFormattedNode(node, key) {
   if (node.nodeType !== 1) return null;
 
   const tagName = node.tagName.toUpperCase();
-  const children = Array.from(node.childNodes).map((child, index) =>
-    renderFormattedNode(child, `${key}-${index}`),
-  );
+  const children = Array.from(node.childNodes).map((child, index) => renderFormattedNode(child, `${key}-${index}`));
 
   if (tagName === "BR") return <br key={key} />;
   if (tagName === "A") {
@@ -116,13 +91,7 @@ function renderFormattedNode(node, key) {
     if (!href) return <Fragment key={key}>{children}</Fragment>;
 
     return (
-      <a
-        key={key}
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ overflowWrap: "anywhere" }}
-      >
+      <a key={key} href={href} target="_blank" rel="noopener noreferrer" style={{ overflowWrap: "anywhere" }}>
         {children}
       </a>
     );
@@ -140,14 +109,9 @@ function getSafeHref(value) {
   if (typeof value !== "string") return null;
 
   try {
-    const baseUrl =
-      typeof window === "undefined"
-        ? "http://localhost"
-        : window.location.origin;
+    const baseUrl = typeof window === "undefined" ? "http://localhost" : window.location.origin;
     const url = new URL(value, baseUrl);
-    return ["http:", "https:", "mailto:"].includes(url.protocol)
-      ? url.href
-      : null;
+    return ["http:", "https:", "mailto:"].includes(url.protocol) ? url.href : null;
   } catch {
     return null;
   }
@@ -158,10 +122,7 @@ function renderMessageBody(message) {
     return message.body;
   }
 
-  const document = new DOMParser().parseFromString(
-    message.formattedBody,
-    "text/html",
-  );
+  const document = new DOMParser().parseFromString(message.formattedBody, "text/html");
 
   return Array.from(document.body.childNodes).map((node, index) =>
     renderFormattedNode(node, `formatted-${message.eventId}-${index}`),
@@ -219,21 +180,10 @@ function MtrxRoom({ room, fullHeight = false }) {
           {getInitials(room.name)}
         </Avatar>
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography
-            variant="subtitle1"
-            component="h2"
-            noWrap
-            fontWeight={700}
-          >
+          <Typography variant="subtitle1" component="h2" noWrap fontWeight={700}>
             {room.name}
           </Typography>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            noWrap
-            title={room.roomId}
-            sx={{ display: "block" }}
-          >
+          <Typography variant="caption" color="text.secondary" noWrap title={room.roomId} sx={{ display: "block" }}>
             {room.subtitle || room.roomId}
           </Typography>
         </Box>
@@ -266,9 +216,7 @@ function MtrxRoom({ room, fullHeight = false }) {
         >
           <IconForum sx={{ fontSize: 32, opacity: 0.55 }} />
           <Typography variant="body2">Сообщений пока нет.</Typography>
-          <Typography variant="caption">
-            Здесь появятся новые сообщения комнаты
-          </Typography>
+          <Typography variant="caption">Здесь появятся новые сообщения комнаты</Typography>
         </Stack>
       ) : (
         <List
@@ -296,17 +244,9 @@ function MtrxRoom({ room, fullHeight = false }) {
             return (
               <Fragment key={message.eventId}>
                 {showDateDivider && (
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{ alignItems: "center", px: 0.5, py: 1 }}
-                  >
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center", px: 0.5, py: 1 }}>
                     <Divider sx={{ flex: 1 }} />
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ whiteSpace: "nowrap", fontWeight: 600 }}
-                    >
+                    <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
                       {messageDate}
                     </Typography>
                     <Divider sx={{ flex: 1 }} />
@@ -347,11 +287,7 @@ function MtrxRoom({ room, fullHeight = false }) {
                   </Avatar>
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     {!isContinuation && (
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        sx={{ alignItems: "baseline", minWidth: 0 }}
-                      >
+                      <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", minWidth: 0 }}>
                         <Typography
                           variant="body2"
                           component="span"
@@ -365,12 +301,7 @@ function MtrxRoom({ room, fullHeight = false }) {
                         >
                           {message.sender}
                         </Typography>
-                        <Typography
-                          variant="caption"
-                          component="span"
-                          color="text.secondary"
-                          sx={{ flexShrink: 0 }}
-                        >
+                        <Typography variant="caption" component="span" color="text.secondary" sx={{ flexShrink: 0 }}>
                           {formatMessageTime(message.timestamp)}
                         </Typography>
                       </Stack>

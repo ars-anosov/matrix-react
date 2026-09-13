@@ -41,12 +41,7 @@ const MENU_ITEMS_AUTH = [
 ];
 
 function MenuAppBar(props) {
-  const {
-    mtrxControlRdcr,
-    mtrxControlActions,
-    authControlRdcr,
-    authControlActions,
-  } = props;
+  const { mtrxControlRdcr, mtrxControlActions, authControlRdcr, authControlActions } = props;
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log("MenuAppBar MOUNT");
@@ -106,29 +101,12 @@ function MenuAppBar(props) {
               },
             }}
           >
-            <Stack
-              direction="row"
-              spacing={2}
-              sx={{ p: 1, height: toolbarHeight }}
-            >
-              <Box
-                component="img"
-                src="img/Vite.png"
-                sx={{ height: "100%", width: "auto" }}
-                alt="Vite"
-              />
-              <Box
-                component="img"
-                src="img/React.png"
-                sx={{ height: "100%", width: "auto" }}
-                alt="React"
-              />
+            <Stack direction="row" spacing={2} sx={{ p: 1, height: toolbarHeight }}>
+              <Box component="img" src="img/Vite.png" sx={{ height: "100%", width: "auto" }} alt="Vite" />
+              <Box component="img" src="img/React.png" sx={{ height: "100%", width: "auto" }} alt="React" />
               <Box sx={{ flexGrow: 1 }} />
               <IconButton onClick={handleCloseMenu}>
-                <ChevronLeftIcon
-                  color="primary"
-                  sx={{ height: "100%", width: "auto" }}
-                />
+                <ChevronLeftIcon color="primary" sx={{ height: "100%", width: "auto" }} />
               </IconButton>
             </Stack>
 
@@ -153,11 +131,7 @@ function MenuAppBar(props) {
                         slotProps={{ input: { "aria-labelledby": labelId } }}
                       />
                     </ListItemIcon>
-                    <ListItemText
-                      id={labelId}
-                      primary={item.primary}
-                      secondary={item.secondary}
-                    />
+                    <ListItemText id={labelId} primary={item.primary} secondary={item.secondary} />
                   </ListItemButton>
                 );
               })}
@@ -184,11 +158,7 @@ function MenuAppBar(props) {
                         slotProps={{ input: { "aria-labelledby": labelId } }}
                       />
                     </ListItemIcon>
-                    <ListItemText
-                      id={labelId}
-                      primary={item.primary}
-                      secondary={item.secondary}
-                    />
+                    <ListItemText id={labelId} primary={item.primary} secondary={item.secondary} />
                   </ListItemButton>
                 );
               })}
@@ -220,9 +190,7 @@ function MenuAppBar(props) {
               onClick={(e) => setAnchorEl_mtrxControl(e.currentTarget)}
             >
               <Typography variant="caption" sx={{ pl: 1 }}>
-                {mtrxControlRdcr?.responseData?.display_name ||
-                  mtrxControlRdcr?.responseData?.user_id ||
-                  ""}
+                {mtrxControlRdcr?.responseData?.display_name || mtrxControlRdcr?.responseData?.user_id || ""}
               </Typography>
               <MtrxIco mtrxControlRdcr={mtrxControlRdcr} />
             </Stack>
@@ -255,11 +223,7 @@ function MenuAppBar(props) {
         <Box sx={{ p: 1 }}>
           <Typography variant="body2">{mtrxControlRdcr.uriMatrix}</Typography>
           <Divider />
-          <MtrxInfo
-            mtrxControlRdcr={mtrxControlRdcr}
-            mtrxControlActions={mtrxControlActions}
-            showFull={false}
-          />
+          <MtrxInfo mtrxControlRdcr={mtrxControlRdcr} mtrxControlActions={mtrxControlActions} showFull={false} />
         </Box>
       </Popover>
 
@@ -274,11 +238,7 @@ function MenuAppBar(props) {
         <Box sx={{ p: 1 }}>
           <Typography variant="body2">{authControlRdcr.uriAdAuth}</Typography>
           <Divider />
-          <AuthAdInfo
-            authControlRdcr={authControlRdcr}
-            authControlActions={authControlActions}
-            showFull={false}
-          />
+          <AuthAdInfo authControlRdcr={authControlRdcr} authControlActions={authControlActions} showFull={false} />
         </Box>
       </Popover>
     </Box>

@@ -11,8 +11,7 @@ window.addEventListener("error", (event) => {
   // Log connection-related errors for debugging
   if (
     event.message &&
-    (event.message.includes("Could not establish connection") ||
-      event.message.includes("WebSocket"))
+    (event.message.includes("Could not establish connection") || event.message.includes("WebSocket"))
   ) {
     console.error("Connection error:", event.message);
   }

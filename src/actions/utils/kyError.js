@@ -6,21 +6,12 @@ import { HTTPError } from "ky";
  * @param {string} defaultMessage - Сообщение по умолчанию
  * @returns {Promise<string>}
  */
-export const getApiErrorMessage = async (
-  error,
-  defaultMessage = "Не удалось выполнить запрос.",
-) => {
+export const getApiErrorMessage = async (error, defaultMessage = "Не удалось выполнить запрос.") => {
   if (error instanceof HTTPError) {
     // Безопасно пытаемся прочитать JSON от сервера.
     // Если там не JSON, catch вернет null и мы возьмем статус-текст (например, "Internal Server Error")
     const data = await error.response.json().catch(() => null);
-    return (
-      data?.message ||
-      data?.error ||
-      data?.detail ||
-      error.response.statusText ||
-      defaultMessage
-    );
+    return data?.message || data?.error || data?.detail || error.response.statusText || defaultMessage;
   }
 
   if (error.name === "TimeoutError") {

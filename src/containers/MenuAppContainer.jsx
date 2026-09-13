@@ -8,14 +8,8 @@ import MenuAppBar from "../components/MenuAppBar.jsx";
 const MenuAppContainer = () => {
   const dispatch = useDispatch();
 
-  const mtrxControlActions = useMemo(
-    () => bindActionCreators(mtrxActions, dispatch),
-    [dispatch],
-  );
-  const authControlActions = useMemo(
-    () => bindActionCreators(authActions, dispatch),
-    [dispatch],
-  );
+  const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
+  const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch]);
 
   const mtrxControlRdcr = useSelector((state) => state.mtrxControlRdcr);
   const authControlRdcr = useSelector((state) => state.authControlRdcr);

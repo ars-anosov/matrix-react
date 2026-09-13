@@ -13,9 +13,7 @@ export default function configureStore(initialState) {
   const store = createStore(
     rootReducer,
     initialState,
-    import.meta.env.PROD
-      ? applyMiddleware(...middlewareProd)
-      : applyMiddleware(...middlewareDev),
+    import.meta.env.PROD ? applyMiddleware(...middlewareProd) : applyMiddleware(...middlewareDev),
   );
 
   return store;

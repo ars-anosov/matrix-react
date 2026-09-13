@@ -1,7 +1,4 @@
-import {
-  HowToReg as IconHowToReg,
-  PersonOff as IconPersonOff,
-} from "@mui/icons-material";
+import { HowToReg as IconHowToReg, PersonOff as IconPersonOff } from "@mui/icons-material";
 import { IconButton, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect } from "react";
@@ -21,10 +18,7 @@ function AuthAdInfo(props) {
   }, []);
 
   const toggleAuth = () => {
-    authControlActions?.handleChangeStore(
-      "displayAd",
-      !authControlRdcr?.displayAd,
-    );
+    authControlActions?.handleChangeStore("displayAd", !authControlRdcr?.displayAd);
   };
 
   const isAuthorized = authControlRdcr?.status === "success";
@@ -65,11 +59,7 @@ SIP num:\t${authControlRdcr?.responseData?.sip_username || ""}`}
         </Typography>
       )}
 
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{ mt: 2, justifyContent: "space-between", alignItems: "center" }}
-      >
+      <Stack direction="row" spacing={1} sx={{ mt: 2, justifyContent: "space-between", alignItems: "center" }}>
         <Tooltip title={isAuthorized ? "Деавторизоваться" : "Авторизоваться"}>
           <IconButton color={authButtonColor} onClick={toggleAuth}>
             {isAuthorized ? <IconHowToReg /> : <IconPersonOff />}

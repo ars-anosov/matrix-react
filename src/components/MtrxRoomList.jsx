@@ -1,23 +1,11 @@
-import {
-  Avatar,
-  List,
-  ListItemAvatar,
-  ListItemButton,
-  ListItemText,
-  Typography,
-} from "@mui/material";
+import { Avatar, List, ListItemAvatar, ListItemButton, ListItemText, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
 function getRoomInitial(name = "") {
   return name.trim().charAt(0).toUpperCase() || "#";
 }
 
-function MtrxRoomList({
-  rooms,
-  selectedRoomId = "",
-  onSelect,
-  fullHeight = false,
-}) {
+function MtrxRoomList({ rooms, selectedRoomId = "", onSelect, fullHeight = false }) {
   if (rooms.length === 0) {
     return (
       <Typography

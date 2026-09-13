@@ -38,8 +38,7 @@ const EMOJI_TILE_SX = {
   border: "1px solid",
   borderColor: "divider",
   backgroundColor: "action.hover",
-  transition: (theme) =>
-    theme.transitions.create(["border-color", "background-color"]),
+  transition: (theme) => theme.transitions.create(["border-color", "background-color"]),
   "&:hover": {
     borderColor: "primary.main",
     backgroundColor: "action.selected",
@@ -93,14 +92,11 @@ function MtrxDeviceVerification(props) {
 
     if (status === "requested") {
       return verification.initiatedByMe ? (
-        renderWaiting(
-          "Запрос отправлен на другое устройство. Примите его там, чтобы продолжить.",
-        )
+        renderWaiting("Запрос отправлен на другое устройство. Примите его там, чтобы продолжить.")
       ) : (
         <Stack spacing={1.5}>
           <Typography>
-            Другое устройство просит подтвердить текущую сессию. Если вы
-            ожидаете этот запрос, примите его.
+            Другое устройство просит подтвердить текущую сессию. Если вы ожидаете этот запрос, примите его.
           </Typography>
           <Button
             variant="contained"
@@ -119,17 +115,8 @@ function MtrxDeviceVerification(props) {
     if (status === "ready") {
       return verification.initiatedByMe ? (
         <Stack spacing={1.5}>
-          <Typography>
-            Запрос принят. Запустите проверку и сравните emoji-коды на обоих
-            устройствах.
-          </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            fullWidth
-            onClick={handleStartDeviceVerification}
-            sx={BUTTON_SX}
-          >
+          <Typography>Запрос принят. Запустите проверку и сравните emoji-коды на обоих устройствах.</Typography>
+          <Button variant="contained" size="large" fullWidth onClick={handleStartDeviceVerification} sx={BUTTON_SX}>
             Начать проверку
           </Button>
         </Stack>
@@ -146,19 +133,14 @@ function MtrxDeviceVerification(props) {
       return (
         <Stack spacing={1.5}>
           <Typography>
-            Сравните эти emoji с кодами на другом устройстве. Они должны
-            совпадать и идти в том же порядке.
+            Сравните эти emoji с кодами на другом устройстве. Они должны совпадать и идти в том же порядке.
           </Typography>
           <Grid container spacing={1.5} sx={{ justifyContent: "center" }}>
             {emoji.map(([symbol, name], index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: SAS emoji-код может содержать повторы, порядок задан протоколом
               <Grid key={`${symbol}-${name}-${index}`} size={{ xs: 4, sm: 3 }}>
                 <Box sx={EMOJI_TILE_SX}>
-                  <Typography
-                    variant="h4"
-                    component="span"
-                    sx={{ lineHeight: 1 }}
-                  >
+                  <Typography variant="h4" component="span" sx={{ lineHeight: 1 }}>
                     {symbol}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" noWrap>
@@ -200,9 +182,7 @@ function MtrxDeviceVerification(props) {
           <Typography variant="subtitle1" fontWeight="bold">
             Устройство авторизовано
           </Typography>
-          <Typography variant="body2">
-            Matrix может передавать этому устройству ключи шифрования.
-          </Typography>
+          <Typography variant="body2">Matrix может передавать этому устройству ключи шифрования.</Typography>
         </Alert>
       );
     }
@@ -315,9 +295,7 @@ function MtrxDeviceVerification(props) {
           Авторизация устройства
         </Typography>
         <Typography variant="body2" color="text.secondary" align="center">
-          {isSuccess
-            ? "Устройство готово к передаче ключей"
-            : "Подтвердите доверие между устройствами"}
+          {isSuccess ? "Устройство готово к передаче ключей" : "Подтвердите доверие между устройствами"}
         </Typography>
       </Stack>
 

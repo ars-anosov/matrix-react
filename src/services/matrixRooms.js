@@ -47,6 +47,12 @@ function getRoomMxcAvatarUrl(room) {
   return "";
 }
 
+/**
+ * Резолвит `mxc://` в object URL, пробуя authenticated media (MSC3916).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#mxcurltohttp
+ * @see https://spec.matrix.org/latest/client-server-api/#content-repo
+ */
 async function resolveMxcAvatarUrl(client, mxcUrl, contextId = "") {
   if (!client || !mxcUrl || typeof client.mxcUrlToHttp !== "function") {
     return "";
@@ -57,9 +63,7 @@ async function resolveMxcAvatarUrl(client, mxcUrl, contextId = "") {
   }
 
   const accessToken = client.getAccessToken?.();
-  const authHeaders = accessToken
-    ? { Authorization: `Bearer ${accessToken}` }
-    : undefined;
+  const authHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
 
   // Сначала без авторизации, затем с auth (MSC3916 / authenticated media).
   // Blob нужен: <img> не шлёт Authorization-заголовок.
@@ -79,12 +83,7 @@ async function resolveMxcAvatarUrl(client, mxcUrl, contextId = "") {
       const response = await fetch(url, { headers });
       if (!response.ok) {
         if (import.meta.env.DEV) {
-          console.warn(
-            "[matrixRooms] avatar fetch failed",
-            contextId,
-            url,
-            response.status,
-          );
+          console.warn("[matrixRooms] avatar fetch failed", contextId, url, response.status);
         }
         continue;
       }
@@ -124,13 +123,10 @@ function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
     })
     .map((event, index) => {
       const content =
-        event.getType?.() === "m.room.message"
-          ? event.getContent?.() || {}
-          : event.getClearContent?.() || {};
+        event.getType?.() === "m.room.message" ? event.getContent?.() || {} : event.getClearContent?.() || {};
       const body = typeof content.body === "string" ? content.body : "";
       const formattedBody =
-        content.format === "org.matrix.custom.html" &&
-        typeof content.formatted_body === "string"
+        content.format === "org.matrix.custom.html" && typeof content.formatted_body === "string"
           ? content.formatted_body
           : "";
 
@@ -138,11 +134,7 @@ function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
 
       const senderId = event.getSender?.() || "";
       const member = room.getMember?.(senderId);
-      const sender =
-        member?.name ||
-        member?.rawDisplayName ||
-        senderId ||
-        "Неизвестный пользователь";
+      const sender = member?.name || member?.rawDisplayName || senderId || "Неизвестный пользователь";
       const timestamp = Number(event.getTs?.()) || 0;
 
       return {
@@ -158,6 +150,11 @@ function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
     .slice(-limit);
 }
 
+/**
+ * `roomId` всех комнат, где пользователь в membership `join`, по алфавиту.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#getmymembership
+ */
 function getJoinedRoomIds() {
   const client = getMatrixClient();
   if (!client?.getRooms) return [];
@@ -185,11 +182,7 @@ function getMembersLabel(count) {
   const lastTwoDigits = count % 100;
 
   if (remainder === 1 && lastTwoDigits !== 11) return `${count} участник`;
-  if (
-    remainder >= 2 &&
-    remainder <= 4 &&
-    (lastTwoDigits < 10 || lastTwoDigits >= 20)
-  ) {
+  if (remainder >= 2 && remainder <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20)) {
     return `${count} участника`;
   }
 
@@ -222,8 +215,7 @@ async function getPeerStatusText(client, peer) {
 
   try {
     const status = await client.getPresence(peer.userId);
-    const statusMsg =
-      typeof status?.status_msg === "string" ? status.status_msg.trim() : "";
+    const statusMsg = typeof status?.status_msg === "string" ? status.status_msg.trim() : "";
     if (statusMsg) return statusMsg;
 
     return PRESENCE_LABELS[status?.presence] || peer.name || peer.userId || "";
@@ -242,6 +234,11 @@ async function getRoomSubtitle(client, room) {
   return count > 0 ? getMembersLabel(count) : "";
 }
 
+/**
+ * Сериализуемый снимок метаданных комнаты для UI (имя, аватар, подпись).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html
+ */
 async function getRoomMeta(roomId) {
   const client = getMatrixClient();
   const room = client?.getRoom?.(roomId);
@@ -255,20 +252,21 @@ async function getRoomMeta(roomId) {
   };
 }
 
+/**
+ * Снимок сообщений активной комнаты из таймлайна SDK (с аватарами отправителей).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#getlivetimeline
+ * @see https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3roomsroomidmessages
+ */
 async function getRoomMessages(roomId, limit = ROOM_MESSAGES_LIMIT) {
   const client = getMatrixClient();
   const room = client?.getRoom?.(roomId);
   if (!room) return [];
 
   const messages = buildRoomMessages(room, limit);
-  const senderIds = [
-    ...new Set(messages.map((message) => message.senderId).filter(Boolean)),
-  ];
+  const senderIds = [...new Set(messages.map((message) => message.senderId).filter(Boolean))];
   const senderAvatarEntries = await Promise.all(
-    senderIds.map(async (senderId) => [
-      senderId,
-      await resolveMemberAvatarUrl(client, room, senderId),
-    ]),
+    senderIds.map(async (senderId) => [senderId, await resolveMemberAvatarUrl(client, room, senderId)]),
   );
   const senderAvatarUrls = new Map(senderAvatarEntries);
 
@@ -278,7 +276,12 @@ async function getRoomMessages(roomId, limit = ROOM_MESSAGES_LIMIT) {
   }));
 }
 
-// Дельта-подписка на список комнат: INITIALIZE / PUT / DELETE одного roomId.
+/**
+ * Дельта-подписка на список комнат: INITIALIZE / PUT / DELETE одного roomId.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#getrooms
+ * @see https://spec.matrix.org/latest/client-server-api/#syncing
+ */
 function watchRoomList(onChange) {
   const client = getMatrixClient();
   if (!client?.on) return () => {};
@@ -314,7 +317,11 @@ function watchRoomList(onChange) {
   };
 }
 
-// Подписка на сообщения активной комнаты (данные — в SDK, отдаём сериализуемый снимок).
+/**
+ * Подписка на сообщения активной комнаты (данные — в SDK, отдаём снимок).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#getlivetimeline
+ */
 function watchRoomMessages(roomId, onChange) {
   const client = getMatrixClient();
   if (!client?.on || !roomId) return () => {};
@@ -345,11 +352,4 @@ function watchRoomMessages(roomId, onChange) {
   };
 }
 
-export {
-  clearRoomAvatarCache,
-  getJoinedRoomIds,
-  getRoomMessages,
-  getRoomMeta,
-  watchRoomList,
-  watchRoomMessages,
-};
+export { clearRoomAvatarCache, getJoinedRoomIds, getRoomMessages, getRoomMeta, watchRoomList, watchRoomMessages };
