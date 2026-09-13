@@ -172,7 +172,8 @@ function MtrxRoom({ room, fullHeight = false }) {
           sx={{
             width: 42,
             height: 42,
-            bgcolor: "primary.main",
+            bgcolor: "transparent",
+            color: "text.primary",
             fontSize: 16,
             fontWeight: 700,
           }}
@@ -328,7 +329,8 @@ function MtrxRoom({ room, fullHeight = false }) {
                         whiteSpace: "pre-wrap",
                         overflowWrap: "anywhere",
                         color: "text.primary",
-                        lineHeight: 1.5,
+                        fontSize: 14,
+                        lineHeight: 1.4,
                         "& p": { my: 0 },
                         "& p + p": { mt: 1 },
                         "& a": { color: "primary.main" },

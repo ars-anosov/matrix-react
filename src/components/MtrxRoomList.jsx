@@ -62,7 +62,8 @@ function MtrxRoomList({ rooms, selectedRoomId = "", onSelect, fullHeight = false
               sx={{
                 width: 40,
                 height: 40,
-                bgcolor: "primary.light",
+                bgcolor: "transparent",
+                color: "text.primary",
                 fontSize: 15,
               }}
             >
