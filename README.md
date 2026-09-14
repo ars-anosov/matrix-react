@@ -12,15 +12,14 @@ npm run build
 ```
 
 
-# Документация
 
-Архитектура и сценарии работы:
-- [Интерактивная диаграмма (archify)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html) — опубликована на GitHub Pages
-- [Mermaid-диаграммы](docs/STATE.md) — слои, потоки данных и последовательность сценариев (рендерит GitHub)
+# Документация
 
 [![Архитектура matrix-react](docs/archify/matrix-react-architecture.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html)
 
 Все документы: <https://ars-anosov.github.io/matrix-react/>
+
+
 
 # Компоненты
 
