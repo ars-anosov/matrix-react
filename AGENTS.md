@@ -51,6 +51,21 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
   браузера постоянный (логин в Matrix сохраняется), поэтому второе окно с тем же профилем не
   запустится — закрыть окно от прошлой сессии.
 
+**Archify `visual-check`** — `validate` и `deliver` идут из WSL с `--repo-root .`, а
+`visual-check` из WSL возвращает exit 2 (ищет только Linux-Chrome и не транслирует пути), хотя
+Chrome на Windows есть. Запускать его Windows-Node'ом по UNC, обязательно с форвард-слэшами — с
+бэкслешами cmd.exe искажает путь:
+
+```bash
+REPO=/home/ars/_git/matrix-react
+SKILL=$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify
+cd /mnt/c && cmd.exe /c "node //wsl.localhost/Ubuntu$SKILL/bin/archify.mjs visual-check \
+//wsl.localhost/Ubuntu$REPO/docs/archify/matrix-react-architecture.html --json"
+```
+
+Скриншоты не побайтово детерминированы: повторный прогон на том же HTML может перезаписать PNG —
+это не признак расхождения, сверяйте `artifact.sha256` в `visual-check.json`.
+
 UI-правку проверять в браузере: поднять `npm run dev`, открыть через `win_open_url`, а спорное
 поведение проверять через Playwright MCP (клик → снапшот/скриншот/консоль), а не догадками.
 
