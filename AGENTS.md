@@ -27,51 +27,20 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
 `npm run deploy` (и `deploy:rsync` без сборки) идут на боевой сервер с `rsync --delete` —
 параметры в `deploy.sh` (`DEPLOY_USER` / `DEPLOY_HOST` / `DEPLOY_PATH`).
 
-## Инструменты DSH (плагины)
+## Инструменты и среда (DSH)
 
 Профиль DSH `web` уже содержит плагины окружения — инструменты доступны сразу, доустанавливать
-ничего не нужно. Проверить инструмент в сессии дешевле, чем писать обходной путь.
+ничего не нужно. Средовые правила (WSL ↔ Windows, Playwright MCP, Mermaid, archify) — в
+user-global `~/.dsh/AGENTS.md`; повторяемые процедуры — навыками в `.dsh/skills/`. Здесь только
+специфика этого репозитория:
 
-- **Skill `archify`** (`@tt-a1i/archify-dsh`) — интерактивные HTML-диаграммы (architecture,
-  workflow, sequence, dataflow, lifecycle) с тёмной/светлой темой и экспортом. Загружать через
-  инструмент `skill`, когда схему просят как артефакт; результат — в `docs/archify/` рядом
-  с `matrix-react-architecture.*`. Готовые HTML/JSON не править вручную — только перегенерация.
-- **`dsh-mermaid`** — рендерит fenced-блоки с языком `mermaid` в ответах DSH Web (SVG, зум,
-  полный экран, экспорт). Диаграммы в ответе давать Mermaid-блоком, а не ASCII-артом; образец —
-  `docs/STATE.md`.
-- **`win_open_url`** (`dsh-wsl-browser`) — открывает `http(s)` URL в браузере Windows. Показывать
-  результат так: dev-сервер `http://localhost:3000`, DSH Web `http://127.0.0.1:3080`, страницы из
-  `docs/`.
-- **`mcp__browser__*`** — Playwright MCP (`mcp-playwright`): настоящий Chrome на Windows — переходы,
-  снапшот доступности, клики и ввод, консоль, сетевые запросы, скриншоты, трассировка. Схемы
-  инструментов выдаются по требованию: в начале сессии виден только
-  `mcp__router__search_and_activate`; сначала активировать сервер, затем вызывать
-  `mcp__browser__browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`,
-  `browser_console_messages`, `browser_network_requests`, `browser_take_screenshot`. Профиль
-  браузера постоянный (логин в Matrix сохраняется), поэтому второе окно с тем же профилем не
-  запустится — закрыть окно от прошлой сессии.
-
-**Archify `visual-check`** — `validate` и `deliver` идут из WSL с `--repo-root .`, а
-`visual-check` из WSL возвращает exit 2 (ищет только Linux-Chrome и не транслирует пути), хотя
-Chrome на Windows есть. Запускать его Windows-Node'ом по UNC, обязательно с форвард-слэшами — с
-бэкслешами cmd.exe искажает путь:
-
-```bash
-REPO=/home/ars/_git/matrix-react
-SKILL=$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify
-cd /mnt/c && cmd.exe /c "node //wsl.localhost/Ubuntu$SKILL/bin/archify.mjs visual-check \
-//wsl.localhost/Ubuntu$REPO/docs/archify/matrix-react-architecture.html --json"
-```
-
-Скриншоты не побайтово детерминированы: повторный прогон на том же HTML может перезаписать PNG —
-это не признак расхождения, сверяйте `artifact.sha256` в `visual-check.json`.
-
-UI-правку проверять в браузере: поднять `npm run dev`, открыть через `win_open_url`, а спорное
-поведение проверять через Playwright MCP (клик → снапшот/скриншот/консоль), а не догадками.
-
-Смежные инструменты окружения (dsh-wsl-kit): `win_launch` (приложения Windows), `wsl_clipboard`
-(буфер обмена Windows), `path_convert` (пути WSL ↔ Windows), `net_doctor` (proxy, DNS, сеть WSL) —
-использовать их вместо ручных вызовов PowerShell/`cmd.exe`.
+- **Диаграммы-артефакты** — skill `archify`, результат в `docs/archify/` рядом с
+  `matrix-react-architecture.*`; готовые HTML/JSON не править вручную, только перегенерация,
+  проверка — навык `archify-visual-check`.
+- **Диаграммы в ответе** — Mermaid-блоком, а не ASCII-артом; образец — `docs/STATE.md`.
+- **Проверка UI** — `npm run dev` (порт 3000), открыть через `win_open_url`
+  (`http://localhost:3000`), спорное поведение — через Playwright MCP (`mcp__browser__*`),
+  а не догадками; порядок — навык `ui-verify` (`.dsh/skills/ui-verify`).
 
 ## Структура
 
