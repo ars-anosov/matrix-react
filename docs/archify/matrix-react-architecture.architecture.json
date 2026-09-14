@@ -6,7 +6,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react.git",
-      "revision": "19bcdbb5ac46a5be301e5ba6946b4d28f45ab30c"
+      "revision": "342a5cdc6bccf41a0ae6629d1aa7a3dcc6c840f1"
     },
     "legend": {
       "mode": "auto",
@@ -342,8 +342,13 @@
       ],
       "sources": [
         {
+          "path": "src/containers/AuthContainer.jsx",
+          "line": 48,
+          "label": "мост AUTHCTL_ ↔ MTRXCTL_"
+        },
+        {
           "path": "src/actions/authControlActions.js",
-          "line": 40,
+          "line": 43,
           "label": "loginAd → mtrx_login"
         },
         {
