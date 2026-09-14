@@ -38,6 +38,11 @@ const MENU_ITEMS_MTRX = [
 const MENU_ITEMS_AUTH = [
   { key: "displayAd", primary: "AD Авторизация", secondary: "AuthAd.jsx" },
   { key: "displayControl", primary: "AD Кругляш", secondary: "AuthIco.jsx" },
+  {
+    key: "displayAuthPad",
+    primary: "Мост к сервисам",
+    secondary: "AuthPad.jsx",
+  },
 ];
 
 function MenuAppBar(props) {

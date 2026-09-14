@@ -59,7 +59,10 @@ function watchSessionAndDispatchClear(dispatch, operationId) {
   matrixClient.watchMatrixSession(() => {
     if (operationId !== sessionOperationId) return;
     matrixClient.invalidateMatrixSession().finally(() => {
-      if (operationId === sessionOperationId) dispatch({ type: MTRXCTL_CLEAR });
+      // Принудительный logout со стороны сервера — это потеря авторизации (красный тумблер)
+      if (operationId === sessionOperationId) {
+        dispatch({ type: MTRXCTL_CLEAR, payload: { authLost: true } });
+      }
     });
   });
 }

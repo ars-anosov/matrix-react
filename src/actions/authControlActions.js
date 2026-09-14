@@ -8,6 +8,9 @@ import {
 import * as adAuth from "../services/adAuth";
 import { getApiErrorMessage } from "./utils/kyError";
 
+// Namespace-инвариант: thunk-и AUTHCTL_ не трогают MTRXCTL_ (и наоборот).
+// Мост к сервисам живёт в контейнере AuthContainer.
+
 function dispatchAdAuthError(dispatch, errText) {
   dispatch({
     type: AUTHCTL_SUBMIT_ERROR,

@@ -39,7 +39,9 @@ POST-запрос к серверу авторизации, ожидаемый �
   "ad_login"      : "login",
   "ad_cn"         : "ФИО",
   "ad_title"      : "Должность",
-  "ad_department" : "Отдел"
+  "ad_department" : "Отдел",
+  "mtrx_login"    : "matrix-login",
+  "mtrx_password" : "matrix-password"
 }
 ```
 

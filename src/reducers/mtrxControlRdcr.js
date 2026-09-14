@@ -16,11 +16,12 @@ import {
 
 const initialState = {
   // --- UI ---
-  displayReg: true,
+  displayReg: false,
   displayPad: false,
   displayControl: true,
   // --- Auth ---
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
+  authLost: false, // вынужденная потеря сессии (401 / logout сервером) → красный тумблер
   responseData: null,
   // --- Stored matrix data ---
   uriMatrix: "",
@@ -67,6 +68,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "success",
+        authLost: false,
         displayReg: false,
         displayPad: true,
         responseData: action.payload.responseData,
@@ -93,7 +95,11 @@ export default function mtrxControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "idle",
-        displayReg: true,
+        // Красный тумблер — только при вынужденной потере (401 / logout сервером):
+        // этот CLEAR приходит с payload.authLost. Пользовательский сброс (тумблер или
+        // «Выйти» в MtrxReg) и старт без сессии возвращают тумблер в исходное — откл.
+        authLost: Boolean(action.payload?.authLost),
+        displayReg: false,
         displayPad: false,
         responseData: null,
         ...emptyRooms,

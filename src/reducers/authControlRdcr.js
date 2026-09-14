@@ -11,7 +11,8 @@ import { getStoredAdAuthUri } from "../services/adAuth";
 
 const initialState = {
   displayAd: false,
-  displayControl: false,
+  displayAuthPad: true,
+  displayControl: true,
   uriAdAuth: getStoredAdAuthUri(),
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,
@@ -36,6 +37,7 @@ export default function authControlRdcr(state = initialState, action) {
         ...state,
         status: "success",
         displayAd: false,
+        displayAuthPad: true,
         responseData: action.payload.responseData,
         errComponent: "",
         errText: "",
@@ -57,6 +59,7 @@ export default function authControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "idle",
+        displayAuthPad: false,
         responseData: null,
         errComponent: "",
         errText: "",

@@ -6,7 +6,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react.git",
-      "revision": "7cb2c97ddb2e52134143f243f479c75a9df2bcc3"
+      "revision": "19bcdbb5ac46a5be301e5ba6946b4d28f45ab30c"
     },
     "legend": {
       "mode": "auto",
@@ -66,6 +66,18 @@
           "sdk"
         ],
         "note": "Redux держит только UI-индекс, данные комнат живут в SDK и IndexedDB."
+      },
+      {
+        "id": "bridge-ad-matrix",
+        "label": "Мост AD → Matrix",
+        "focus": [
+          "adauth",
+          "store",
+          "bridge",
+          "actions",
+          "services"
+        ],
+        "note": "Сессия AD в Redux: AuthContainer берёт mtrx_login / mtrx_password и зовёт handleRegister."
       }
     ]
   },
@@ -315,13 +327,40 @@
       ]
     },
     {
+      "id": "bridge",
+      "type": "frontend",
+      "label": "Мост к сервисам",
+      "sublabel": "AuthPad · AuthContainer",
+      "tag": "AUTHCTL_ ↔ MTRXCTL_",
+      "pos": [
+        647,
+        520
+      ],
+      "size": [
+        195,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/actions/authControlActions.js",
+          "line": 40,
+          "label": "loginAd → mtrx_login"
+        },
+        {
+          "path": "src/reducers/authTimeoutMiddleware.js",
+          "line": 8,
+          "label": "срок сессии AD"
+        }
+      ]
+    },
+    {
       "id": "adauth",
       "type": "security",
       "label": "Сервис авторизации AD",
       "sublabel": "POST /user/ad по https",
       "pos": [
-        1059,
-        560
+        1611,
+        520
       ],
       "size": [
         195,
@@ -347,6 +386,7 @@
       "wraps": [
         "ui",
         "containers",
+        "bridge",
         "actions",
         "store",
         "services",
@@ -438,10 +478,16 @@
       "to": "adauth",
       "label": "проверка AD",
       "variant": "dashed",
-      "labelAt": [
-        1157,
-        488
-      ]
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "bridge-to-actions",
+      "from": "bridge",
+      "to": "actions",
+      "label": "handleRegister",
+      "fromSide": "top",
+      "toSide": "bottom"
     }
   ],
   "cards": [
@@ -450,7 +496,7 @@
       "title": "Слои приложения",
       "items": [
         "components/ — только презентация на Material UI",
-        "containers/ — useSelector и bindActionCreators",
+        "containers/ — useSelector, bindActionCreators; AuthContainer — мост AUTHCTL_ ↔ MTRXCTL_",
         "actions/ — thunk-actions: валидация ввода и вызов сервиса",
         "services/ — вся логика matrix-js-sdk, наружу узкий доменный API"
       ]

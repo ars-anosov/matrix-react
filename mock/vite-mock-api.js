@@ -30,6 +30,8 @@ export const mockEndpoints = [
         ad_cn: "Mock User",
         ad_title: "Mock Title",
         ad_department: "Mock Department",
+        mtrx_login: "test",
+        mtrx_password: "",
       });
     },
   },

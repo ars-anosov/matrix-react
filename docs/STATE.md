@@ -42,7 +42,7 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-  participant UI as React<br/>(MtrxContainer / MtrxPadContainer / AuthAd)
+  participant UI as React<br/>(MtrxContainer / MtrxPadContainer / AuthContainer / AuthAd)
   participant Redux as Redux<br/>(actions + индекс)
   participant Rooms as matrixRooms
   participant Client as matrixClient
@@ -51,6 +51,9 @@ sequenceDiagram
   participant Store as local store<br/>(localStorage + IndexedDB)
   participant ADAPI as внешний AD-сервис
 
+  Note over UI,Store: Старт
+  Note over UI: authControlRdcr.displayAd=true (форма AD), mtrxControlRdcr.displayReg=false
+
   Note over UI,Store: Restore
   UI->>Redux: handleRestoreSession
   Redux->>Store: hydrate uriMatrix / login
@@ -58,10 +61,10 @@ sequenceDiagram
   Client->>Store: читать токены / sync + crypto
   Store-->>Client: session data
   Client->>Client: whoami()
-  alt 401
+  alt 401 / сессии нет
     Client->>Store: очистить LS + IDB
     Client-->>Redux: MATRIX_UNAUTHORIZED → CLEAR
-    Redux-->>UI: показать Reg
+    Note over Redux,UI: authLost=false (живой сессии не было), форма входа не форсируется
   else ok / сеть
     Client-->>Redux: session → status
     Redux->>Client: watchMatrixSession + watchDeviceVerification
@@ -109,7 +112,7 @@ sequenceDiagram
   Ad->>Ad: resolveAdAuthUrl (https)
   Ad->>Store: сохранить uriAdAuth
   Ad->>ADAPI: POST login + password
-  ADAPI-->>Ad: ad_login / ad_cn / ad_title / ad_department
+  ADAPI-->>Ad: ad_login / ad_cn / ad_title / ad_department / mtrx_login / mtrx_password
   Ad->>Store: сессия AD на 24 ч
   Ad-->>Redux: responseData → status
   Note over Redux,Store: authTimeoutMiddleware (10 с): срок истёк → CLEAR
@@ -141,5 +144,66 @@ sequenceDiagram
   Redux->>Client: logout / invalidate
   Client->>Store: очистить LS + IDB
   Client-->>Redux: CLEAR → Redux
-  Redux-->>UI: показать Reg
+  Note over Redux,UI: authLost=true → форсируется AuthPad с красным тумблером (клик — сброс сессии)
 ```
+
+## Мост к сервисам (`AuthContainer`)
+
+Thunk-и namespace-чистые: `authControlActions` не диспатчит `MTRXCTL_`, `mtrxControlActions` —
+`AUTHCTL_`. Оба направления моста живут в `AuthContainer`. `AuthPad` рендерится по флагу
+`displayAuthPad` (пункт меню «Мост к сервисам», ✕ снимает флаг), который выставляется в `true`
+на `AUTHCTL_SUBMIT_SUCCESS` и сбрасывается на `AUTHCTL_CLEAR`; при отсутствии AD-данных `AuthPad`
+информирует текстом.
+
+Тумблер `AuthPad` — индикатор состояния сессии Matrix и действие (в MUI `Switch` цвет применяется
+к checked-состоянию, поэтому цветной = `checked` + `color`):
+
+| Состояние | Условие | Клик |
+| --- | --- | --- |
+| откл | сессии нет (`status !== "success"`, `authLost` нет) | автоматическая авторизация данными AD → `handleRegister` |
+| зелёный | `mtrxControlRdcr.status === "success"` | сброс сессии → `handleRegClear` |
+| красный | `mtrxControlRdcr.authLost` | сброс сессии → `handleRegClear` |
+
+Красный выставляется только вынужденной потерей: `MTRXCTL_CLEAR` приходит с `payload.authLost`
+из `watchSessionAndDispatchClear` (принудительный logout сервером / 401). Сброс
+(`handleRegClear`) и старт без сессии шлют `CLEAR` без payload, поэтому тумблер возвращается в
+исходное состояние — откл, без раскраски. `authLost` сбрасывается на `MTRXCTL_SUBMIT_SUCCESS`;
+потеря авторизации вдобавок форсирует показ `AuthPad`.
+
+```mermaid
+sequenceDiagram
+  actor User
+  participant AuthAd as AuthAd.jsx
+  participant AuthPad as AuthPad.jsx
+  participant AuthAct as authControlActions.js
+  participant AuthCont as AuthContainer.jsx
+  participant MtrxAct as mtrxControlActions.js
+  participant Dispatch as authControlRdcr / mtrxControlRdcr
+
+  User->>AuthAd: Ввод AD-логина и пароля
+  AuthAd->>AuthAct: handleAdRegister(formData)
+  AuthAct->>Dispatch: AUTHCTL_SUBMIT_REQUEST (responseData=null)
+  AuthAct->>AuthAct: POST uriAdAuth
+  AuthAct->>Dispatch: AUTHCTL_SUBMIT_SUCCESS (mtrx_login, mtrx_password)
+  AuthCont->>Dispatch: MTRXCTL_STORE_VALUE (login = mtrx_login)
+  Note over AuthCont: displayAuthPad=true на success → рендер AuthPad (тумблер откл, без матричной пары — текст)
+  User->>AuthPad: Клик по тумблеру (откл)
+  AuthPad->>AuthCont: onToggleMtrx()
+  AuthCont->>MtrxAct: handleRegister({mtrx_login, mtrx_password, uriMatrix})
+  MtrxAct->>Dispatch: MTRXCTL_SUBMIT_REQUEST → SUCCESS/ERROR
+  Dispatch-->>AuthPad: SUCCESS → зелёный тумблер (authorized)
+  Dispatch-->>AuthCont: responseData.user_id активной сессии
+  AuthCont->>Dispatch: AUTHCTL_STORE_VALUE (responseData.mtrx_user_id)
+
+  Note over User,Dispatch: Потеря авторизации Matrix → сброс сессии
+  Dispatch-->>AuthPad: authLost=true → красный тумблер, AuthPad показан принудительно
+  User->>AuthPad: Клик по красному или зелёному тумблеру
+  AuthPad->>AuthCont: onToggleMtrx()
+  AuthCont->>MtrxAct: handleRegClear()
+  MtrxAct->>MtrxAct: logoutMatrix (POST /logout + очистка LS/IndexedDB)
+  MtrxAct->>Dispatch: MTRXCTL_CLEAR (без payload) → authLost=false, status=idle
+  Dispatch-->>AuthPad: тумблер вернулся в исходное состояние — откл, без раскраски
+```
+
+`AuthContainer` синхронизирует `mtrx_user_id` в `authControlRdcr.responseData` только при активной
+AD-сессии (`status === "success"`) — иначе после AD-выхода `responseData` заполнился бы снова.

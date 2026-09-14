@@ -25,8 +25,8 @@ npm run lint     # biome lint .
 
 ```
 src/
-├── components/   # UI: MtrxReg, MtrxPad, MtrxRoom(List), MtrxDeviceVerification, AuthAd, MenuAppBar, …
-├── containers/   # связка со store: MtrxContainer, MtrxPadContainer, MenuAppContainer
+├── components/   # UI: MtrxReg, MtrxPad, MtrxRoom(List), MtrxDeviceVerification, AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar, …
+├── containers/   # связка со store: MtrxContainer, MtrxPadContainer, AuthContainer, MenuAppContainer
 ├── actions/      # thunk-actions; utils/ — kyError.js, matrixError.js
 ├── reducers/     # *Rdcr, rootReducer.js, authTimeoutMiddleware.js
 ├── services/     # matrixClient, matrixSdk, matrixRooms, matrixClientStore, adAuth
@@ -52,6 +52,11 @@ dist/             # результат npm run build — вручную не п�
   Matrix API напрямую.
 - Actions только валидируют UI-ввод, вызывают сервисы и преобразуют результат в actions;
   reducers не содержат Matrix-логики.
+- Namespace-инвариант: thunk-и `AUTHCTL_` не диспатчат `MTRXCTL_` (и наоборот). Мост
+  к сервисам (`AUTHCTL_` ↔ `MTRXCTL_`) — только в контейнере `AuthContainer`. Тумблер `AuthPad`
+  отражает состояние сессии Matrix: откл — авто-авторизация данными AD; зелёный (`status ===
+  "success"`) и красный (`authLost` — принудительный logout сервером / 401) — сброс сессии
+  (`handleRegClear` → `logoutMatrix`), после сброса тумблер возвращается в исходное состояние.
 - Новая Matrix-функция — сначала в сервис, наружу узкий доменный API вместо SDK-объектов.
   `createClient`, `startClient`, `whoami`, `logout`, работу с токенами и обработку событий
   не дублировать.

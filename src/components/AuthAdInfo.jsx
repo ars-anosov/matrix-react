@@ -50,7 +50,7 @@ function AuthAdInfo(props) {
 title:\t\t${authControlRdcr?.responseData?.ad_title || ""}
 department:\t${authControlRdcr?.responseData?.ad_department || ""}
 
-SIP num:\t${authControlRdcr?.responseData?.sip_username || ""}`}
+Matrix:\t\t${authControlRdcr?.responseData?.mtrx_user_id || ""}`}
       </Typography>
 
       {authControlRdcr?.status === "error" && authControlRdcr?.errText && (

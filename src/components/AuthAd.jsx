@@ -242,8 +242,9 @@ AdAuth.propTypes = {
       ad_cn: PropTypes.string,
       ad_title: PropTypes.string,
       ad_department: PropTypes.string,
-      sip_username: PropTypes.string,
-      sip_secret: PropTypes.string,
+      mtrx_login: PropTypes.string,
+      mtrx_password: PropTypes.string,
+      mtrx_user_id: PropTypes.string,
     }),
   }).isRequired,
   authControlActions: PropTypes.shape({
