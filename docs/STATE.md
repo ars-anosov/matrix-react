@@ -52,7 +52,8 @@ sequenceDiagram
   participant ADAPI as внешний AD-сервис
 
   Note over UI,Store: Старт
-  Note over UI: authControlRdcr.displayAd=true (форма AD), mtrxControlRdcr.displayReg=false
+  Note over UI: authControlRdcr.displayAd=false (форма AD скрыта), displayAuthPad=true → AuthPad
+  Note over UI: mtrxControlRdcr.displayReg=false, displayPad=false
 
   Note over UI,Store: Restore
   UI->>Redux: handleRestoreSession

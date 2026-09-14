@@ -17,9 +17,46 @@ redux-logger, react-router-dom), matrix-js-sdk, ky. JavaScript (`.js` / `.jsx`),
 npm install
 npm run dev      # dev-сервер, http://0.0.0.0:3000
 npm run build    # сборка в dist
-npm run serve    # preview, порт 4173
+npm run serve    # preview собранного dist, порт 4173
 npm run lint     # biome lint .
+npm run format   # biome format --write .
+npm run check    # biome check --write .
+npm run deploy   # build + выкладка dist на прод по rsync (deploy.sh) — только по явному запросу
 ```
+
+`npm run deploy` (и `deploy:rsync` без сборки) идут на боевой сервер с `rsync --delete` —
+параметры в `deploy.sh` (`DEPLOY_USER` / `DEPLOY_HOST` / `DEPLOY_PATH`).
+
+## Инструменты DSH (плагины)
+
+Профиль DSH `web` уже содержит плагины окружения — инструменты доступны сразу, доустанавливать
+ничего не нужно. Проверить инструмент в сессии дешевле, чем писать обходной путь.
+
+- **Skill `archify`** (`@tt-a1i/archify-dsh`) — интерактивные HTML-диаграммы (architecture,
+  workflow, sequence, dataflow, lifecycle) с тёмной/светлой темой и экспортом. Загружать через
+  инструмент `skill`, когда схему просят как артефакт; результат — в `docs/archify/` рядом
+  с `matrix-react-architecture.*`. Готовые HTML/JSON не править вручную — только перегенерация.
+- **`dsh-mermaid`** — рендерит fenced-блоки с языком `mermaid` в ответах DSH Web (SVG, зум,
+  полный экран, экспорт). Диаграммы в ответе давать Mermaid-блоком, а не ASCII-артом; образец —
+  `docs/STATE.md`.
+- **`win_open_url`** (`dsh-wsl-browser`) — открывает `http(s)` URL в браузере Windows. Показывать
+  результат так: dev-сервер `http://localhost:3000`, DSH Web `http://127.0.0.1:3080`, страницы из
+  `docs/`.
+- **`mcp__browser__*`** — Playwright MCP (`mcp-playwright`): настоящий Chrome на Windows — переходы,
+  снапшот доступности, клики и ввод, консоль, сетевые запросы, скриншоты, трассировка. Схемы
+  инструментов выдаются по требованию: в начале сессии виден только
+  `mcp__router__search_and_activate`; сначала активировать сервер, затем вызывать
+  `mcp__browser__browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`,
+  `browser_console_messages`, `browser_network_requests`, `browser_take_screenshot`. Профиль
+  браузера постоянный (логин в Matrix сохраняется), поэтому второе окно с тем же профилем не
+  запустится — закрыть окно от прошлой сессии.
+
+UI-правку проверять в браузере: поднять `npm run dev`, открыть через `win_open_url`, а спорное
+поведение проверять через Playwright MCP (клик → снапшот/скриншот/консоль), а не догадками.
+
+Смежные инструменты окружения (dsh-wsl-kit): `win_launch` (приложения Windows), `wsl_clipboard`
+(буфер обмена Windows), `path_convert` (пути WSL ↔ Windows), `net_doctor` (proxy, DNS, сеть WSL) —
+использовать их вместо ручных вызовов PowerShell/`cmd.exe`.
 
 ## Структура
 
@@ -31,10 +68,14 @@ src/
 ├── reducers/     # *Rdcr, rootReducer.js, authTimeoutMiddleware.js
 ├── services/     # matrixClient, matrixSdk, matrixRooms, matrixClientStore, adAuth
 ├── store/        # configureStore
-├── constants/    # redux.js (action types), storage.js (ключи localStorage)
+├── constants/    # redux.js (action types), storage.js (ключи localStorage), ui.js (UI-лимиты)
 └── main.jsx, App.jsx, theme.js
 mock/             # mock API для dev (vite plugin)
 public/           # статика: img/, sounds/, sw.js
+img/              # скриншоты компонентов для README
+docs/             # документация и GitHub Pages (ars-anosov.github.io/matrix-react):
+                  # index.html (лендинг), STATE.md (Mermaid-схемы), archify/ (генерация skill'ом
+                  # archify, исключён из Biome)
 dist/             # результат npm run build — вручную не править
 ```
 

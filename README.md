@@ -74,6 +74,7 @@ npm скрипты
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",
+    "deploy:rsync": "bash deploy.sh",
     "deploy": "npm run build && npm run deploy:rsync"
   }
 ```

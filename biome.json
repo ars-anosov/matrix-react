@@ -7,7 +7,7 @@
     "root": "."
   },
   "files": {
-    "includes": ["**", "!dist", "!node_modules"]
+    "includes": ["**", "!dist", "!node_modules", "!docs/archify"]
   },
   "formatter": {
     "enabled": true,
