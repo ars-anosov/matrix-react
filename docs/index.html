@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>matrix-react — документация</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f7f9;
+        --fg: #12161c;
+        --muted: #5b6472;
+        --card: #fff;
+        --line: #e2e6ec;
+        --accent: #0b6bcb;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e1216;
+          --fg: #e8ecf1;
+          --muted: #98a2b3;
+          --card: #161b21;
+          --line: #242c35;
+          --accent: #4da3ff;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 2.5rem 1.25rem;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      main { max-width: 52rem; margin: 0 auto; }
+      h1 { font-size: 1.6rem; margin: 0 0 0.35rem; }
+      p.lead { color: var(--muted); margin: 0 0 2rem; }
+      ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem; }
+      li a {
+        display: block;
+        padding: 1rem 1.15rem;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--card);
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 0.15s ease, transform 0.15s ease;
+      }
+      li a:hover { border-color: var(--accent); transform: translateY(-1px); }
+      .t { font-weight: 600; }
+      .d { color: var(--muted); font-size: 0.9rem; margin-top: 0.15rem; }
+      footer { margin-top: 2rem; color: var(--muted); font-size: 0.85rem; }
+      footer a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>matrix-react — документация</h1>
+      <p class="lead">React-компоненты и SPA для Matrix на matrix-js-sdk.</p>
+      <ul>
+        <li>
+          <a href="./archify/matrix-react-architecture.html">
+            <div class="t">Диаграмма архитектуры (archify)</div>
+            <div class="d">
+              Интерактивная схема: UI → Redux → services → matrix-js-sdk, хранилища, темы, зум, экспорт.
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="./archify/matrix-react-architecture.visual-check.2048x1320.light.png">
+            <div class="t">Превью диаграммы (PNG 2048×1320)</div>
+            <div class="d">Статичный снимок, светлая тема.</div>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/ars-anosov/matrix-react/blob/main/docs/STATE.md">
+            <div class="t">Mermaid-схемы (STATE.md)</div>
+            <div class="d">Слои и потоки данных + последовательность сценариев; рендерит GitHub.</div>
+          </a>
+        </li>
+      </ul>
+      <footer>
+        Исходники: <a href="https://github.com/ars-anosov/matrix-react">github.com/ars-anosov/matrix-react</a>
+      </footer>
+    </main>
+  </body>
+</html>

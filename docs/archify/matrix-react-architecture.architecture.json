@@ -1,0 +1,479 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "matrix-react: архитектура приложения",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ars-anosov/matrix-react.git",
+      "revision": "7cb2c97ddb2e52134143f243f479c75a9df2bcc3"
+    },
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "frontend": {
+          "label": "UI и контейнеры"
+        },
+        "backend": {
+          "label": "Логика: actions и services"
+        },
+        "database": {
+          "label": "Состояние и хранилища"
+        },
+        "security": {
+          "label": "Внешняя авторизация"
+        },
+        "external": {
+          "label": "Внешние системы и SDK"
+        }
+      }
+    },
+    "views": [
+      {
+        "id": "main-flow",
+        "label": "Основной поток данных",
+        "focus": [
+          "users",
+          "ui",
+          "containers",
+          "actions",
+          "services",
+          "sdk",
+          "homeserver"
+        ],
+        "note": "Ввод пользователя проходит слои React → Redux → services → matrix-js-sdk и уходит на homeserver."
+      },
+      {
+        "id": "session-start",
+        "label": "Старт и восстановление сессии",
+        "focus": [
+          "actions",
+          "services",
+          "storage",
+          "sdk",
+          "homeserver"
+        ],
+        "note": "Вход по паролю или восстановление сохранённой сессии, затем /sync."
+      },
+      {
+        "id": "state-and-storage",
+        "label": "Состояние и хранилища",
+        "focus": [
+          "store",
+          "containers",
+          "storage",
+          "idb",
+          "sdk"
+        ],
+        "note": "Redux держит только UI-индекс, данные комнат живут в SDK и IndexedDB."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "users",
+      "type": "external",
+      "label": "Пользователь",
+      "sublabel": "браузер",
+      "pos": [
+        30,
+        350
+      ],
+      "size": [
+        130,
+        66
+      ]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "Компоненты React",
+      "sublabel": "MtrxReg · MtrxPad",
+      "tag": "Material UI",
+      "pos": [
+        256,
+        350
+      ],
+      "size": [
+        165,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/App.jsx",
+          "line": 6,
+          "label": "корневой layout"
+        },
+        {
+          "path": "src/components/MtrxPad.jsx",
+          "label": "чат"
+        },
+        {
+          "path": "src/components/MtrxReg.jsx",
+          "label": "вход"
+        }
+      ]
+    },
+    {
+      "id": "containers",
+      "type": "frontend",
+      "label": "Контейнеры",
+      "sublabel": "useSelector · bindActionCreators",
+      "pos": [
+        517,
+        350
+      ],
+      "size": [
+        180,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/containers/MtrxPadContainer.jsx",
+          "line": 26
+        },
+        {
+          "path": "src/containers/MtrxContainer.jsx",
+          "line": 14
+        }
+      ]
+    },
+    {
+      "id": "actions",
+      "type": "backend",
+      "label": "Thunk-actions",
+      "sublabel": "mtrxControl · authControl",
+      "tag": "redux-thunk",
+      "pos": [
+        793,
+        350
+      ],
+      "size": [
+        170,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/actions/mtrxControlActions.js",
+          "line": 117,
+          "label": "handleRestoreSession"
+        },
+        {
+          "path": "src/actions/authControlActions.js",
+          "line": 18,
+          "label": "handleAdRegister"
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "Redux store",
+      "sublabel": "roomIds · roomsMeta",
+      "pos": [
+        517,
+        160
+      ],
+      "size": [
+        180,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/reducers/mtrxControlRdcr.js",
+          "line": 17,
+          "label": "UI-индекс"
+        },
+        {
+          "path": "src/store/configureStore.js",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "type": "backend",
+      "label": "Сервисы Matrix",
+      "sublabel": "matrixClient · matrixRooms",
+      "pos": [
+        1059,
+        350
+      ],
+      "size": [
+        195,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/services/matrixClient.js",
+          "line": 636,
+          "label": "loginMatrix"
+        },
+        {
+          "path": "src/services/matrixRooms.js",
+          "line": 285,
+          "label": "watchRoomList"
+        }
+      ]
+    },
+    {
+      "id": "sdk",
+      "type": "external",
+      "label": "matrix-js-sdk",
+      "sublabel": "sync · crypto · timeline",
+      "tag": "ленивый чанк",
+      "pos": [
+        1350,
+        350
+      ],
+      "size": [
+        165,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/services/matrixSdk.js",
+          "line": 8,
+          "label": "loadMatrixSdk"
+        }
+      ]
+    },
+    {
+      "id": "homeserver",
+      "type": "external",
+      "label": "Homeserver Matrix",
+      "sublabel": "/_matrix/client/v3",
+      "pos": [
+        1611,
+        350
+      ],
+      "size": [
+        175,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/services/matrixClient.js",
+          "line": 599,
+          "label": "startClient"
+        },
+        {
+          "path": "src/services/matrixClient.js",
+          "line": 643,
+          "label": "loginRequest"
+        }
+      ]
+    },
+    {
+      "id": "storage",
+      "type": "database",
+      "label": "localStorage",
+      "sublabel": "токены · deviceId · AD",
+      "pos": [
+        1059,
+        160
+      ],
+      "size": [
+        195,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/constants/storage.js"
+        },
+        {
+          "path": "src/services/matrixClient.js",
+          "line": 556,
+          "label": "persistMatrixSession"
+        }
+      ]
+    },
+    {
+      "id": "idb",
+      "type": "database",
+      "label": "IndexedDB",
+      "sublabel": "sync store · Rust crypto",
+      "pos": [
+        1350,
+        160
+      ],
+      "size": [
+        165,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/services/matrixClient.js",
+          "line": 69,
+          "label": "IndexedDBStore"
+        },
+        {
+          "path": "src/services/matrixClient.js",
+          "line": 129,
+          "label": "initRustCrypto"
+        }
+      ]
+    },
+    {
+      "id": "adauth",
+      "type": "security",
+      "label": "Сервис авторизации AD",
+      "sublabel": "POST /user/ad по https",
+      "pos": [
+        1059,
+        560
+      ],
+      "size": [
+        195,
+        66
+      ],
+      "sources": [
+        {
+          "path": "src/services/adAuth.js",
+          "line": 70,
+          "label": "loginAd"
+        },
+        {
+          "path": "mock/vite-mock-api.js",
+          "label": "dev-mock"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Клиентское SPA в браузере",
+      "wraps": [
+        "ui",
+        "containers",
+        "actions",
+        "store",
+        "services",
+        "sdk",
+        "storage",
+        "idb"
+      ],
+      "pad": 34
+    }
+  ],
+  "connections": [
+    {
+      "id": "users-to-ui",
+      "from": "users",
+      "to": "ui",
+      "label": "ввод и клики",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ui-to-containers",
+      "from": "ui",
+      "to": "containers",
+      "label": "события UI"
+    },
+    {
+      "id": "containers-to-actions",
+      "from": "containers",
+      "to": "actions",
+      "label": "вызов action"
+    },
+    {
+      "id": "actions-to-services",
+      "from": "actions",
+      "to": "services",
+      "label": "доменный API"
+    },
+    {
+      "id": "services-to-sdk",
+      "from": "services",
+      "to": "sdk",
+      "label": "MatrixClient API"
+    },
+    {
+      "id": "sdk-to-homeserver",
+      "from": "sdk",
+      "to": "homeserver",
+      "label": "/sync · /login",
+      "variant": "emphasis"
+    },
+    {
+      "id": "actions-to-store",
+      "from": "actions",
+      "to": "store",
+      "label": "dispatch(action)",
+      "fromSide": "top",
+      "toSide": "right",
+      "via": [
+        [
+          878,
+          193
+        ]
+      ]
+    },
+    {
+      "id": "store-to-containers",
+      "from": "store",
+      "to": "containers",
+      "label": "state",
+      "labelAt": [
+        607,
+        288
+      ]
+    },
+    {
+      "id": "services-to-storage",
+      "from": "services",
+      "to": "storage",
+      "label": "persistMatrixSession"
+    },
+    {
+      "id": "sdk-to-idb",
+      "from": "sdk",
+      "to": "idb",
+      "label": "store · crypto"
+    },
+    {
+      "id": "services-to-adauth",
+      "from": "services",
+      "to": "adauth",
+      "label": "проверка AD",
+      "variant": "dashed",
+      "labelAt": [
+        1157,
+        488
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Слои приложения",
+      "items": [
+        "components/ — только презентация на Material UI",
+        "containers/ — useSelector и bindActionCreators",
+        "actions/ — thunk-actions: валидация ввода и вызов сервиса",
+        "services/ — вся логика matrix-js-sdk, наружу узкий доменный API"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Сессия Matrix",
+      "items": [
+        "loginMatrix() — m.login.password с refresh_token",
+        "restoreMatrixSession() — клиент по токенам из localStorage",
+        "startClient({ initialSyncLimit: 10 }) — поток /sync",
+        "watchMatrixSession() — принудительный logout от сервера"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Состояние и хранилища",
+      "items": [
+        "Redux — лёгкий UI-индекс, сообщения не сериализуются",
+        "localStorage — токены, deviceId, сессия AD (TTL 24 ч)",
+        "IndexedDB — sync store и Rust crypto (m.sas.v1)",
+        "Комнаты, таймлайн и участники — источник истины SDK"
+      ]
+    }
+  ]
+}
