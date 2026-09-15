@@ -24,10 +24,24 @@ npm run build
 # Компоненты
 
 ## MtrxReg.jsx
+Форма входа в Matrix (homeserver, логин, пароль) и выход из сессии.
 ![component_MtrxReg.png](img/component_MtrxReg.png)
 
 ## MtrxPad.jsx
+Панель мессенджера: список комнат и последние сообщения выбранной комнаты.
 ![component_MtrxPad.png](img/component_MtrxPad.png)
+
+## MtrxRoomList.jsx
+Список комнат: аватар и имя, выбор активной комнаты.
+
+## MtrxRoom.jsx
+Комната: шапка (аватар, имя, подпись) и таймлайн последних сообщений.
+
+## MtrxDeviceVerification.jsx
+E2EE: авторизация устройства — SAS по emoji или recovery key.
+
+## MenuAppBar.jsx
+Верхнее меню: тумблеры панелей и данные AD-пользователя.
 
 # Доп. компоненты
 Плюшки для интеграции с внешними сервисами
@@ -46,6 +60,13 @@ POST-запрос к серверу авторизации, ожидаемый �
 ```
 
 ![component_AuthAd.png](img/component_AuthAd.png)
+
+## AuthPad.jsx
+Панель «Мост к сервисам»: тумблер сессии Matrix — откл (авторизация данными AD),
+зелёный (сессия активна) и красный (авторизация потеряна).
+
+## AuthAdInfo.jsx
+Данные AD-пользователя: `ad_cn`, `ad_title`, `ad_department`, `ad_login`.
 
 
 

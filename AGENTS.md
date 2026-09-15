@@ -103,8 +103,8 @@ dist/             # результат npm run build — вручную не п�
 - **Redux:** action types — константы в `constants/redux.js` (префиксы `MTRXCTL_`, `AUTHCTL_`);
   reducers `mtrxControlRdcr` / `authControlRdcr`; actions `mtrxControlActions` /
   `authControlActions`; в контейнерах — `useSelector`, `bindActionCreators` + `useMemo`.
-  `initialState` редьюсера экспортируется и остаётся чистым (без чтения сервисов): из него
-  `store/preloadedState.js` собирает срез для `preloadedState`.
+  `initialState` у `authControlRdcr` экспортируется и остаётся чистым (без чтения сервисов):
+  из него `store/preloadedState.js` собирает срез для `preloadedState`.
 - **Прочее:** ключи `localStorage` — в `constants/storage.js`; HTTP (`ky`) и `localStorage` — только
   в `services/`; ошибки API — `actions/utils/kyError.js`.
 - **Внешние библиотеки:** перед использованием незнакомого метода API сначала сверяться с

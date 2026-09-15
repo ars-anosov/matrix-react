@@ -6,8 +6,8 @@
   "visualReview": "pending",
   "artifact": {
     "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-architecture.html",
-    "sha256": "ea805cd718fd993ec7df759ec73c6173e4e5e0df02d7dfd2d03ad29b3fcea927",
-    "bytes": 652440
+    "sha256": "faa6eafd9dd725a9b9b3b318a5f63be1c0a28238604c673a3eeea579bd40bc39",
+    "bytes": 652806
   },
   "state": {
     "detail": "read",

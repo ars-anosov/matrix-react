@@ -38,6 +38,31 @@ flowchart LR
   ADSV -->|"POST login + password"| ADAPI
 ```
 
+## Инициализация store
+
+Сервисы со стором сводит только слой стора — reducers и middleware сервисов не импортируют и
+остаются чистыми:
+
+```mermaid
+flowchart LR
+  ADSV["adAuth"]
+  PS["store/preloadedState.js<br/>сид: uriAdAuth ← getStoredAdAuthUri()"]
+  CS["store/configureStore.js<br/>createStore(rootReducer, preloadedState)"]
+  MW["authTimeoutMiddleware<br/>createAuthTimeoutMiddleware({ isSessionExpired, clearSession })"]
+
+  ADSV -->|"getStoredAdAuthUri"| PS
+  PS -->|"preloadedState"| CS
+  CS -->|"инжект зависимостей"| MW
+```
+
+- `authControlRdcr` экспортирует чистый `initialState` (только UI-дефолты, без чтения сервисов);
+  `preloadedState.js` собирает из него срез и подставляет сохранённый `uriAdAuth`. Срез
+  передаётся целиком: `combineReducers` подменяет его, а не мержит с `initialState`.
+- `configureStore(preloadedState = getPreloadedState())` — единственное место, где стор сходится
+  с сервисами: сид и зависимости `authTimeoutMiddleware` (`isAdAuthSessionExpired` →
+  `isSessionExpired`, `clearAdAuthSession` → `clearSession`).
+- Тот же `configureStore()` без аргументов вызывает `main.jsx`.
+
 ## Сценарии работы
 
 ```mermaid
@@ -190,7 +215,7 @@ sequenceDiagram
   Note over AuthCont: displayAuthPad=true на success → рендер AuthPad (тумблер откл, без матричной пары — текст)
   User->>AuthPad: Клик по тумблеру (откл)
   AuthPad->>AuthCont: onToggleMtrx()
-  AuthCont->>MtrxAct: handleRegister({mtrx_login, mtrx_password, uriMatrix})
+  AuthCont->>MtrxAct: handleRegister({login: mtrx_login, password: mtrx_password, uriMatrix})
   MtrxAct->>Dispatch: MTRXCTL_SUBMIT_REQUEST → SUCCESS/ERROR
   Dispatch-->>AuthPad: SUCCESS → зелёный тумблер (authorized)
   Dispatch-->>AuthCont: responseData.user_id активной сессии

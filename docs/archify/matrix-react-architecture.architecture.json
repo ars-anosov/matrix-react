@@ -6,7 +6,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react.git",
-      "revision": "342a5cdc6bccf41a0ae6629d1aa7a3dcc6c840f1"
+      "revision": "005d4d61389776a172944241689231caea1c3635"
     },
     "legend": {
       "mode": "auto",
@@ -113,7 +113,7 @@
       "sources": [
         {
           "path": "src/App.jsx",
-          "line": 6,
+          "line": 7,
           "label": "корневой layout"
         },
         {
@@ -167,7 +167,7 @@
       "sources": [
         {
           "path": "src/actions/mtrxControlActions.js",
-          "line": 117,
+          "line": 120,
           "label": "handleRestoreSession"
         },
         {
@@ -198,7 +198,13 @@
         },
         {
           "path": "src/store/configureStore.js",
-          "line": 8
+          "line": 12,
+          "label": "createStore + DI"
+        },
+        {
+          "path": "src/store/preloadedState.js",
+          "line": 7,
+          "label": "сид uriAdAuth"
         }
       ]
     },
@@ -353,8 +359,8 @@
         },
         {
           "path": "src/reducers/authTimeoutMiddleware.js",
-          "line": 8,
-          "label": "срок сессии AD"
+          "line": 9,
+          "label": "срок сессии AD (DI)"
         }
       ]
     },
@@ -503,7 +509,8 @@
         "components/ — только презентация на Material UI",
         "containers/ — useSelector, bindActionCreators; AuthContainer — мост AUTHCTL_ ↔ MTRXCTL_",
         "actions/ — thunk-actions: валидация ввода и вызов сервиса",
-        "services/ — вся логика matrix-js-sdk, наружу узкий доменный API"
+        "services/ — вся логика matrix-js-sdk, наружу узкий доменный API",
+        "store/ — configureStore + preloadedState: сид и DI middleware, reducers без сервисов"
       ]
     },
     {
