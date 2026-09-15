@@ -36,7 +36,10 @@ user-global `~/.dsh/AGENTS.md`; повторяемые процедуры — н
 
 - **Диаграммы-артефакты** — skill `archify`, результат в `docs/archify/` рядом с
   `matrix-react-architecture.*`; готовые HTML/JSON не править вручную, только перегенерация,
-  проверка — навык `archify-visual-check`.
+  проверка — навык `archify-visual-check`. В репозитории от визуальной проверки остаются только
+  превью-PNG `*.visual-check.2048x1320.light.png` (на него ссылается README) и receipt
+  `*.visual-check.json`; тёмные и 1440×900 скриншоты, contact sheet `*.visual-check.html` и любые
+  другие PNG — временные: после проверки удалять, в `.gitignore` они уже перечислены.
 - **Диаграммы в ответе** — Mermaid-блоком, а не ASCII-артом; образец — `docs/STATE.md`.
 - **Проверка UI** — `npm run dev` (порт 3000), открыть через `win_open_url`
   (`http://localhost:3000`), спорное поведение — через Playwright MCP (`mcp__browser__*`),
@@ -90,8 +93,9 @@ dist/             # результат npm run build — вручную не п�
 - Namespace-инвариант: thunk-и `AUTHCTL_` не диспатчат `MTRXCTL_` (и наоборот). Мост
   к сервисам (`AUTHCTL_` ↔ `MTRXCTL_`) — только в контейнере `AuthContainer`. Тумблер `AuthPad`
   отражает состояние сессии Matrix: откл — авто-авторизация данными AD; зелёный (`status ===
-  "success"`) и красный (`authLost` — принудительный logout сервером / 401) — сброс сессии
-  (`handleRegClear` → `logoutMatrix`), после сброса тумблер возвращается в исходное состояние.
+  "success"`) и красный (`status === "error"` — неудачная авторизация, `authLost` — принудительный
+  logout сервером / 401) — сброс сессии (`handleRegClear` → `logoutMatrix`), после сброса тумблер
+  возвращается в исходное состояние.
 - Новая Matrix-функция — сначала в сервис, наружу узкий доменный API вместо SDK-объектов.
   `createClient`, `startClient`, `whoami`, `logout`, работу с токенами и обработку событий
   не дублировать.

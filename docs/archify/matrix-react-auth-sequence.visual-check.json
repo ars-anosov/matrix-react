@@ -5,9 +5,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-architecture.html",
-    "sha256": "8ed6cd33e44af08e1b640dc5dc7754bfae30754e0cd0d8ba99c5699bca626b90",
-    "bytes": 652902
+    "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-auth-sequence.html",
+    "sha256": "fdd5c2eb6c42f90eb7a153d14c517d48ac44f903e5e24814b59e1f22b3425838",
+    "bytes": 647724
   },
   "state": {
     "detail": "read",
@@ -89,7 +89,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-architecture.visual-check.1440x900.light.png"
+        "file": "matrix-react-auth-sequence.visual-check.1440x900.light.png"
       },
       {
         "width": 1440,
@@ -103,7 +103,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-architecture.visual-check.1440x900.dark.png"
+        "file": "matrix-react-auth-sequence.visual-check.1440x900.dark.png"
       },
       {
         "width": 2048,
@@ -117,7 +117,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-architecture.visual-check.2048x1320.light.png"
+        "file": "matrix-react-auth-sequence.visual-check.2048x1320.light.png"
       },
       {
         "width": 2048,
@@ -131,13 +131,13 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-architecture.visual-check.2048x1320.dark.png"
+        "file": "matrix-react-auth-sequence.visual-check.2048x1320.dark.png"
       }
     ],
-    "contactSheet": "matrix-react-architecture.visual-check.html"
+    "contactSheet": "matrix-react-auth-sequence.visual-check.html"
   },
   "sidecars": {
-    "receipt": "matrix-react-architecture.visual-check.json",
-    "contactSheet": "matrix-react-architecture.visual-check.html"
+    "receipt": "matrix-react-auth-sequence.visual-check.json",
+    "contactSheet": "matrix-react-auth-sequence.visual-check.html"
   }
 }

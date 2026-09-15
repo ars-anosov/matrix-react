@@ -4,3 +4,9 @@ dist/
 
 # Локальные артефакты запуска dev-сервера
 server.pid
+
+# archify: в репозитории остаются только превью-PNG для README и receipt визуальной проверки.
+# Остальные скриншоты и contact sheet — временные, их не коммитим.
+docs/archify/*.visual-check.*.png
+!docs/archify/*.visual-check.2048x1320.light.png
+docs/archify/*.visual-check.html

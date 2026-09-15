@@ -6,7 +6,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react.git",
-      "revision": "005d4d61389776a172944241689231caea1c3635"
+      "revision": "0a3f7e62bbac853fedede1bd092cf1f1d2c5793e"
     },
     "legend": {
       "mode": "auto",
@@ -349,18 +349,18 @@
       "sources": [
         {
           "path": "src/containers/AuthContainer.jsx",
-          "line": 48,
-          "label": "мост AUTHCTL_ ↔ MTRXCTL_"
+          "line": 67,
+          "label": "тумблер: handleToggleMtrx"
+        },
+        {
+          "path": "src/components/AuthPad.jsx",
+          "line": 29,
+          "label": "откл / зелёный / красный"
         },
         {
           "path": "src/actions/authControlActions.js",
           "line": 43,
           "label": "loginAd → mtrx_login"
-        },
-        {
-          "path": "src/reducers/authTimeoutMiddleware.js",
-          "line": 9,
-          "label": "срок сессии AD (DI)"
         }
       ]
     },
@@ -518,9 +518,10 @@
       "title": "Сессия Matrix",
       "items": [
         "loginMatrix() — m.login.password с refresh_token",
-        "restoreMatrixSession() — клиент по токенам из localStorage",
+        "restoreMatrixSession() — клиент по токенам",
         "startClient({ initialSyncLimit: 10 }) — поток /sync",
-        "watchMatrixSession() — принудительный logout от сервера"
+        "watchMatrixSession() — принудительный logout от сервера",
+        "AuthPad: откл — автовход AD; зелёный и красный — logoutMatrix"
       ]
     },
     {

@@ -181,20 +181,28 @@ Thunk-и namespace-чистые: `authControlActions` не диспатчит `M
 на `AUTHCTL_SUBMIT_SUCCESS` и сбрасывается на `AUTHCTL_CLEAR`; при отсутствии AD-данных `AuthPad`
 информирует текстом.
 
+Интерактивная Sequence-диаграмма этого процесса (archify):
+[`matrix-react-auth-sequence.html`](archify/matrix-react-auth-sequence.html) — AD-сессия, автовход
+данными AD, исход входа и сброс сессии.
+
 Тумблер `AuthPad` — индикатор состояния сессии Matrix и действие (в MUI `Switch` цвет применяется
 к checked-состоянию, поэтому цветной = `checked` + `color`):
 
 | Состояние | Условие | Клик |
 | --- | --- | --- |
-| откл | сессии нет (`status !== "success"`, `authLost` нет) | автоматическая авторизация данными AD → `handleRegister` |
+| откл | сессии нет (`status !== "success"`, `status !== "error"`, `authLost` нет) | автоматическая авторизация данными AD → `handleRegister` |
 | зелёный | `mtrxControlRdcr.status === "success"` | сброс сессии → `handleRegClear` |
-| красный | `mtrxControlRdcr.authLost` | сброс сессии → `handleRegClear` |
+| красный | `mtrxControlRdcr.status === "error"` (неудачная авторизация) или `mtrxControlRdcr.authLost` (сессия потеряна) | сброс сессии → `handleRegClear` |
 
-Красный выставляется только вынужденной потерей: `MTRXCTL_CLEAR` приходит с `payload.authLost`
-из `watchSessionAndDispatchClear` (принудительный logout сервером / 401). Сброс
-(`handleRegClear`) и старт без сессии шлют `CLEAR` без payload, поэтому тумблер возвращается в
-исходное состояние — откл, без раскраски. `authLost` сбрасывается на `MTRXCTL_SUBMIT_SUCCESS`;
-потеря авторизации вдобавок форсирует показ `AuthPad`.
+Неудачная авторизация — это `MTRXCTL_SUBMIT_ERROR`: тумблер краснеет и остаётся красным до клика
+(клик из этого состояния тоже сбрасывает сессию, а не повторяет попытку). Вынужденная потеря
+авторизации вдобавок приходит как `MTRXCTL_CLEAR` с `payload.authLost` из `watchSessionAndDispatchClear`
+(принудительный logout сервером / 401). Сброс (`handleRegClear`) и старт без сессии шлют `CLEAR` без
+payload, поэтому тумблер возвращается в исходное состояние — откл, без раскраски. `authLost`
+сбрасывается на `MTRXCTL_SUBMIT_SUCCESS`; потеря авторизации вдобавок форсирует показ `AuthPad`.
+`MTRXCTL_SUBMIT_REQUEST` и `MTRXCTL_SUBMIT_ERROR` не трогают `displayReg`: форму `MtrxReg` никто не
+форсирует, поэтому неудачный вход с тумблера оставляет на экране только его красное состояние, а
+форма, открытая вручную, остаётся открытой и показывает `errText` своим Alert.
 
 ```mermaid
 sequenceDiagram
@@ -217,9 +225,13 @@ sequenceDiagram
   AuthPad->>AuthCont: onToggleMtrx()
   AuthCont->>MtrxAct: handleRegister({login: mtrx_login, password: mtrx_password, uriMatrix})
   MtrxAct->>Dispatch: MTRXCTL_SUBMIT_REQUEST → SUCCESS/ERROR
-  Dispatch-->>AuthPad: SUCCESS → зелёный тумблер (authorized)
-  Dispatch-->>AuthCont: responseData.user_id активной сессии
-  AuthCont->>Dispatch: AUTHCTL_STORE_VALUE (responseData.mtrx_user_id)
+  alt успешная авторизация
+    Dispatch-->>AuthPad: SUCCESS → зелёный тумблер (authorized)
+    Dispatch-->>AuthCont: responseData.user_id активной сессии
+    AuthCont->>Dispatch: AUTHCTL_STORE_VALUE (responseData.mtrx_user_id)
+  else неуспешная авторизация
+    Dispatch-->>AuthPad: ERROR (status="error") → красный тумблер, форма MtrxReg не форсируется
+  end
 
   Note over User,Dispatch: Потеря авторизации Matrix → сброс сессии
   Dispatch-->>AuthPad: authLost=true → красный тумблер, AuthPad показан принудительно

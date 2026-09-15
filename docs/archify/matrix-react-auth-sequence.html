@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="archify 2.14.0">
-  <title>matrix-react: архитектура приложения Diagram</title>
+  <title>matrix-react: авторизация и сброс сессии Matrix Diagram</title>
   <script>
     // Resolve the theme before first paint so light-preference users don't
     // see a dark flash. The toolbar script below re-applies with UI state.
@@ -4836,12 +4836,12 @@
     <div class="header">
       <div class="header-row">
         <div class="pulse-dot"></div>
-        <h1>matrix-react: архитектура приложения</h1>
+        <h1>matrix-react: авторизация и сброс сессии Matrix</h1>
       </div>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"main-flow","label":"Основной поток данных","focus":["users","ui","containers","actions","services","sdk","homeserver"],"note":"Ввод пользователя проходит слои React → Redux → services → matrix-js-sdk и уходит на homeserver."},{"id":"session-start","label":"Старт и восстановление сессии","focus":["actions","services","storage","sdk","homeserver"],"note":"Вход по паролю или восстановление сохранённой сессии, затем /sync."},{"id":"state-and-storage","label":"Состояние и хранилища","focus":["store","containers","storage","idb","sdk"],"note":"Redux держит только UI-индекс, данные комнат живут в SDK и IndexedDB."},{"id":"bridge-ad-matrix","label":"Мост AD → Matrix","focus":["adauth","store","bridge","actions","services"],"note":"Сессия AD в Redux: AuthContainer берёт mtrx_login / mtrx_password и зовёт handleRegister."}]</script>
-    <script id="archify-source-evidence-data" type="application/json">{"schemaVersion":1,"verified":true,"repository":{"url":"https://github.com/ars-anosov/matrix-react","revision":"0a3f7e62bbac853fedede1bd092cf1f1d2c5793e","shortRevision":"0a3f7e6"},"referenceCount":24,"nodes":{"ui":[{"path":"src/App.jsx","line":7,"label":"корневой layout","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/App.jsx#L7"},{"path":"src/components/MtrxPad.jsx","label":"чат","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/components/MtrxPad.jsx"},{"path":"src/components/MtrxReg.jsx","label":"вход","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/components/MtrxReg.jsx"}],"containers":[{"path":"src/containers/MtrxPadContainer.jsx","line":26,"href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/containers/MtrxPadContainer.jsx#L26"},{"path":"src/containers/MtrxContainer.jsx","line":14,"href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/containers/MtrxContainer.jsx#L14"}],"actions":[{"path":"src/actions/mtrxControlActions.js","line":120,"label":"handleRestoreSession","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/actions/mtrxControlActions.js#L120"},{"path":"src/actions/authControlActions.js","line":18,"label":"handleAdRegister","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/actions/authControlActions.js#L18"}],"store":[{"path":"src/reducers/mtrxControlRdcr.js","line":17,"label":"UI-индекс","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/reducers/mtrxControlRdcr.js#L17"},{"path":"src/store/configureStore.js","line":12,"label":"createStore + DI","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/store/configureStore.js#L12"},{"path":"src/store/preloadedState.js","line":7,"label":"сид uriAdAuth","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/store/preloadedState.js#L7"}],"services":[{"path":"src/services/matrixClient.js","line":636,"label":"loginMatrix","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L636"},{"path":"src/services/matrixRooms.js","line":285,"label":"watchRoomList","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixRooms.js#L285"}],"sdk":[{"path":"src/services/matrixSdk.js","line":8,"label":"loadMatrixSdk","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixSdk.js#L8"}],"homeserver":[{"path":"src/services/matrixClient.js","line":599,"label":"startClient","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L599"},{"path":"src/services/matrixClient.js","line":643,"label":"loginRequest","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L643"}],"storage":[{"path":"src/constants/storage.js","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/constants/storage.js"},{"path":"src/services/matrixClient.js","line":556,"label":"persistMatrixSession","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L556"}],"idb":[{"path":"src/services/matrixClient.js","line":69,"label":"IndexedDBStore","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L69"},{"path":"src/services/matrixClient.js","line":129,"label":"initRustCrypto","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L129"}],"bridge":[{"path":"src/containers/AuthContainer.jsx","line":67,"label":"тумблер: handleToggleMtrx","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/containers/AuthContainer.jsx#L67"},{"path":"src/components/AuthPad.jsx","line":29,"label":"откл / зелёный / красный","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/components/AuthPad.jsx#L29"},{"path":"src/actions/authControlActions.js","line":43,"label":"loginAd → mtrx_login","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/actions/authControlActions.js#L43"}],"adauth":[{"path":"src/services/adAuth.js","line":70,"label":"loginAd","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/adAuth.js#L70"},{"path":"mock/vite-mock-api.js","label":"dev-mock","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/mock/vite-mock-api.js"}]}}</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"ad-session","label":"AD-сессия","focus":["user","authad","ad","bridge"],"note":"AuthAd.jsx отдаёт логин и пароль AD на внешний сервис и получает матричные реквизиты."},{"id":"matrix-login","label":"Автовход в Matrix","focus":["user","authpad","bridge","mtrx","hs"],"note":"Клик по тумблеру откл запускает handleRegister: успех — зелёный, ошибка — красный."},{"id":"session-reset","label":"Сброс сессии","focus":["user","authpad","bridge","mtrx","hs"],"note":"Клик по цветному тумблеру вызывает handleRegClear: logout и очистка хранилищ."}]</script>
+
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
       <div class="guided-view-copy">
@@ -4883,9 +4883,9 @@
 
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read">
-      <svg viewBox="0 0 1846 674" role="img" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase">
-        <title id="archify-diagram-title">matrix-react: архитектура приложения</title>
-        <desc id="archify-diagram-description">A architecture diagram generated by Archify.</desc>
+      <svg viewBox="0 0 2400 970" role="img" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase">
+        <title id="archify-diagram-title">matrix-react: авторизация и сброс сессии Matrix</title>
+        <desc id="archify-diagram-description">A sequence diagram generated by Archify.</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -4908,249 +4908,309 @@
         <!-- Background Grid -->
         <rect width="100%" height="100%" fill="url(#grid)" />
 
-        <!-- Boundaries (behind everything) -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" x="222" y="126" width="1327" height="480" rx="12" class="c-region" stroke-width="1"/>
-        <text x="230" y="144" class="t-cloud" font-size="9" font-weight="600">Клиентское SPA в браузере</text>
+        <!-- Time Segments -->
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="150" width="2304" height="142" rx="10" class="c-lane" stroke-width="1"/>
 
-        <!-- Connection paths (before components for correct z-order) -->
-        <path data-edge-from="users" data-edge-to="ui" data-edge-label="ввод и клики" data-edge-key="0" data-edge-id="users-to-ui" data-composition-points="160,383;256,383" d="M 160 383 L 256 383" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="ui" data-edge-to="containers" data-edge-label="события UI" data-edge-key="1" data-edge-id="ui-to-containers" data-composition-points="421,383;517,383" d="M 421 383 L 517 383" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="containers" data-edge-to="actions" data-edge-label="вызов action" data-edge-key="2" data-edge-id="containers-to-actions" data-composition-points="697,383;793,383" d="M 697 383 L 793 383" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="actions" data-edge-to="services" data-edge-label="доменный API" data-edge-key="3" data-edge-id="actions-to-services" data-composition-points="963,383;1059,383" d="M 963 383 L 1059 383" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="services" data-edge-to="sdk" data-edge-label="MatrixClient API" data-edge-key="4" data-edge-id="services-to-sdk" data-composition-points="1254,383;1350,383" d="M 1254 383 L 1350 383" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="sdk" data-edge-to="homeserver" data-edge-label="/sync · /login" data-edge-key="5" data-edge-id="sdk-to-homeserver" data-composition-points="1515,383;1611,383" d="M 1515 383 L 1611 383" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="actions" data-edge-to="store" data-edge-label="dispatch(action)" data-edge-key="6" data-edge-id="actions-to-store" data-composition-points="878,350;878,193;697,193" d="M 878 350 L 878 201 Q 878 193 870 193 L 697 193" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="store" data-edge-to="containers" data-edge-label="state" data-edge-key="7" data-edge-id="store-to-containers" data-composition-points="607,226;607,350" d="M 607 226 L 607 350" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="services" data-edge-to="storage" data-edge-label="persistMatrixSession" data-edge-key="8" data-edge-id="services-to-storage" data-composition-points="1156.5,350;1156.5,226" d="M 1156.5 350 L 1156.5 226" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="sdk" data-edge-to="idb" data-edge-label="store · crypto" data-edge-key="9" data-edge-id="sdk-to-idb" data-composition-points="1432.5,350;1432.5,226" d="M 1432.5 350 L 1432.5 226" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="services" data-edge-to="adauth" data-edge-label="проверка AD" data-edge-key="10" data-edge-id="services-to-adauth" data-composition-points="1156.5,416;1156.5,440;1587,440;1587,553;1611,553" d="M 1156.5 416 L 1156.5 432 Q 1156.5 440 1164.5 440 L 1579 440 Q 1587 440 1587 448 L 1587 545 Q 1587 553 1595 553 L 1611 553" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="bridge" data-edge-to="actions" data-edge-label="handleRegister" data-edge-key="11" data-edge-id="bridge-to-actions" data-composition-points="744.5,520;744.5,468;878,468;878,416" d="M 744.5 520 L 744.5 476 Q 744.5 468 752.5 468 L 870 468 Q 878 468 878 460 L 878 416" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="302" width="2304" height="338" rx="10" class="c-lane" stroke-width="1"/>
 
-        <!-- Components -->
-        <g id="node-users" data-node-id="users" data-node-label="Пользователь" tabindex="0" role="button" aria-label="Focus Пользователь, браузер, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="браузер" data-node-context="Architecture component">
-          <title>Пользователь · браузер · Architecture component</title>
-          <rect x="30" y="350" width="130" height="66" rx="6" class="c-mask"/>
-          <rect x="30" y="350" width="130" height="66" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(36 356) scale(0.6875)">
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="650" width="2304" height="250" rx="10" class="c-lane" stroke-width="1"/>
+
+        <!-- Lifelines -->
+        <path d="M 157 142 L 157 905" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 508.3333333333333 142 L 508.3333333333333 905" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 859.6666666666666 142 L 859.6666666666666 905" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 1211 142 L 1211 905" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 1562.3333333333333 142 L 1562.3333333333333 905" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 1913.6666666666665 142 L 1913.6666666666665 905" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 2265 142 L 2265 905" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+
+        <!-- Activations -->
+        <rect x="503.3333333333333" y="174" width="10" height="118" rx="3" class="c-mask"/>
+        <rect x="503.3333333333333" y="174" width="10" height="118" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="854.6666666666666" y="221" width="10" height="55" rx="3" class="c-mask"/>
+        <rect x="854.6666666666666" y="221" width="10" height="55" rx="3" class="c-security" stroke-width="1"/>
+        <rect x="1206" y="314" width="10" height="66" rx="3" class="c-mask"/>
+        <rect x="1206" y="314" width="10" height="66" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="1557.3333333333333" y="356" width="10" height="240" rx="3" class="c-mask"/>
+        <rect x="1557.3333333333333" y="356" width="10" height="240" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="1908.6666666666665" y="398" width="10" height="198" rx="3" class="c-mask"/>
+        <rect x="1908.6666666666665" y="398" width="10" height="198" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="2260" y="440" width="10" height="102" rx="3" class="c-mask"/>
+        <rect x="2260" y="440" width="10" height="102" rx="3" class="c-external" stroke-width="1"/>
+        <rect x="1206" y="658" width="10" height="232" rx="3" class="c-mask"/>
+        <rect x="1206" y="658" width="10" height="232" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="1557.3333333333333" y="700" width="10" height="188" rx="3" class="c-mask"/>
+        <rect x="1557.3333333333333" y="700" width="10" height="188" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="1908.6666666666665" y="742" width="10" height="98" rx="3" class="c-mask"/>
+        <rect x="1908.6666666666665" y="742" width="10" height="98" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="2260" y="784" width="10" height="52" rx="3" class="c-mask"/>
+        <rect x="2260" y="784" width="10" height="52" rx="3" class="c-external" stroke-width="1"/>
+
+        <!-- Messages -->
+        <g data-edge-from="user" data-edge-to="authad" data-edge-label="логин и пароль AD" data-edge-key="0" data-edge-id="ad-credentials">
+          <path data-composition-edge-from="user" data-composition-edge-to="authad" data-composition-edge-id="ad-credentials" data-composition-points="164,185;501.3333333333333,185" d="M 164 185 L 501.3333333333333 185" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="282.46666666666664" y="165" width="100.4" height="16" rx="3" class="c-mask"/>
+          <text x="332.66666666666663" y="175" class="t-backend" font-size="9" text-anchor="middle">логин и пароль AD</text>
+        </g>
+        </g>
+
+        <g data-edge-from="authad" data-edge-to="ad" data-edge-label="POST /user/ad" data-edge-key="1" data-edge-id="ad-request">
+          <path data-composition-edge-from="authad" data-composition-edge-to="ad" data-composition-edge-id="ad-request" data-composition-points="515.3333333333333,227;852.6666666666666,227" d="M 515.3333333333333 227 L 852.6666666666666 227" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-detail="context">
+          <rect x="644.2" y="207" width="79.60000000000001" height="16" rx="3" class="c-mask"/>
+          <text x="684" y="217" class="t-security" font-size="9" text-anchor="middle">POST /user/ad</text>
+        </g>
+        </g>
+
+        <g data-edge-from="ad" data-edge-to="authad" data-edge-label="mtrx_login · mtrx_password" data-edge-key="2" data-edge-id="ad-response">
+          <path data-composition-edge-from="ad" data-composition-edge-to="authad" data-composition-edge-id="ad-response" data-composition-points="852.6666666666666,269;515.3333333333333,269" d="M 852.6666666666666 269 L 515.3333333333333 269" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="610.4" y="249" width="147.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="684" y="259" class="t-muted" font-size="9" text-anchor="middle">mtrx_login · mtrx_password</text>
+        </g>
+        </g>
+
+        <g data-edge-from="user" data-edge-to="authpad" data-edge-label="клик по тумблеру (откл)" data-edge-key="3" data-edge-id="tumbler-click-off">
+          <path data-composition-edge-from="user" data-composition-edge-to="authpad" data-composition-edge-id="tumbler-click-off" data-composition-points="164,320;1204,320" d="M 164 320 L 1204 320" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="618.2" y="300" width="131.60000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="684" y="310" class="t-backend" font-size="9" text-anchor="middle">клик по тумблеру (откл)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="authpad" data-edge-to="bridge" data-edge-label="onToggleMtrx()" data-edge-key="4" data-edge-id="toggle">
+          <path data-composition-edge-from="authpad" data-composition-edge-to="bridge" data-composition-edge-id="toggle" data-composition-points="1218,362;1555.3333333333333,362" d="M 1218 362 L 1555.3333333333333 362" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1344.2666666666664" y="342" width="84.8" height="16" rx="3" class="c-mask"/>
+          <text x="1386.6666666666665" y="352" class="t-backend" font-size="9" text-anchor="middle">onToggleMtrx()</text>
+        </g>
+        </g>
+
+        <g data-edge-from="bridge" data-edge-to="mtrx" data-edge-label="handleRegister({ login, password, uriMatrix })" data-edge-key="5" data-edge-id="register">
+          <path data-composition-edge-from="bridge" data-composition-edge-to="mtrx" data-composition-edge-id="register" data-composition-points="1569.3333333333333,404;1906.6666666666665,404" d="M 1569.3333333333333 404 L 1906.6666666666665 404" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="1612.4" y="384" width="251.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="1738" y="394" class="t-backend" font-size="9" text-anchor="middle">handleRegister({ login, password, uriMatrix })</text>
+        </g>
+        </g>
+
+        <g data-edge-from="mtrx" data-edge-to="hs" data-edge-label="POST /_matrix/client/v3/login" data-edge-key="6" data-edge-id="login-request">
+          <path data-composition-edge-from="mtrx" data-composition-edge-to="hs" data-composition-edge-id="login-request" data-composition-points="1920.6666666666665,446;2258,446" d="M 1920.6666666666665 446 L 2258 446" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="2007.933333333333" y="426" width="162.8" height="16" rx="3" class="c-mask"/>
+          <text x="2089.333333333333" y="436" class="t-backend" font-size="9" text-anchor="middle">POST /_matrix/client/v3/login</text>
+        </g>
+        </g>
+
+        <g data-edge-from="hs" data-edge-to="mtrx" data-edge-label="access_token · refresh_token" data-edge-key="7" data-edge-id="login-tokens">
+          <path data-composition-edge-from="hs" data-composition-edge-to="mtrx" data-composition-edge-id="login-tokens" data-composition-points="2258,488;1920.6666666666665,488" d="M 2258 488 L 1920.6666666666665 488" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2010.533333333333" y="468" width="157.6" height="16" rx="3" class="c-mask"/>
+          <text x="2089.333333333333" y="478" class="t-muted" font-size="9" text-anchor="middle">access_token · refresh_token</text>
+        </g>
+        <text data-detail="fine" x="1932.6666666666665" y="506" class="t-dim" font-size="7">ветка успеха</text>
+        </g>
+
+        <g data-edge-from="hs" data-edge-to="mtrx" data-edge-label="403 M_FORBIDDEN" data-edge-key="8" data-edge-id="login-error">
+          <path data-composition-edge-from="hs" data-composition-edge-to="mtrx" data-composition-edge-id="login-error" data-composition-points="2258,530;1920.6666666666665,530" d="M 2258 530 L 1920.6666666666665 530" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-detail="context">
+          <rect x="2044.333333333333" y="510" width="90" height="16" rx="3" class="c-mask"/>
+          <text x="2089.333333333333" y="520" class="t-messagebus" font-size="9" text-anchor="middle">403 M_FORBIDDEN</text>
+        </g>
+        <text data-detail="fine" x="1932.6666666666665" y="548" class="t-dim" font-size="7">ветка ошибки</text>
+        </g>
+
+        <g data-edge-from="mtrx" data-edge-to="bridge" data-edge-label="MTRXCTL_SUBMIT_SUCCESS → зелёный тумблер" data-edge-key="9" data-edge-id="submit-success">
+          <path data-composition-edge-from="mtrx" data-composition-edge-to="bridge" data-composition-edge-id="submit-success" data-composition-points="1906.6666666666665,572;1569.3333333333333,572" d="M 1906.6666666666665 572 L 1569.3333333333333 572" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1628" y="552" width="220" height="16" rx="3" class="c-mask"/>
+          <text x="1738" y="562" class="t-muted" font-size="9" text-anchor="middle">MTRXCTL_SUBMIT_SUCCESS → зелёный тумблер</text>
+        </g>
+        </g>
+
+        <g data-edge-from="mtrx" data-edge-to="bridge" data-edge-label="MTRXCTL_SUBMIT_ERROR → красный, без формы MtrxReg" data-edge-key="10" data-edge-id="submit-error">
+          <path data-composition-edge-from="mtrx" data-composition-edge-to="bridge" data-composition-edge-id="submit-error" data-composition-points="1906.6666666666665,614;1569.3333333333333,614" d="M 1906.6666666666665 614 L 1569.3333333333333 614" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-detail="context">
+          <rect x="1604.6" y="594" width="266.8" height="16" rx="3" class="c-mask"/>
+          <text x="1738" y="604" class="t-messagebus" font-size="9" text-anchor="middle">MTRXCTL_SUBMIT_ERROR → красный, без формы MtrxReg</text>
+        </g>
+        </g>
+
+        <g data-edge-from="user" data-edge-to="authpad" data-edge-label="клик по зелёному или красному" data-edge-key="11" data-edge-id="tumbler-click-color">
+          <path data-composition-edge-from="user" data-composition-edge-to="authpad" data-composition-edge-id="tumbler-click-color" data-composition-points="164,664;1204,664" d="M 164 664 L 1204 664" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="602.6" y="644" width="162.8" height="16" rx="3" class="c-mask"/>
+          <text x="684" y="654" class="t-backend" font-size="9" text-anchor="middle">клик по зелёному или красному</text>
+        </g>
+        </g>
+
+        <g data-edge-from="authpad" data-edge-to="bridge" data-edge-label="onToggleMtrx()" data-edge-key="12" data-edge-id="toggle-clear">
+          <path data-composition-edge-from="authpad" data-composition-edge-to="bridge" data-composition-edge-id="toggle-clear" data-composition-points="1218,706;1555.3333333333333,706" d="M 1218 706 L 1555.3333333333333 706" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1344.2666666666664" y="686" width="84.8" height="16" rx="3" class="c-mask"/>
+          <text x="1386.6666666666665" y="696" class="t-backend" font-size="9" text-anchor="middle">onToggleMtrx()</text>
+        </g>
+        </g>
+
+        <g data-edge-from="bridge" data-edge-to="mtrx" data-edge-label="handleRegClear()" data-edge-key="13" data-edge-id="reg-clear">
+          <path data-composition-edge-from="bridge" data-composition-edge-to="mtrx" data-composition-edge-id="reg-clear" data-composition-points="1569.3333333333333,748;1906.6666666666665,748" d="M 1569.3333333333333 748 L 1906.6666666666665 748" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="1690.4" y="728" width="95.2" height="16" rx="3" class="c-mask"/>
+          <text x="1738" y="738" class="t-backend" font-size="9" text-anchor="middle">handleRegClear()</text>
+        </g>
+        </g>
+
+        <g data-edge-from="mtrx" data-edge-to="hs" data-edge-label="POST /_matrix/client/v3/logout" data-edge-key="14" data-edge-id="logout-request">
+          <path data-composition-edge-from="mtrx" data-composition-edge-to="hs" data-composition-edge-id="logout-request" data-composition-points="1920.6666666666665,790;2258,790" d="M 1920.6666666666665 790 L 2258 790" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="2005.333333333333" y="770" width="168" height="16" rx="3" class="c-mask"/>
+          <text x="2089.333333333333" y="780" class="t-backend" font-size="9" text-anchor="middle">POST /_matrix/client/v3/logout</text>
+        </g>
+        </g>
+
+        <g data-edge-from="mtrx" data-edge-to="bridge" data-edge-label="MTRXCTL_CLEAR + очистка localStorage / IndexedDB" data-edge-key="15" data-edge-id="clear">
+          <path data-composition-edge-from="mtrx" data-composition-edge-to="bridge" data-composition-edge-id="clear" data-composition-points="1906.6666666666665,832;1569.3333333333333,832" d="M 1906.6666666666665 832 L 1569.3333333333333 832" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1607.2" y="812" width="261.6" height="16" rx="3" class="c-mask"/>
+          <text x="1738" y="822" class="t-muted" font-size="9" text-anchor="middle">MTRXCTL_CLEAR + очистка localStorage / IndexedDB</text>
+        </g>
+        </g>
+
+        <g data-edge-from="bridge" data-edge-to="authpad" data-edge-label="тумблер откл: сессии нет" data-edge-key="16" data-edge-id="tumbler-off">
+          <path data-composition-edge-from="bridge" data-composition-edge-to="authpad" data-composition-edge-id="tumbler-off" data-composition-points="1555.3333333333333,874;1218,874" d="M 1555.3333333333333 874 L 1218 874" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1318.2666666666664" y="854" width="136.8" height="16" rx="3" class="c-mask"/>
+          <text x="1386.6666666666665" y="864" class="t-muted" font-size="9" text-anchor="middle">тумблер откл: сессии нет</text>
+        </g>
+        </g>
+
+        <!-- Segment Labels -->
+        <g data-graph-role="segment-label" data-segment-id="0">
+          <rect x="56" y="128" width="60.800000000000004" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="141" class="t-dim" font-size="9" font-weight="600">AD-сессия</text>
+        </g>
+        <g data-graph-role="segment-label" data-segment-id="1">
+          <rect x="56" y="280" width="102.4" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="293" class="t-dim" font-size="9" font-weight="600">Автовход в Matrix</text>
+        </g>
+        <g data-graph-role="segment-label" data-segment-id="2">
+          <rect x="56" y="628" width="76.4" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="641" class="t-dim" font-size="9" font-weight="600">Сброс сессии</text>
+        </g>
+
+        <!-- Participants -->
+        <g id="node-user" data-node-id="user" data-node-label="Пользователь" tabindex="0" role="button" aria-label="Focus Пользователь, браузер, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="браузер" data-node-context="Sequence participant">
+          <title>Пользователь · браузер · Sequence participant</title>
+          <rect x="62" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="62" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(68 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-detail-anchor x="95" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Пользователь</text>
-        <text data-detail="context" x="95" y="397" class="t-muted" font-size="9" text-anchor="middle">браузер</text>
+          <text data-detail-anchor x="157" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Пользователь</text>
+          <text data-detail="context" x="157" y="111" class="t-muted" font-size="7" text-anchor="middle">браузер</text>
         </g>
 
-        <g id="node-ui" data-node-id="ui" data-node-label="Компоненты React" tabindex="0" role="button" aria-label="Focus Компоненты React, MtrxReg · MtrxPad, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="MtrxReg · MtrxPad" data-node-tag="Material UI" data-node-context="Клиентское SPA в браузере">
-          <title>Компоненты React · MtrxReg · MtrxPad · Клиентское SPA в браузере · Material UI</title>
-          <rect x="256" y="350" width="165" height="66" rx="6" class="c-mask"/>
-          <rect x="256" y="350" width="165" height="66" rx="6" class="c-frontend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(262 356) scale(0.6875)">
+        <g id="node-authad" data-node-id="authad" data-node-label="AuthAd.jsx" tabindex="0" role="button" aria-label="Focus AuthAd.jsx, форма AD, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="форма AD" data-node-context="Sequence participant">
+          <title>AuthAd.jsx · форма AD · Sequence participant</title>
+          <rect x="413.3333333333333" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="413.3333333333333" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(419.3333333333333 78) scale(0.6875)">
             <rect x="2" y="3" width="12" height="10" rx="2"/>
             <path d="M2 6.5h12"/>
             <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
-          <text data-detail-anchor x="338.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Компоненты React</text>
-        <text data-detail="context" x="338.5" y="397" class="t-muted" font-size="9" text-anchor="middle">MtrxReg · MtrxPad</text>
-        <text data-detail="fine" x="338.5" y="408" class="t-frontend" font-size="7" text-anchor="middle">Material UI</text>
+          <text data-detail-anchor x="508.3333333333333" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AuthAd.jsx</text>
+          <text data-detail="context" x="508.3333333333333" y="111" class="t-muted" font-size="7" text-anchor="middle">форма AD</text>
         </g>
 
-        <g id="node-containers" data-node-id="containers" data-node-label="Контейнеры" tabindex="0" role="button" aria-label="Focus Контейнеры, useSelector · bindActionCreators, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="useSelector · bindActionCreators" data-node-context="Клиентское SPA в браузере">
-          <title>Контейнеры · useSelector · bindActionCreators · Клиентское SPA в браузере</title>
-          <rect x="517" y="350" width="180" height="66" rx="6" class="c-mask"/>
-          <rect x="517" y="350" width="180" height="66" rx="6" class="c-frontend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(523 356) scale(0.6875)">
-            <rect x="2" y="3" width="12" height="10" rx="2"/>
-            <path d="M2 6.5h12"/>
-            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
-            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
-          </g>
-          <text data-detail-anchor x="607" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Контейнеры</text>
-        <text data-detail="context" x="607" y="397" class="t-muted" font-size="8.9" text-anchor="middle">useSelector · bindActionCreators</text>
-        </g>
-
-        <g id="node-actions" data-node-id="actions" data-node-label="Thunk-actions" tabindex="0" role="button" aria-label="Focus Thunk-actions, mtrxControl · authControl, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="backend" data-node-sublabel="mtrxControl · authControl" data-node-tag="redux-thunk" data-node-context="Клиентское SPA в браузере">
-          <title>Thunk-actions · mtrxControl · authControl · Клиентское SPA в браузере · redux-thunk</title>
-          <rect x="793" y="350" width="170" height="66" rx="6" class="c-mask"/>
-          <rect x="793" y="350" width="170" height="66" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(799 356) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
-          </g>
-          <text data-detail-anchor x="878" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Thunk-actions</text>
-        <text data-detail="context" x="878" y="397" class="t-muted" font-size="9" text-anchor="middle">mtrxControl · authControl</text>
-        <text data-detail="fine" x="878" y="408" class="t-backend" font-size="7" text-anchor="middle">redux-thunk</text>
-        </g>
-
-        <g id="node-store" data-node-id="store" data-node-label="Redux store" tabindex="0" role="button" aria-label="Focus Redux store, roomIds · roomsMeta, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="database" data-node-sublabel="roomIds · roomsMeta" data-node-context="Клиентское SPA в браузере">
-          <title>Redux store · roomIds · roomsMeta · Клиентское SPA в браузере</title>
-          <rect x="517" y="160" width="180" height="66" rx="6" class="c-mask"/>
-          <rect x="517" y="160" width="180" height="66" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(523 166) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-detail-anchor x="607" y="191" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Redux store</text>
-        <text data-detail="context" x="607" y="207" class="t-muted" font-size="9" text-anchor="middle">roomIds · roomsMeta</text>
-        </g>
-
-        <g id="node-services" data-node-id="services" data-node-label="Сервисы Matrix" tabindex="0" role="button" aria-label="Focus Сервисы Matrix, matrixClient · matrixRooms, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="backend" data-node-sublabel="matrixClient · matrixRooms" data-node-context="Клиентское SPA в браузере">
-          <title>Сервисы Matrix · matrixClient · matrixRooms · Клиентское SPA в браузере</title>
-          <rect x="1059" y="350" width="195" height="66" rx="6" class="c-mask"/>
-          <rect x="1059" y="350" width="195" height="66" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1065 356) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
-          </g>
-          <text data-detail-anchor x="1156.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Сервисы Matrix</text>
-        <text data-detail="context" x="1156.5" y="397" class="t-muted" font-size="9" text-anchor="middle">matrixClient · matrixRooms</text>
-        </g>
-
-        <g id="node-sdk" data-node-id="sdk" data-node-label="matrix-js-sdk" tabindex="0" role="button" aria-label="Focus matrix-js-sdk, sync · crypto · timeline, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="external" data-node-sublabel="sync · crypto · timeline" data-node-tag="ленивый чанк" data-node-context="Клиентское SPA в браузере">
-          <title>matrix-js-sdk · sync · crypto · timeline · Клиентское SPA в браузере · ленивый чанк</title>
-          <rect x="1350" y="350" width="165" height="66" rx="6" class="c-mask"/>
-          <rect x="1350" y="350" width="165" height="66" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1356 356) scale(0.6875)">
-            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
-            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
-          </g>
-          <text data-detail-anchor x="1432.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">matrix-js-sdk</text>
-        <text data-detail="context" x="1432.5" y="397" class="t-muted" font-size="9" text-anchor="middle">sync · crypto · timeline</text>
-        <text data-detail="fine" x="1432.5" y="408" class="t-external" font-size="7" text-anchor="middle">ленивый чанк</text>
-        </g>
-
-        <g id="node-homeserver" data-node-id="homeserver" data-node-label="Homeserver Matrix" tabindex="0" role="button" aria-label="Focus Homeserver Matrix, /_matrix/client/v3, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="/_matrix/client/v3" data-node-context="Architecture component">
-          <title>Homeserver Matrix · /_matrix/client/v3 · Architecture component</title>
-          <rect x="1611" y="350" width="175" height="66" rx="6" class="c-mask"/>
-          <rect x="1611" y="350" width="175" height="66" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1617 356) scale(0.6875)">
-            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
-            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
-          </g>
-          <text data-detail-anchor x="1698.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Homeserver Matrix</text>
-        <text data-detail="context" x="1698.5" y="397" class="t-muted" font-size="9" text-anchor="middle">/_matrix/client/v3</text>
-        </g>
-
-        <g id="node-storage" data-node-id="storage" data-node-label="localStorage" tabindex="0" role="button" aria-label="Focus localStorage, токены · deviceId · AD, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="database" data-node-sublabel="токены · deviceId · AD" data-node-context="Клиентское SPA в браузере">
-          <title>localStorage · токены · deviceId · AD · Клиентское SPA в браузере</title>
-          <rect x="1059" y="160" width="195" height="66" rx="6" class="c-mask"/>
-          <rect x="1059" y="160" width="195" height="66" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1065 166) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-detail-anchor x="1156.5" y="191" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">localStorage</text>
-        <text data-detail="context" x="1156.5" y="207" class="t-muted" font-size="9" text-anchor="middle">токены · deviceId · AD</text>
-        </g>
-
-        <g id="node-idb" data-node-id="idb" data-node-label="IndexedDB" tabindex="0" role="button" aria-label="Focus IndexedDB, sync store · Rust crypto, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="database" data-node-sublabel="sync store · Rust crypto" data-node-context="Клиентское SPA в браузере">
-          <title>IndexedDB · sync store · Rust crypto · Клиентское SPA в браузере</title>
-          <rect x="1350" y="160" width="165" height="66" rx="6" class="c-mask"/>
-          <rect x="1350" y="160" width="165" height="66" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1356 166) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-detail-anchor x="1432.5" y="191" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">IndexedDB</text>
-        <text data-detail="context" x="1432.5" y="207" class="t-muted" font-size="9" text-anchor="middle">sync store · Rust crypto</text>
-        </g>
-
-        <g id="node-bridge" data-node-id="bridge" data-node-label="Мост к сервисам" tabindex="0" role="button" aria-label="Focus Мост к сервисам, AuthPad · AuthContainer, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="AuthPad · AuthContainer" data-node-tag="AUTHCTL_ ↔ MTRXCTL_" data-node-context="Клиентское SPA в браузере">
-          <title>Мост к сервисам · AuthPad · AuthContainer · Клиентское SPA в браузере · AUTHCTL_ ↔ MTRXCTL_</title>
-          <rect x="647" y="520" width="195" height="66" rx="6" class="c-mask"/>
-          <rect x="647" y="520" width="195" height="66" rx="6" class="c-frontend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(653 526) scale(0.6875)">
-            <rect x="2" y="3" width="12" height="10" rx="2"/>
-            <path d="M2 6.5h12"/>
-            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
-            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
-          </g>
-          <text data-detail-anchor x="744.5" y="551" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Мост к сервисам</text>
-        <text data-detail="context" x="744.5" y="567" class="t-muted" font-size="9" text-anchor="middle">AuthPad · AuthContainer</text>
-        <text data-detail="fine" x="744.5" y="578" class="t-frontend" font-size="7" text-anchor="middle">AUTHCTL_ ↔ MTRXCTL_</text>
-        </g>
-
-        <g id="node-adauth" data-node-id="adauth" data-node-label="Сервис авторизации AD" tabindex="0" role="button" aria-label="Focus Сервис авторизации AD, POST /user/ad по https, Architecture component" aria-pressed="false" data-node-kind="security" data-node-sublabel="POST /user/ad по https" data-node-context="Architecture component">
-          <title>Сервис авторизации AD · POST /user/ad по https · Architecture component</title>
-          <rect x="1611" y="520" width="195" height="66" rx="6" class="c-mask"/>
-          <rect x="1611" y="520" width="195" height="66" rx="6" class="c-security" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(1617 526) scale(0.6875)">
+        <g id="node-ad" data-node-id="ad" data-node-label="Сервис AD" tabindex="0" role="button" aria-label="Focus Сервис AD, POST /user/ad, Sequence participant" aria-pressed="false" data-node-kind="security" data-node-sublabel="POST /user/ad" data-node-context="Sequence participant">
+          <title>Сервис AD · POST /user/ad · Sequence participant</title>
+          <rect x="764.6666666666666" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="764.6666666666666" y="72" width="190" height="54" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(770.6666666666666 78) scale(0.6875)">
             <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
-          <text data-detail-anchor x="1708.5" y="551" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Сервис авторизации AD</text>
-        <text data-detail="context" x="1708.5" y="567" class="t-muted" font-size="9" text-anchor="middle">POST /user/ad по https</text>
+          <text data-detail-anchor x="859.6666666666666" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Сервис AD</text>
+          <text data-detail="context" x="859.6666666666666" y="111" class="t-muted" font-size="7" text-anchor="middle">POST /user/ad</text>
         </g>
 
-        <!-- Connection labels -->
-        <g data-detail="context" data-edge-from="users" data-edge-to="ui" data-edge-label="ввод и клики" data-edge-key="0" data-edge-id="users-to-ui">
-          <rect x="174.2" y="363" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="208" y="373" class="t-backend" font-size="8" text-anchor="middle">ввод и клики</text>
+        <g id="node-authpad" data-node-id="authpad" data-node-label="AuthPad.jsx" tabindex="0" role="button" aria-label="Focus AuthPad.jsx, тумблер сессии, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="тумблер сессии" data-node-context="Sequence participant">
+          <title>AuthPad.jsx · тумблер сессии · Sequence participant</title>
+          <rect x="1116" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="1116" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(1122 78) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text data-detail-anchor x="1211" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AuthPad.jsx</text>
+          <text data-detail="context" x="1211" y="111" class="t-muted" font-size="7" text-anchor="middle">тумблер сессии</text>
         </g>
-        <g data-detail="context" data-edge-from="ui" data-edge-to="containers" data-edge-label="события UI" data-edge-key="1" data-edge-id="ui-to-containers">
-          <rect x="440" y="363" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="469" y="373" class="t-muted" font-size="8" text-anchor="middle">события UI</text>
+
+        <g id="node-bridge" data-node-id="bridge" data-node-label="AuthContainer.jsx" tabindex="0" role="button" aria-label="Focus AuthContainer.jsx, мост AUTHCTL_ ↔ MTRXCTL_, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="мост AUTHCTL_ ↔ MTRXCTL_" data-node-context="Sequence participant">
+          <title>AuthContainer.jsx · мост AUTHCTL_ ↔ MTRXCTL_ · Sequence participant</title>
+          <rect x="1467.3333333333333" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="1467.3333333333333" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(1473.3333333333333 78) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text data-detail-anchor x="1562.3333333333333" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AuthContainer.jsx</text>
+          <text data-detail="context" x="1562.3333333333333" y="111" class="t-muted" font-size="7" text-anchor="middle">мост AUTHCTL_ ↔ MTRXCTL_</text>
         </g>
-        <g data-detail="context" data-edge-from="containers" data-edge-to="actions" data-edge-label="вызов action" data-edge-key="2" data-edge-id="containers-to-actions">
-          <rect x="711.2" y="363" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="745" y="373" class="t-muted" font-size="8" text-anchor="middle">вызов action</text>
+
+        <g id="node-mtrx" data-node-id="mtrx" data-node-label="matrixClient.js" tabindex="0" role="button" aria-label="Focus matrixClient.js, доменный API, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="доменный API" data-node-context="Sequence participant">
+          <title>matrixClient.js · доменный API · Sequence participant</title>
+          <rect x="1818.6666666666665" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="1818.6666666666665" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1824.6666666666665 78) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-detail-anchor x="1913.6666666666665" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">matrixClient.js</text>
+          <text data-detail="context" x="1913.6666666666665" y="111" class="t-muted" font-size="7" text-anchor="middle">доменный API</text>
         </g>
-        <g data-detail="context" data-edge-from="actions" data-edge-to="services" data-edge-label="доменный API" data-edge-key="3" data-edge-id="actions-to-services">
-          <rect x="977.2" y="363" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="1011" y="373" class="t-muted" font-size="8" text-anchor="middle">доменный API</text>
-        </g>
-        <g data-detail="context" data-edge-from="services" data-edge-to="sdk" data-edge-label="MatrixClient API" data-edge-key="4" data-edge-id="services-to-sdk">
-          <rect x="1258.6" y="363" width="86.8" height="14" rx="3" class="c-mask"/>
-          <text x="1302" y="373" class="t-muted" font-size="8" text-anchor="middle">MatrixClient API</text>
-        </g>
-        <g data-detail="context" data-edge-from="sdk" data-edge-to="homeserver" data-edge-label="/sync · /login" data-edge-key="5" data-edge-id="sdk-to-homeserver">
-          <rect x="1524.4" y="363" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="1563" y="373" class="t-backend" font-size="8" text-anchor="middle">/sync · /login</text>
-        </g>
-        <g data-detail="context" data-edge-from="actions" data-edge-to="store" data-edge-label="dispatch(action)" data-edge-key="6" data-edge-id="actions-to-store">
-          <rect x="744.1" y="173" width="86.8" height="14" rx="3" class="c-mask"/>
-          <text x="787.5" y="183" class="t-muted" font-size="8" text-anchor="middle">dispatch(action)</text>
-        </g>
-        <g data-detail="context" data-edge-from="store" data-edge-to="containers" data-edge-label="state" data-edge-key="7" data-edge-id="store-to-containers">
-          <rect x="590" y="278" width="34" height="14" rx="3" class="c-mask"/>
-          <text x="607" y="288" class="t-muted" font-size="8" text-anchor="middle">state</text>
-        </g>
-        <g data-detail="context" data-edge-from="services" data-edge-to="storage" data-edge-label="persistMatrixSession" data-edge-key="8" data-edge-id="services-to-storage">
-          <rect x="1103.5" y="330" width="106" height="14" rx="3" class="c-mask"/>
-          <text x="1156.5" y="340" class="t-muted" font-size="8" text-anchor="middle">persistMatrixSession</text>
-        </g>
-        <g data-detail="context" data-edge-from="sdk" data-edge-to="idb" data-edge-label="store · crypto" data-edge-key="9" data-edge-id="sdk-to-idb">
-          <rect x="1393.9" y="330" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="1432.5" y="340" class="t-muted" font-size="8" text-anchor="middle">store · crypto</text>
-        </g>
-        <g data-detail="context" data-edge-from="services" data-edge-to="adauth" data-edge-label="проверка AD" data-edge-key="10" data-edge-id="services-to-adauth">
-          <rect x="1340.35" y="420" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="1371.75" y="430" class="t-messagebus" font-size="8" text-anchor="middle">проверка AD</text>
-        </g>
-        <g data-detail="context" data-edge-from="bridge" data-edge-to="actions" data-edge-label="handleRegister" data-edge-key="11" data-edge-id="bridge-to-actions">
-          <rect x="772.65" y="448" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="811.25" y="458" class="t-muted" font-size="8" text-anchor="middle">handleRegister</text>
+
+        <g id="node-hs" data-node-id="hs" data-node-label="Homeserver Matrix" tabindex="0" role="button" aria-label="Focus Homeserver Matrix, /_matrix/client/v3, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="/_matrix/client/v3" data-node-context="Sequence participant">
+          <title>Homeserver Matrix · /_matrix/client/v3 · Sequence participant</title>
+          <rect x="2170" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="2170" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(2176 78) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text data-detail-anchor x="2265" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Homeserver Matrix</text>
+          <text data-detail="context" x="2265" y="111" class="t-muted" font-size="7" text-anchor="middle">/_matrix/client/v3</text>
         </g>
 
         <!-- Legend -->
-        <g data-legend data-legend-bridge>
-          <text x="40" y="638" class="t-primary" font-size="12" font-weight="650">Legend</text>
-          <g data-legend-semantic-kind="frontend" data-legend-kind="frontend" data-legend-label="UI и контейнеры" data-legend-x="40" data-legend-baseline="658" data-legend-width="118">
-            <rect x="40" y="649" width="16" height="10" rx="2.5" class="c-frontend" stroke-width="1"/>
-            <text x="62" y="658" class="t-muted" font-size="10" font-weight="500">UI и контейнеры</text>
+        <g data-legend>
+          <text x="40" y="896" class="t-primary" font-size="12" font-weight="650">Legend</text>
+          <g data-legend-semantic-kind="emphasis" data-legend-x="40" data-legend-baseline="916" data-legend-width="78">
+            <path d="M 40 913 L 74 913" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+            <text x="83" y="916" class="t-muted" font-size="10" font-weight="500">request</text>
           </g>
-          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="Логика: actions и services" data-legend-x="180" data-legend-baseline="658" data-legend-width="172">
-            <rect x="180" y="649" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
-            <text x="202" y="658" class="t-muted" font-size="10" font-weight="500">Логика: actions и services</text>
+          <g data-legend-semantic-kind="return" data-legend-x="140" data-legend-baseline="916" data-legend-width="73">
+            <path d="M 140 913 L 174 913" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+            <text x="183" y="916" class="t-muted" font-size="10" font-weight="500">return</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Состояние и хранилища" data-legend-x="374" data-legend-baseline="658" data-legend-width="148">
-            <rect x="374" y="649" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
-            <text x="396" y="658" class="t-muted" font-size="10" font-weight="500">Состояние и хранилища</text>
+          <g data-legend-semantic-kind="security" data-legend-x="235" data-legend-baseline="916" data-legend-width="83">
+            <path d="M 235 913 L 269 913" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+            <text x="278" y="916" class="t-muted" font-size="10" font-weight="500">security</text>
           </g>
-          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Внешняя авторизация" data-legend-x="544" data-legend-baseline="658" data-legend-width="138">
-            <rect x="544" y="649" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
-            <text x="566" y="658" class="t-muted" font-size="10" font-weight="500">Внешняя авторизация</text>
+          <g data-legend-semantic-kind="dashed" data-legend-x="340" data-legend-baseline="916" data-legend-width="98">
+            <path d="M 340 913 L 374 913" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+            <text x="383" y="916" class="t-muted" font-size="10" font-weight="500">async trace</text>
           </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="Внешние системы и SDK" data-legend-x="704" data-legend-baseline="658" data-legend-width="148">
-            <rect x="704" y="649" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="726" y="658" class="t-muted" font-size="10" font-weight="500">Внешние системы и SDK</text>
+          <g data-legend-semantic-kind="default" data-legend-x="460" data-legend-baseline="916" data-legend-width="118">
+            <path d="M 460 913 L 494 913" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+            <text x="503" y="916" class="t-muted" font-size="10" font-weight="500">default message</text>
           </g>
         </g>
       </svg>
@@ -5339,41 +5399,36 @@
       <div class="card">
         <div class="card-header">
           <div class="card-dot cyan"></div>
-          <h3>Слои приложения</h3>
+          <h3>AD-сессия</h3>
         </div>
         <ul>
-          <li>&bull; components/ — только презентация на Material UI</li>
-          <li>&bull; containers/ — useSelector, bindActionCreators; AuthContainer — мост AUTHCTL_ ↔ MTRXCTL_</li>
-          <li>&bull; actions/ — thunk-actions: валидация ввода и вызов сервиса</li>
-          <li>&bull; services/ — вся логика matrix-js-sdk, наружу узкий доменный API</li>
-          <li>&bull; store/ — configureStore + preloadedState: сид и DI middleware, reducers без сервисов</li>
+          <li>&bull; AuthAd.jsx отправляет логин и пароль на сервис AD по https</li>
+          <li>&bull; В Redux попадают mtrx_login / mtrx_password из ответа</li>
+          <li>&bull; Срок сессии AD (24 ч) проверяет authTimeoutMiddleware</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot emerald"></div>
-          <h3>Сессия Matrix</h3>
+          <h3>Автовход и его исход</h3>
         </div>
         <ul>
-          <li>&bull; loginMatrix() — m.login.password с refresh_token</li>
-          <li>&bull; restoreMatrixSession() — клиент по токенам</li>
-          <li>&bull; startClient({ initialSyncLimit: 10 }) — поток /sync</li>
-          <li>&bull; watchMatrixSession() — принудительный logout от сервера</li>
-          <li>&bull; AuthPad: откл — автовход AD; зелёный и красный — logoutMatrix</li>
+          <li>&bull; Тумблер откл → handleRegister данными AD; пароль в Redux не хранится</li>
+          <li>&bull; Успех — зелёный тумблер, ошибка входа — красный</li>
+          <li>&bull; Ветки ответа (access_token и 403) взаимоисключающие</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot violet"></div>
-          <h3>Состояние и хранилища</h3>
+          <h3>Сброс сессии</h3>
         </div>
         <ul>
-          <li>&bull; Redux — лёгкий UI-индекс, сообщения не сериализуются</li>
-          <li>&bull; localStorage — токены, deviceId, сессия AD (TTL 24 ч)</li>
-          <li>&bull; IndexedDB — sync store и Rust crypto (m.sas.v1)</li>
-          <li>&bull; Комнаты, таймлайн и участники — источник истины SDK</li>
+          <li>&bull; Клик по зелёному или красному тумблеру → handleRegClear</li>
+          <li>&bull; logoutMatrix(): POST /logout, очистка localStorage и IndexedDB</li>
+          <li>&bull; watchMatrixSession ловит logout сервером → authLost → красный тумблер</li>
         </ul>
       </div>
     </div>

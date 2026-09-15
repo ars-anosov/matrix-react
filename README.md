@@ -70,7 +70,8 @@ POST-запрос к серверу авторизации, ожидаемый �
 
 ## AuthPad.jsx
 Панель «Мост к сервисам»: тумблер сессии Matrix — откл (авторизация данными AD),
-зелёный (сессия активна) и красный (авторизация потеряна).
+зелёный (сессия активна) и красный (неуспешная авторизация или потеря сессии).
+Клик по цветному тумблеру завершает сессию Matrix и очищает хранилища.
 
 ![component_AuthPad.png](img/component_AuthPad.png)
 
@@ -79,6 +80,8 @@ POST-запрос к серверу авторизации, ожидаемый �
 # Документация
 
 [![Архитектура matrix-react](docs/archify/matrix-react-architecture.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html)
+
+[![Авторизация и сброс сессии Matrix](docs/archify/matrix-react-auth-sequence.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-auth-sequence.html)
 
 Все документы: <https://ars-anosov.github.io/matrix-react/>
 
