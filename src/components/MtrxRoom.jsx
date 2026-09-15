@@ -124,9 +124,7 @@ function renderMessageBody(message) {
 
   const document = new DOMParser().parseFromString(message.formattedBody, "text/html");
 
-  return Array.from(document.body.childNodes).map((node, index) =>
-    renderFormattedNode(node, `formatted-${message.eventId}-${index}`),
-  );
+  return Array.from(document.body.childNodes).map((node, index) => renderFormattedNode(node, `formatted-${message.eventId}-${index}`));
 }
 
 function MtrxRoom({ room, fullHeight = false }) {
@@ -189,11 +187,7 @@ function MtrxRoom({ room, fullHeight = false }) {
           </Typography>
         </Box>
         {messages.length > 0 && (
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ flexShrink: 0, display: { xs: "none", sm: "block" } }}
-          >
+          <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, display: { xs: "none", sm: "block" } }}>
             {getMessageCountLabel(messages.length)}
           </Typography>
         )}

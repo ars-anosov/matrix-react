@@ -18,11 +18,7 @@ export default function configureStore(preloadedState = getPreloadedState()) {
   const middlewareProd = [thunk, authTimeoutMiddleware];
   const middlewareDev = [thunk, authTimeoutMiddleware, logger];
 
-  const store = createStore(
-    rootReducer,
-    preloadedState,
-    import.meta.env.PROD ? applyMiddleware(...middlewareProd) : applyMiddleware(...middlewareDev),
-  );
+  const store = createStore(rootReducer, preloadedState, import.meta.env.PROD ? applyMiddleware(...middlewareProd) : applyMiddleware(...middlewareDev));
 
   return store;
 }

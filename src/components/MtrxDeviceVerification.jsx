@@ -1,23 +1,5 @@
-import {
-  CheckCircle as IconCheckCircle,
-  Close as IconClose,
-  Security as IconSecurity,
-  VpnKey as IconVpnKey,
-} from "@mui/icons-material";
-import {
-  Alert,
-  Avatar,
-  Box,
-  Button,
-  CircularProgress,
-  Grid,
-  IconButton,
-  InputAdornment,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { CheckCircle as IconCheckCircle, Close as IconClose, Security as IconSecurity, VpnKey as IconVpnKey } from "@mui/icons-material";
+import { Alert, Avatar, Box, Button, CircularProgress, Grid, IconButton, InputAdornment, Paper, Stack, TextField, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -95,17 +77,8 @@ function MtrxDeviceVerification(props) {
         renderWaiting("Запрос отправлен на другое устройство. Примите его там, чтобы продолжить.")
       ) : (
         <Stack spacing={1.5}>
-          <Typography>
-            Другое устройство просит подтвердить текущую сессию. Если вы ожидаете этот запрос, примите его.
-          </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            fullWidth
-            startIcon={<IconSecurity />}
-            onClick={handleAcceptDeviceVerification}
-            sx={BUTTON_SX}
-          >
+          <Typography>Другое устройство просит подтвердить текущую сессию. Если вы ожидаете этот запрос, примите его.</Typography>
+          <Button variant="contained" size="large" fullWidth startIcon={<IconSecurity />} onClick={handleAcceptDeviceVerification} sx={BUTTON_SX}>
             Принять запрос
           </Button>
         </Stack>
@@ -132,9 +105,7 @@ function MtrxDeviceVerification(props) {
     if (status === "started") {
       return (
         <Stack spacing={1.5}>
-          <Typography>
-            Сравните эти emoji с кодами на другом устройстве. Они должны совпадать и идти в том же порядке.
-          </Typography>
+          <Typography>Сравните эти emoji с кодами на другом устройстве. Они должны совпадать и идти в том же порядке.</Typography>
           <Grid container spacing={1.5} sx={{ justifyContent: "center" }}>
             {emoji.map(([symbol, name], index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: SAS emoji-код может содержать повторы, порядок задан протоколом
@@ -151,24 +122,10 @@ function MtrxDeviceVerification(props) {
             ))}
           </Grid>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-            <Button
-              variant="contained"
-              color="success"
-              size="large"
-              onClick={handleConfirmDeviceVerification}
-              fullWidth
-              sx={BUTTON_SX}
-            >
+            <Button variant="contained" color="success" size="large" onClick={handleConfirmDeviceVerification} fullWidth sx={BUTTON_SX}>
               Совпадают
             </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              size="large"
-              onClick={handleCancelDeviceVerification}
-              fullWidth
-              sx={BUTTON_SX}
-            >
+            <Button variant="outlined" color="error" size="large" onClick={handleCancelDeviceVerification} fullWidth sx={BUTTON_SX}>
               Не совпадают
             </Button>
           </Stack>
@@ -202,14 +159,7 @@ function MtrxDeviceVerification(props) {
     return (
       <Stack spacing={2.5}>
         <Typography>Авторизуйте текущую сессию с другого устройства</Typography>
-        <Button
-          variant="contained"
-          size="large"
-          fullWidth
-          startIcon={<IconSecurity />}
-          onClick={handleRequestDeviceVerification}
-          sx={BUTTON_SX}
-        >
+        <Button variant="contained" size="large" fullWidth startIcon={<IconSecurity />} onClick={handleRequestDeviceVerification} sx={BUTTON_SX}>
           Запрос устройству
         </Button>
         <Typography>или используйте recovery key.</Typography>
@@ -266,12 +216,7 @@ function MtrxDeviceVerification(props) {
         boxSizing: "border-box",
       }}
     >
-      <IconButton
-        aria-label="Закрыть"
-        onClick={handleClose}
-        size="small"
-        sx={{ position: "absolute", top: 4, right: 4 }}
-      >
+      <IconButton aria-label="Закрыть" onClick={handleClose} size="small" sx={{ position: "absolute", top: 4, right: 4 }}>
         <IconClose color="action" />
       </IconButton>
 
@@ -285,11 +230,7 @@ function MtrxDeviceVerification(props) {
             transition: "background-color 0.3s ease",
           }}
         >
-          {isSuccess ? (
-            <IconCheckCircle sx={{ fontSize: 32, color: "success.main" }} />
-          ) : (
-            <IconSecurity sx={{ fontSize: 32, color: "primary.main" }} />
-          )}
+          {isSuccess ? <IconCheckCircle sx={{ fontSize: 32, color: "success.main" }} /> : <IconSecurity sx={{ fontSize: 32, color: "primary.main" }} />}
         </Avatar>
         <Typography variant="h5" fontWeight="600" align="center">
           Авторизация устройства

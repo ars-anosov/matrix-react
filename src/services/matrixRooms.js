@@ -122,13 +122,9 @@ function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
       return event?.isEncrypted?.() && event.getClearContent?.();
     })
     .map((event, index) => {
-      const content =
-        event.getType?.() === "m.room.message" ? event.getContent?.() || {} : event.getClearContent?.() || {};
+      const content = event.getType?.() === "m.room.message" ? event.getContent?.() || {} : event.getClearContent?.() || {};
       const body = typeof content.body === "string" ? content.body : "";
-      const formattedBody =
-        content.format === "org.matrix.custom.html" && typeof content.formatted_body === "string"
-          ? content.formatted_body
-          : "";
+      const formattedBody = content.format === "org.matrix.custom.html" && typeof content.formatted_body === "string" ? content.formatted_body : "";
 
       if (!body.trim() && !formattedBody.trim()) return null;
 
@@ -265,9 +261,7 @@ async function getRoomMessages(roomId, limit = ROOM_MESSAGES_LIMIT) {
 
   const messages = buildRoomMessages(room, limit);
   const senderIds = [...new Set(messages.map((message) => message.senderId).filter(Boolean))];
-  const senderAvatarEntries = await Promise.all(
-    senderIds.map(async (senderId) => [senderId, await resolveMemberAvatarUrl(client, room, senderId)]),
-  );
+  const senderAvatarEntries = await Promise.all(senderIds.map(async (senderId) => [senderId, await resolveMemberAvatarUrl(client, room, senderId)]));
   const senderAvatarUrls = new Map(senderAvatarEntries);
 
   return messages.map((message) => ({

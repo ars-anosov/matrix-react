@@ -8,19 +8,7 @@ import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
-import {
-  Alert,
-  Avatar,
-  Box,
-  Button,
-  Collapse,
-  IconButton,
-  InputAdornment,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Avatar, Box, Button, Collapse, IconButton, InputAdornment, Paper, Stack, TextField, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -53,8 +41,7 @@ function MtrxReg(props) {
     mtrxControlActions.handleChangeStore("displayReg", false);
   };
 
-  const isSubmitDisabled =
-    isLoading || isSuccess || !login.trim() || !password.trim() || (import.meta.env.DEV && !uriMatrix.trim());
+  const isSubmitDisabled = isLoading || isSuccess || !login.trim() || !password.trim() || (import.meta.env.DEV && !uriMatrix.trim());
 
   return (
     <Paper

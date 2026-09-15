@@ -41,11 +41,7 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
         overflow: "hidden",
       }}
     >
-      <IconButton
-        aria-label="Закрыть мессенджер"
-        onClick={onClose}
-        sx={{ position: "absolute", top: 4, right: 4, zIndex: 1 }}
-      >
+      <IconButton aria-label="Закрыть мессенджер" onClick={onClose} sx={{ position: "absolute", top: 4, right: 4, zIndex: 1 }}>
         <IconClose color="action" />
       </IconButton>
 
@@ -104,12 +100,7 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
             scrollbarWidth: "thin",
           }}
         >
-          <MtrxRoomList
-            rooms={rooms}
-            selectedRoomId={selectedRoomId}
-            onSelect={(room) => onSelectRoom(room.roomId)}
-            fullHeight
-          />
+          <MtrxRoomList rooms={rooms} selectedRoomId={selectedRoomId} onSelect={(room) => onSelectRoom(room.roomId)} fullHeight />
         </Box>
 
         <Box sx={{ minWidth: 0, minHeight: 0, overflow: "hidden" }}>

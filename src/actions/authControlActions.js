@@ -1,10 +1,4 @@
-import {
-  AUTHCTL_CLEAR,
-  AUTHCTL_STORE_VALUE,
-  AUTHCTL_SUBMIT_ERROR,
-  AUTHCTL_SUBMIT_REQUEST,
-  AUTHCTL_SUBMIT_SUCCESS,
-} from "../constants/redux";
+import { AUTHCTL_CLEAR, AUTHCTL_STORE_VALUE, AUTHCTL_SUBMIT_ERROR, AUTHCTL_SUBMIT_REQUEST, AUTHCTL_SUBMIT_SUCCESS } from "../constants/redux";
 import * as adAuth from "../services/adAuth";
 import { getApiErrorMessage } from "./utils/kyError";
 

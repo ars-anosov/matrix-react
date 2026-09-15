@@ -9,8 +9,7 @@ export default defineConfig({
     assetsDir: "assets",
     chunkSizeWarningLimit: 1200,
     modulePreload: {
-      resolveDependencies: (_filename, dependencies) =>
-        dependencies.filter((dependency) => !dependency.includes("matrix-sdk")),
+      resolveDependencies: (_filename, dependencies) => dependencies.filter((dependency) => !dependency.includes("matrix-sdk")),
     },
     rolldownOptions: {
       output: {

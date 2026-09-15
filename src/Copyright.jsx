@@ -1,4 +1,4 @@
-import { Link, Typography } from "@mui/material";
+import { Box, Link, Stack, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect } from "react";
 
@@ -21,31 +21,38 @@ function Copyright(props) {
     <Typography
       variant="body2"
       align="center"
+      color="text.secondary"
       sx={{
-        mt: 2,
+        mt: showFull ? 2 : 0,
         fontSize: 11,
         color: "text.secondary",
       }}
     >
+      <Link
+        color="inherit"
+        href="https://github.com/ars-anosov/matrix-react"
+        underline="none"
+        sx={{
+          fontWeight: "bold",
+          "&:hover": { textDecoration: "underline" },
+        }}
+      >
+        v.{version}
+      </Link>
       {showFull && (
-        <span>
-          Powered by matrix-js-sdk {dependencies["matrix-js-sdk"]}, ky {dependencies.ky}
-          <br />
-          react-dom {dependencies["react-dom"]}, react-redux {dependencies["react-redux"]}, @mui/material{" "}
-          {dependencies["@mui/material"]},
-          <br />
-          vite {devDependencies.vite}, @vitejs/plugin-react {devDependencies["@vitejs/plugin-react"]}, @biomejs/biome{" "}
-          {devDependencies["@biomejs/biome"]}
-          <br />
-          <br />
-        </span>
+        <Stack spacing={0.2} sx={{ m: 1 }}>
+          <Box>
+            Powered by matrix-js-sdk {dependencies["matrix-js-sdk"]}, ky {dependencies.ky}
+          </Box>
+          <Box>
+            react-dom {dependencies["react-dom"]}, react-redux {dependencies["react-redux"]}, @mui/material {dependencies["@mui/material"]}
+          </Box>
+          <Box>
+            vite {devDependencies.vite}, @vitejs/plugin-react {devDependencies["@vitejs/plugin-react"]}, @biomejs/biome {devDependencies["@biomejs/biome"]}
+          </Box>
+          <Box sx={{ mt: 1 }}>Copyright © ars {new Date().getFullYear()}</Box>
+        </Stack>
       )}
-      <strong>v.{version}</strong>
-      {" Copyright © "}
-      <Link color="inherit" href="https://github.com/ars-anosov/matrix-react">
-        ars
-      </Link>{" "}
-      {new Date().getFullYear()}.
     </Typography>
   );
 }

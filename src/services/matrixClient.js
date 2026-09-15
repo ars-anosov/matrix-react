@@ -1,12 +1,5 @@
 import { CryptoEvent } from "matrix-js-sdk/lib/crypto-api/CryptoEvent.js";
-import {
-  MTRX_ACCESS_TOKEN_KEY,
-  MTRX_DEVICE_ID_KEY,
-  MTRX_HS_URL_KEY,
-  MTRX_LOGIN_KEY,
-  MTRX_REFRESH_TOKEN_KEY,
-  MTRX_USER_ID_KEY,
-} from "../constants/storage";
+import { MTRX_ACCESS_TOKEN_KEY, MTRX_DEVICE_ID_KEY, MTRX_HS_URL_KEY, MTRX_LOGIN_KEY, MTRX_REFRESH_TOKEN_KEY, MTRX_USER_ID_KEY } from "../constants/storage";
 import { clearMatrixClient, getMatrixClient, setMatrixClient } from "./matrixClientStore.js";
 import { clearRoomAvatarCache } from "./matrixRooms.js";
 import { loadMatrixSdk } from "./matrixSdk.js";
@@ -178,11 +171,7 @@ async function deleteMatrixIndexedDbStores(storeKey) {
   if (typeof indexedDB === "undefined" || !storeKey) return;
 
   const prefix = cryptoDbPrefix(storeKey);
-  const dbNames = [
-    `matrix-js-sdk:${syncDbName(storeKey)}`,
-    `${prefix}::matrix-sdk-crypto`,
-    `${prefix}::matrix-sdk-crypto-meta`,
-  ];
+  const dbNames = [`matrix-js-sdk:${syncDbName(storeKey)}`, `${prefix}::matrix-sdk-crypto`, `${prefix}::matrix-sdk-crypto-meta`];
 
   await Promise.all(
     dbNames.map(

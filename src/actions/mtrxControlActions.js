@@ -30,9 +30,7 @@ function dispatchDeviceVerification(dispatch, payload = {}) {
 
 function watchDeviceVerificationAndDispatch(dispatch) {
   unsubscribeDeviceVerification?.();
-  unsubscribeDeviceVerification = matrixClient.watchDeviceVerification((snapshot) =>
-    dispatchDeviceVerification(dispatch, snapshot),
-  );
+  unsubscribeDeviceVerification = matrixClient.watchDeviceVerification((snapshot) => dispatchDeviceVerification(dispatch, snapshot));
 }
 
 function dispatchMatrixSuccess(dispatch, session) {
@@ -182,9 +180,7 @@ const handleLoadDeviceVerification = () => async (dispatch) => {
 const handleRequestDeviceVerification = () => async (dispatch) => {
   dispatchDeviceVerification(dispatch, { status: "loading", errText: "" });
   try {
-    const snapshot = await matrixClient.requestCurrentDeviceVerification((nextSnapshot) =>
-      dispatchDeviceVerification(dispatch, nextSnapshot),
-    );
+    const snapshot = await matrixClient.requestCurrentDeviceVerification((nextSnapshot) => dispatchDeviceVerification(dispatch, nextSnapshot));
     dispatchDeviceVerification(dispatch, snapshot);
   } catch (error) {
     dispatchDeviceVerification(dispatch, {
@@ -208,9 +204,7 @@ const handleAcceptDeviceVerification = () => async (dispatch) => {
 
 const handleStartDeviceVerification = () => async (dispatch) => {
   try {
-    const snapshot = await matrixClient.startCurrentDeviceVerification((nextSnapshot) =>
-      dispatchDeviceVerification(dispatch, nextSnapshot),
-    );
+    const snapshot = await matrixClient.startCurrentDeviceVerification((nextSnapshot) => dispatchDeviceVerification(dispatch, nextSnapshot));
     dispatchDeviceVerification(dispatch, snapshot);
   } catch (error) {
     dispatchDeviceVerification(dispatch, {

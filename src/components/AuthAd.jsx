@@ -8,19 +8,7 @@ import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
-import {
-  Alert,
-  Avatar,
-  Box,
-  Button,
-  Collapse,
-  IconButton,
-  InputAdornment,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Avatar, Box, Button, Collapse, IconButton, InputAdornment, Paper, Stack, TextField, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { getStoredAdLogin } from "../services/adAuth";
@@ -60,8 +48,7 @@ function AdAuth(props) {
     authControlActions.handleChangeStore("displayAd", false);
   };
 
-  const isSubmitDisabled =
-    isLoading || isSuccess || !login.trim() || !password || (import.meta.env.DEV && !uriAdAuth.trim());
+  const isSubmitDisabled = isLoading || isSuccess || !login.trim() || !password || (import.meta.env.DEV && !uriAdAuth.trim());
 
   return (
     <Paper

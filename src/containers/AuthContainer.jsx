@@ -100,14 +100,7 @@ const AuthContainer = () => {
   // AuthPad показывается по флагу меню; без AD-данных она информирует об этом
   if (!displayAuthPad) return null;
 
-  return (
-    <AuthPad
-      authControlRdcr={authControlRdcr}
-      mtrxControlRdcr={mtrxControlRdcr}
-      onToggleMtrx={handleToggleMtrx}
-      onClose={handleCloseAuthPad}
-    />
-  );
+  return <AuthPad authControlRdcr={authControlRdcr} mtrxControlRdcr={mtrxControlRdcr} onToggleMtrx={handleToggleMtrx} onClose={handleCloseAuthPad} />;
 };
 
 export default AuthContainer;

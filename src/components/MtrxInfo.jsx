@@ -1,8 +1,4 @@
-import {
-  HowToReg as IconHowToReg,
-  PersonOff as IconPersonOff,
-  VerifiedUser as IconVerifiedUser,
-} from "@mui/icons-material";
+import { HowToReg as IconHowToReg, PersonOff as IconPersonOff, VerifiedUser as IconVerifiedUser } from "@mui/icons-material";
 import { IconButton, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
@@ -75,11 +71,7 @@ device_id:\t${mtrxControlRdcr?.responseData?.device_id || ""}`}
         </Tooltip>
         {isAuthorized && (
           <Tooltip title={isDeviceVerified ? "Устройство авторизовано" : "Устройство не авторизовано для E2EE"}>
-            <IconButton
-              aria-label="Проверка устройства"
-              color={isDeviceVerified ? "success" : "error"}
-              onClick={() => setIsVerificationOpen(true)}
-            >
+            <IconButton aria-label="Проверка устройства" color={isDeviceVerified ? "success" : "error"} onClick={() => setIsVerificationOpen(true)}>
               <IconVerifiedUser />
             </IconButton>
           </Tooltip>

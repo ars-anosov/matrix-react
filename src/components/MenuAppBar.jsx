@@ -60,11 +60,7 @@ function MenuAppBar(props) {
 
   const rawToolbarHeight = theme?.mixins?.toolbar?.maxHeight;
   const toolbarHeight =
-    typeof rawToolbarHeight === "number"
-      ? rawToolbarHeight
-      : rawToolbarHeight
-        ? parseInt(String(rawToolbarHeight).replace("px", ""), 10)
-        : 64;
+    typeof rawToolbarHeight === "number" ? rawToolbarHeight : rawToolbarHeight ? parseInt(String(rawToolbarHeight).replace("px", ""), 10) : 64;
 
   const [anchorEl_mtrxControl, setAnchorEl_mtrxControl] = useState(null);
   const [anchorEl_adControl, setAnchorEl_adControl] = useState(null);
@@ -84,14 +80,7 @@ function MenuAppBar(props) {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
         <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-            onClick={handleOpenMenu}
-          >
+          <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={handleOpenMenu}>
             <MenuIcon />
           </IconButton>
 
@@ -122,19 +111,9 @@ function MenuAppBar(props) {
                 const isChecked = !!mtrxControlRdcr[item.key];
                 const labelId = `checkbox-list-label-${item.key}`;
                 return (
-                  <ListItemButton
-                    key={item.key}
-                    onClick={() => toggleDisplayMtrx(item.key)}
-                    sx={{ alignItems: "flex-start" }}
-                  >
+                  <ListItemButton key={item.key} onClick={() => toggleDisplayMtrx(item.key)} sx={{ alignItems: "flex-start" }}>
                     <ListItemIcon>
-                      <Checkbox
-                        edge="start"
-                        checked={isChecked}
-                        tabIndex={-1}
-                        disableRipple
-                        slotProps={{ input: { "aria-labelledby": labelId } }}
-                      />
+                      <Checkbox edge="start" checked={isChecked} tabIndex={-1} disableRipple slotProps={{ input: { "aria-labelledby": labelId } }} />
                     </ListItemIcon>
                     <ListItemText id={labelId} primary={item.primary} secondary={item.secondary} />
                   </ListItemButton>
@@ -149,19 +128,9 @@ function MenuAppBar(props) {
                 const isChecked = !!authControlRdcr[item.key];
                 const labelId = `checkbox-list-label-${item.key}`;
                 return (
-                  <ListItemButton
-                    key={item.key}
-                    onClick={() => toggleDisplayAuth(item.key)}
-                    sx={{ alignItems: "flex-start" }}
-                  >
+                  <ListItemButton key={item.key} onClick={() => toggleDisplayAuth(item.key)} sx={{ alignItems: "flex-start" }}>
                     <ListItemIcon>
-                      <Checkbox
-                        edge="start"
-                        checked={isChecked}
-                        tabIndex={-1}
-                        disableRipple
-                        slotProps={{ input: { "aria-labelledby": labelId } }}
-                      />
+                      <Checkbox edge="start" checked={isChecked} tabIndex={-1} disableRipple slotProps={{ input: { "aria-labelledby": labelId } }} />
                     </ListItemIcon>
                     <ListItemText id={labelId} primary={item.primary} secondary={item.secondary} />
                   </ListItemButton>
@@ -188,12 +157,7 @@ function MenuAppBar(props) {
           <Box sx={{ flexGrow: 1 }} />
 
           {mtrxControlRdcr.displayControl && (
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{ cursor: "pointer", alignItems: "center" }}
-              onClick={(e) => setAnchorEl_mtrxControl(e.currentTarget)}
-            >
+            <Stack direction="row" spacing={1} sx={{ cursor: "pointer", alignItems: "center" }} onClick={(e) => setAnchorEl_mtrxControl(e.currentTarget)}>
               <Typography variant="caption" sx={{ pl: 1 }}>
                 {mtrxControlRdcr?.responseData?.display_name || mtrxControlRdcr?.responseData?.user_id || ""}
               </Typography>
@@ -202,12 +166,7 @@ function MenuAppBar(props) {
           )}
 
           {authControlRdcr.displayControl && (
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{ cursor: "pointer", alignItems: "center" }}
-              onClick={(e) => setAnchorEl_adControl(e.currentTarget)}
-            >
+            <Stack direction="row" spacing={1} sx={{ cursor: "pointer", alignItems: "center" }} onClick={(e) => setAnchorEl_adControl(e.currentTarget)}>
               <Typography variant="caption" sx={{ pl: 1 }}>
                 {authControlRdcr?.responseData?.ad_login}
               </Typography>

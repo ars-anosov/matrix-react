@@ -64,11 +64,7 @@ function AuthPad(props) {
       }}
     >
       {/* ✕ поверх шапки: как в MtrxPad — кнопка над полосой, полоса оставляет место (pr: 6) */}
-      <IconButton
-        aria-label="Закрыть панель"
-        onClick={onClose}
-        sx={{ position: "absolute", top: 4, right: 4, zIndex: 1 }}
-      >
+      <IconButton aria-label="Закрыть панель" onClick={onClose} sx={{ position: "absolute", top: 4, right: 4, zIndex: 1 }}>
         <IconClose color="action" />
       </IconButton>
 
