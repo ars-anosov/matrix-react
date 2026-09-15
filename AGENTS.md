@@ -54,21 +54,25 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
 
 ```
 src/
-├── components/   # UI: MtrxReg, MtrxPad, MtrxRoom(List), MtrxDeviceVerification, AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar, …
+├── components/   # UI: MtrxReg, MtrxPad, MtrxRoom(List), MtrxDeviceVerification, MtrxIco, MtrxInfo,
+│                 #     AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar
 ├── containers/   # связка со store: MtrxContainer, MtrxPadContainer, AuthContainer, MenuAppContainer
 ├── actions/      # thunk-actions; utils/ — kyError.js, matrixError.js
 ├── reducers/     # *Rdcr, rootReducer.js, authTimeoutMiddleware.js
 ├── services/     # matrixClient, matrixSdk, matrixRooms, matrixClientStore, adAuth
 ├── store/        # configureStore, preloadedState.js (сид из сервисов)
 ├── constants/    # redux.js (action types), storage.js (ключи localStorage), ui.js (UI-лимиты)
-└── main.jsx, App.jsx, theme.js
-mock/             # mock API для dev (vite plugin)
+└── main.jsx, App.jsx, Copyright.jsx, theme.js
+mock/             # mock API для dev (vite plugin, apply: "serve")
 public/           # статика: img/, sounds/, sw.js
 img/              # скриншоты компонентов для README
 docs/             # документация и GitHub Pages (ars-anosov.github.io/matrix-react):
                   # index.html (лендинг), STATE.md (Mermaid-схемы), archify/ (генерация skill'ом
                   # archify, исключён из Biome)
 dist/             # результат npm run build — вручную не править
+.github/          # CI (workflows/ci.yml: npm ci + build) и адаптер copilot-instructions.md
+.dsh/             # навыки агента (skills/ui-verify) и обёртка bin/browser
+.playwright/      # конфиг Playwright CLI (cli.config.json); cache/ — рантайм, в git не хранится
 ```
 
 ## Архитектура Matrix
@@ -77,8 +81,9 @@ dist/             # результат npm run build — вручную не п�
   crypto/store, токены и lifecycle сессии.
 - matrix-js-sdk — единственный источник истины: комнаты, таймлайн, сообщения и участники хранятся
   в SDK и не дублируются в Redux. Redux держит только лёгкий UI-индекс: `roomIds`,
-  `selectedRoomId`, `roomsMeta` и при необходимости счётчики. Сообщения активной комнаты читаются
-  из сервиса по требованию (`getRoomMeta`, `getRoomMessages`) и в стор не сериализуются.
+  `selectedRoomId`, `roomsMeta` и при необходимости счётчики. Метаданные и сообщения активной
+  комнаты читаются из сервиса по требованию (`getRoomMeta`, `getRoomMessages` / `watchRoomMessages`)
+  и в стор не сериализуются.
 - Список комнат обновляется дельтами (INITIALIZE / PUT / DELETE одного `roomId`), без полной
   перезаписи массива на каждое событие SDK.
 - Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают
@@ -86,7 +91,7 @@ dist/             # результат npm run build — вручную не п�
 - Компоненты и контейнеры получают из сервисов только узкий доменный API, без SDK-объектов:
   `AuthAd` → `adAuth.getStoredAdLogin` (предзаполнение логина), `MtrxPadContainer` →
   `matrixRooms.watchRoomMessages` (подписка на сообщения активной комнаты).
-- Весь `localStorage` и весь HTTP (`ky`) — только в `src/services/`; ключи — в
+- Весь `localStorage` и все HTTP-запросы (`ky`) — только в `src/services/`; ключи — в
   `constants/storage.js`. Actions вызывают доменный API сервиса и преобразуют ошибки через
   `actions/utils/kyError.js`. Сервисы со стором сводит только слой стора: `store/preloadedState.js`
   собирает сид (`uriAdAuth` ← `getStoredAdAuthUri`) и отдаёт его в `configureStore`, который
@@ -114,8 +119,8 @@ dist/             # результат npm run build — вручную не п�
   `authControlActions`; в контейнерах — `useSelector`, `bindActionCreators` + `useMemo`.
   `initialState` у `authControlRdcr` экспортируется и остаётся чистым (без чтения сервисов):
   из него `store/preloadedState.js` собирает срез для `preloadedState`.
-- **Прочее:** ключи `localStorage` — в `constants/storage.js`; HTTP (`ky`) и `localStorage` — только
-  в `services/`; ошибки API — `actions/utils/kyError.js`.
+- **Прочее:** ключи `localStorage` — в `constants/storage.js`; HTTP-запросы (`ky`) и `localStorage` —
+  только в `services/`; ошибки API — `actions/utils/kyError.js` (там же разбирается `HTTPError` из ky).
 - **Внешние библиотеки:** перед использованием незнакомого метода API сначала сверяться с
   официальной документацией, а при объяснении и в ответе давать ссылку на раздел документации
   этого метода. Ссылки — только на официальные источники стека: matrix-js-sdk.

@@ -14,6 +14,7 @@ npm install
 npm run dev     # Vite dev-сервер: http://localhost:3000 (host 0.0.0.0)
 npm run build   # сборка в dist
 npm run serve   # предпросмотр сборки: http://localhost:4173 (vite preview, host 0.0.0.0)
+npm run deploy  # сборка + выкладка dist на прод по rsync (deploy.sh) — только по явному запросу
 ```
 
 Проверки и форматирование — Biome (`format` и `check` пишут правки в файлы):
@@ -31,17 +32,17 @@ npm run check   # линт + форматирование с записью
 # Компоненты
 
 ## MtrxReg.jsx
-Форма входа в Matrix (homeserver, логин, пароль) и выход из сессии.
+Форма входа в Matrix.
 
 ![component_MtrxReg.png](img/component_MtrxReg.png)
 
 ## MtrxRoomList.jsx
-Список комнат: аватар и имя, выбор активной комнаты.
+Список комнат.
 
 ![component_MtrxRoomList.png](img/component_MtrxRoomList.png)
 
 ## MtrxRoom.jsx
-Комната: шапка (аватар, имя, подпись) и таймлайн последних сообщений.
+Комната: шапка и таймлайн последних сообщений.
 
 ![component_MtrxRoom.png](img/component_MtrxRoom.png)
 
@@ -69,9 +70,7 @@ POST-запрос к серверу авторизации, ожидаемый �
 ![component_AuthAd.png](img/component_AuthAd.png)
 
 ## AuthPad.jsx
-Панель «Мост к сервисам»: тумблер сессии Matrix — откл (авторизация данными AD),
-зелёный (сессия активна) и красный (неуспешная авторизация или потеря сессии).
-Клик по цветному тумблеру завершает сессию Matrix и очищает хранилища.
+Тумблер активирует сервис.
 
 ![component_AuthPad.png](img/component_AuthPad.png)
 
