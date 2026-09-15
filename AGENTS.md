@@ -75,6 +75,13 @@ dist/             # результат npm run build — вручную не п�
   перезаписи массива на каждое событие SDK.
 - Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают
   Matrix API напрямую.
+- Компоненты и контейнеры получают из сервисов только узкий доменный API, без SDK-объектов:
+  `AuthAd` → `adAuth.getStoredAdLogin` (предзаполнение логина), `MtrxPadContainer` →
+  `matrixRooms.watchRoomMessages` (подписка на сообщения активной комнаты).
+- Весь `localStorage` и весь HTTP (`ky`) — только в `src/services/`; ключи — в
+  `constants/storage.js`. Actions вызывают доменный API сервиса и преобразуют ошибки через
+  `actions/utils/kyError.js`; reducers и middleware берут начальные значения и проверки геттерами
+  сервиса (`authControlRdcr` ← `getStoredAdAuthUri`, `authTimeoutMiddleware` ← `adAuth`).
 - Actions только валидируют UI-ввод, вызывают сервисы и преобразуют результат в actions;
   reducers не содержат Matrix-логики.
 - Namespace-инвариант: thunk-и `AUTHCTL_` не диспатчат `MTRXCTL_` (и наоборот). Мост
@@ -93,7 +100,8 @@ dist/             # результат npm run build — вручную не п�
 - **Redux:** action types — константы в `constants/redux.js` (префиксы `MTRXCTL_`, `AUTHCTL_`);
   reducers `mtrxControlRdcr` / `authControlRdcr`; actions `mtrxControlActions` /
   `authControlActions`; в контейнерах — `useSelector`, `bindActionCreators` + `useMemo`.
-- **Прочее:** ключи `localStorage` — в `constants/storage.js`; запросы через `ky`.
+- **Прочее:** ключи `localStorage` — в `constants/storage.js`; HTTP (`ky`) и `localStorage` — только
+  в `services/`; ошибки API — `actions/utils/kyError.js`.
 - **Внешние библиотеки:** перед использованием незнакомого метода API сначала сверяться с
   официальной документацией, а при объяснении и в ответе давать ссылку на раздел документации
   этого метода. Ссылки — только на официальные источники стека: matrix-js-sdk.
