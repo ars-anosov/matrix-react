@@ -7,13 +7,13 @@ import {
   AUTHCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
 
-import { getStoredAdAuthUri } from "../services/adAuth";
-
-const initialState = {
+// Только UI-дефолты: сохранённые значения (uriAdAuth) подставляет сид стора —
+// store/preloadedState.js → preloadedState в configureStore.
+export const initialState = {
   displayAd: false,
   displayAuthPad: true,
   displayControl: true,
-  uriAdAuth: getStoredAdAuthUri(),
+  uriAdAuth: "",
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,
   errComponent: "",

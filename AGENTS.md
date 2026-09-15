@@ -51,7 +51,7 @@ src/
 ├── actions/      # thunk-actions; utils/ — kyError.js, matrixError.js
 ├── reducers/     # *Rdcr, rootReducer.js, authTimeoutMiddleware.js
 ├── services/     # matrixClient, matrixSdk, matrixRooms, matrixClientStore, adAuth
-├── store/        # configureStore
+├── store/        # configureStore, preloadedState.js (сид из сервисов)
 ├── constants/    # redux.js (action types), storage.js (ключи localStorage), ui.js (UI-лимиты)
 └── main.jsx, App.jsx, theme.js
 mock/             # mock API для dev (vite plugin)
@@ -80,8 +80,11 @@ dist/             # результат npm run build — вручную не п�
   `matrixRooms.watchRoomMessages` (подписка на сообщения активной комнаты).
 - Весь `localStorage` и весь HTTP (`ky`) — только в `src/services/`; ключи — в
   `constants/storage.js`. Actions вызывают доменный API сервиса и преобразуют ошибки через
-  `actions/utils/kyError.js`; reducers и middleware берут начальные значения и проверки геттерами
-  сервиса (`authControlRdcr` ← `getStoredAdAuthUri`, `authTimeoutMiddleware` ← `adAuth`).
+  `actions/utils/kyError.js`. Сервисы со стором сводит только слой стора: `store/preloadedState.js`
+  собирает сид (`uriAdAuth` ← `getStoredAdAuthUri`) и отдаёт его в `configureStore`, который
+  передаёт срез в `createStore` как `preloadedState`; там же инжектятся зависимости
+  `authTimeoutMiddleware` (проверка срока и сброс AD-сессии). Reducers и middleware сервисов
+  не импортируют и остаются чистыми.
 - Actions только валидируют UI-ввод, вызывают сервисы и преобразуют результат в actions;
   reducers не содержат Matrix-логики.
 - Namespace-инвариант: thunk-и `AUTHCTL_` не диспатчат `MTRXCTL_` (и наоборот). Мост
@@ -100,6 +103,8 @@ dist/             # результат npm run build — вручную не п�
 - **Redux:** action types — константы в `constants/redux.js` (префиксы `MTRXCTL_`, `AUTHCTL_`);
   reducers `mtrxControlRdcr` / `authControlRdcr`; actions `mtrxControlActions` /
   `authControlActions`; в контейнерах — `useSelector`, `bindActionCreators` + `useMemo`.
+  `initialState` редьюсера экспортируется и остаётся чистым (без чтения сервисов): из него
+  `store/preloadedState.js` собирает срез для `preloadedState`.
 - **Прочее:** ключи `localStorage` — в `constants/storage.js`; HTTP (`ky`) и `localStorage` — только
   в `services/`; ошибки API — `actions/utils/kyError.js`.
 - **Внешние библиотеки:** перед использованием незнакомого метода API сначала сверяться с
