@@ -19,9 +19,9 @@ function Copyright(props) {
 
   return (
     <Typography
+      component="div"
       variant="body2"
       align="center"
-      color="text.secondary"
       sx={{
         mt: showFull ? 2 : 0,
         fontSize: 11,
