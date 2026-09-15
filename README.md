@@ -13,35 +13,38 @@ npm run build
 
 
 
-# Документация
-
-[![Архитектура matrix-react](docs/archify/matrix-react-architecture.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html)
-
-Все документы: <https://ars-anosov.github.io/matrix-react/>
-
-
-
 # Компоненты
 
 ## MtrxReg.jsx
 Форма входа в Matrix (homeserver, логин, пароль) и выход из сессии.
+
 ![component_MtrxReg.png](img/component_MtrxReg.png)
 
 ## MtrxPad.jsx
 Панель мессенджера: список комнат и последние сообщения выбранной комнаты.
+
 ![component_MtrxPad.png](img/component_MtrxPad.png)
 
 ## MtrxRoomList.jsx
 Список комнат: аватар и имя, выбор активной комнаты.
 
+![component_MtrxRoomList.png](img/component_MtrxRoomList.png)
+
 ## MtrxRoom.jsx
 Комната: шапка (аватар, имя, подпись) и таймлайн последних сообщений.
+
+![component_MtrxRoom.png](img/component_MtrxRoom.png)
 
 ## MtrxDeviceVerification.jsx
 E2EE: авторизация устройства — SAS по emoji или recovery key.
 
+![component_MtrxDeviceVerification.png](img/component_MtrxDeviceVerification.png)
+
 ## MenuAppBar.jsx
 Верхнее меню: тумблеры панелей и данные AD-пользователя.
+
+![component_MenuAppBar.png](img/component_MenuAppBar.png)
+![component_MenuAppBar_menu.png](img/component_MenuAppBar_menu.png)
 
 # Доп. компоненты
 Плюшки для интеграции с внешними сервисами
@@ -65,8 +68,20 @@ POST-запрос к серверу авторизации, ожидаемый �
 Панель «Мост к сервисам»: тумблер сессии Matrix — откл (авторизация данными AD),
 зелёный (сессия активна) и красный (авторизация потеряна).
 
+![component_AuthPad.png](img/component_AuthPad.png)
+
 ## AuthAdInfo.jsx
 Данные AD-пользователя: `ad_cn`, `ad_title`, `ad_department`, `ad_login`.
+
+![component_AuthAdInfo.png](img/component_AuthAdInfo.png)
+
+
+
+# Документация
+
+[![Архитектура matrix-react](docs/archify/matrix-react-architecture.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html)
+
+Все документы: <https://ars-anosov.github.io/matrix-react/>
 
 
 
