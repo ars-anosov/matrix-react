@@ -3,13 +3,28 @@ ReactJS компоненты на базе [matrix-js-sdk](https://github.com/ma
 
 ![mtrx](img/mtrx.png)
 
-Сборка в директорию dist
+Сборка — `npm run build` в `dist/` (каталог в git не хранится).
+
+## Быстрый старт
+
+Требуется Node.js 24.
 
 ```bash
 npm install
-# npm run dev
-npm run build
+npm run dev     # Vite dev-сервер: http://localhost:3000 (host 0.0.0.0)
+npm run build   # сборка в dist
+npm run serve   # предпросмотр сборки: http://localhost:4173 (vite preview, host 0.0.0.0)
 ```
+
+Проверки и форматирование — Biome (`format` и `check` пишут правки в файлы):
+
+```bash
+npm run lint    # только проверка
+npm run format  # форматирование с записью
+npm run check   # линт + форматирование с записью
+```
+
+В dev-режиме Vite поднимает мок-API.
 
 
 
@@ -19,11 +34,6 @@ npm run build
 Форма входа в Matrix (homeserver, логин, пароль) и выход из сессии.
 
 ![component_MtrxReg.png](img/component_MtrxReg.png)
-
-## MtrxPad.jsx
-Панель мессенджера: список комнат и последние сообщения выбранной комнаты.
-
-![component_MtrxPad.png](img/component_MtrxPad.png)
 
 ## MtrxRoomList.jsx
 Список комнат: аватар и имя, выбор активной комнаты.
@@ -39,12 +49,6 @@ npm run build
 E2EE: авторизация устройства — SAS по emoji или recovery key.
 
 ![component_MtrxDeviceVerification.png](img/component_MtrxDeviceVerification.png)
-
-## MenuAppBar.jsx
-Верхнее меню: тумблеры панелей и данные AD-пользователя.
-
-![component_MenuAppBar.png](img/component_MenuAppBar.png)
-![component_MenuAppBar_menu.png](img/component_MenuAppBar_menu.png)
 
 # Доп. компоненты
 Плюшки для интеграции с внешними сервисами
@@ -70,11 +74,6 @@ POST-запрос к серверу авторизации, ожидаемый �
 
 ![component_AuthPad.png](img/component_AuthPad.png)
 
-## AuthAdInfo.jsx
-Данные AD-пользователя: `ad_cn`, `ad_title`, `ad_department`, `ad_login`.
-
-![component_AuthAdInfo.png](img/component_AuthAdInfo.png)
-
 
 
 # Документация
@@ -87,30 +86,12 @@ POST-запрос к серверу авторизации, ожидаемый �
 
 # Пакеты
 
-node модули
-```bash
-npm install --save react@^19.2.8 react-dom@^19.2.8 react-router-dom@^7.18.2
-npm install --save react-redux@^9.3.0 redux@^5.0.1 redux-thunk@^3.1.0 redux-logger@^3.0.6
-npm install --save @mui/material@^9.4.0 @emotion/react@^11.14.0 @emotion/styled@^11.14.1 @mui/icons-material@^9.4.0
-npm install --save matrix-js-sdk@^42.2.0 ky@^2.0.2
-npm install --save-dev vite@^8.2.2 @vitejs/plugin-react@^6.1.1 @biomejs/biome@^2.5.12 body-parser@^2.3.0
-```
+Зависимости — в `package.json`, установка — `npm install`. Обновление мажорных версий:
 
-Перепрыгнуть за мажорные версии
 ```bash
 npx npm-check-updates
 ```
 
-npm скрипты
-```json
-  "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "serve": "vite preview --host 0.0.0.0",
-    "lint": "biome lint .",
-    "format": "biome format --write .",
-    "check": "biome check --write .",
-    "deploy:rsync": "bash deploy.sh",
-    "deploy": "npm run build && npm run deploy:rsync"
-  }
-```
+# Лицензия
+
+MIT, см. [LICENSE](LICENSE).
