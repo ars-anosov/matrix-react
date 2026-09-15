@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Playwright CLI для matrix-react: Linux-Chromium внутри WSL, режим только headless.
+#
+# Зачем обёртка. Песочница DSH даёт на запись только рабочий каталог сессии, а Chromium и
+# CLI-демон пишут в $HOME: без записываемого $HOME crashpad роняет Chrome, а демон не может
+# создать $XDG_CACHE_HOME/ms-playwright/daemon. Поэтому HOME и XDG_CACHE_HOME уводятся в
+# .playwright/cache внутри репозитория, а браузеры остаются в общем кэше (только чтение).
+#
+# Демон живёт только внутри одного вызова bash: весь сценарий проверки собирать в одну цепочку
+# команд. Настройки — .playwright/cli.config.json, порядок проверки — навык ui-verify.
+#
+# Использование: .dsh/bin/browser open http://localhost:3000
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+CACHE="$REPO_ROOT/.playwright/cache"
+mkdir -p "$CACHE/home" "$CACHE/xdg"
+
+export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+export HOME="$CACHE/home"
+export XDG_CACHE_HOME="$CACHE/xdg"
+
+# Запасной путь, пока системные библиотеки Chromium не поставлены через apt (см. навык ui-verify).
+DEPS="$CACHE/deps/root/usr/lib/x86_64-linux-gnu"
+if [ -d "$DEPS" ]; then
+  export LD_LIBRARY_PATH="$DEPS${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
+exec playwright-cli "$@"

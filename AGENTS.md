@@ -30,20 +30,25 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
 ## Инструменты и среда (DSH)
 
 Профиль DSH `web` уже содержит плагины окружения — инструменты доступны сразу, доустанавливать
-ничего не нужно. Средовые правила (WSL ↔ Windows, Playwright MCP, Mermaid, archify) — в
-user-global `~/.dsh/AGENTS.md`; повторяемые процедуры — навыками в `.dsh/skills/`. Здесь только
-специфика этого репозитория:
+ничего не нужно. Общие для машины правила (WSL ↔ Windows, Mermaid, archify) — в user-global
+`~/.dsh/AGENTS.md`; повторяемые процедуры — навыками в `.dsh/skills/`. Здесь только специфика
+репозитория:
 
-- **Диаграммы-артефакты** — skill `archify`, результат в `docs/archify/` рядом с
-  `matrix-react-architecture.*`; готовые HTML/JSON не править вручную, только перегенерация,
-  проверка — навык `archify-visual-check`. В репозитории от визуальной проверки остаются только
-  превью-PNG `*.visual-check.2048x1320.light.png` (на него ссылается README) и receipt
-  `*.visual-check.json`; тёмные и 1440×900 скриншоты, contact sheet `*.visual-check.html` и любые
-  другие PNG — временные: после проверки удалять, в `.gitignore` они уже перечислены.
+- **Диаграммы-артефакты** — skill `archify`, результат в `docs/archify/`; готовые HTML/JSON
+  только перегенерацией, проверка — навык `archify-visual-check`. В git остаются лишь
+  `*.visual-check.2048x1320.light.png` (превью для README) и receipt `*.visual-check.json`,
+  остальные скриншоты и contact sheet — временные (перечислены в `.gitignore`).
 - **Диаграммы в ответе** — Mermaid-блоком, а не ASCII-артом; образец — `docs/STATE.md`.
-- **Проверка UI** — `npm run dev` (порт 3000), открыть через `win_open_url`
-  (`http://localhost:3000`), спорное поведение — через Playwright MCP (`mcp__browser__*`),
-  а не догадками; порядок — навык `ui-verify` (`.dsh/skills/ui-verify`).
+- **Проверка UI** — `npm run dev` (порт 3000): человеку открывать `win_open_url`
+  (`http://localhost:3000`), агенту — Linux-Chromium в WSL обёрткой `.dsh/bin/browser`
+  (Playwright CLI); пошаговый порядок — навык `ui-verify`. Настройки Playwright лежат в
+  репозитории: `.playwright/cli.config.json` — chromium, viewport 1280×800, уровень `warning`,
+  вывод в `.playwright/cache/output`. Рантайм-состояние демона — в игнорируемом
+  `.playwright/cache/`. Обёртка обязательна: она уводит `HOME` и `XDG_CACHE_HOME` внутрь
+  проекта, иначе песочница DSH не даёт Chrome записать профиль. Браузеры — в
+  `~/.cache/ms-playwright`; весь сценарий проверки выполняется одной цепочкой команд в одном
+  вызове `bash` (демон CLI не переживает вызов), режим только headless. MCP-сервер браузера
+  на Windows в профиле отключён.
 
 ## Структура
 

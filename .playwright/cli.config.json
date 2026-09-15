@@ -1,0 +1,10 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "contextOptions": {
+      "viewport": { "width": 1280, "height": 800 }
+    }
+  },
+  "console": { "level": "warning" },
+  "outputDir": ".playwright/cache/output"
+}
