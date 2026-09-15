@@ -62,10 +62,10 @@ const AuthContainer = () => {
   }, [mtrxAuthLost, authControlActions]);
 
   // Мост к сервисам: тумблер AuthPad — индикатор состояния сессии Matrix и действие.
-  // Красный (authLost) и зелёный (авторизован) — клик сбрасывает текущую сессию.
-  // Откл (сессии нет) — клик запускает автоматическую авторизацию данными AD.
+  // Красный (authLost / status === "error") и зелёный (авторизован) — клик сбрасывает
+  // текущую сессию. Откл (сессии нет) — клик запускает автоматическую авторизацию данными AD.
   const handleToggleMtrx = () => {
-    if (mtrxAuthLost || mtrxStatus === "success") {
+    if (mtrxAuthLost || mtrxStatus === "success" || mtrxStatus === "error") {
       mtrxControlActions.handleRegClear();
       return;
     }

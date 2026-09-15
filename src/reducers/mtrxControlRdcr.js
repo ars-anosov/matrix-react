@@ -55,7 +55,8 @@ export default function mtrxControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "loading",
-        displayReg: true,
+        // displayReg не трогаем: форма уже открыта, если запрос пришёл из MtrxReg,
+        // а попытка входа с тумблера AuthPad не должна её открывать.
         displayPad: false,
         responseData: null,
         ...emptyRooms,
@@ -82,11 +83,13 @@ export default function mtrxControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "error",
-        displayReg: true,
+        // Ошибка не открывает форму: неудачный вход с тумблера AuthPad оставляет
+        // открытым только его красное состояние, а форма MtrxReg (если была открыта)
+        // показывает errText своим Alert.
         displayPad: false,
         responseData: null,
         ...emptyRooms,
-        errComponent: "MtrxReg",
+        errComponent: "",
         errText,
       };
     }

@@ -23,18 +23,22 @@ function AuthPad(props) {
 
   // Тумблер отражает состояние сессии Matrix:
   //   откл           — сессии нет → клик запускает автоматическую авторизацию;
-  //   зелёный        — авторизован → клик сбрасывает сессию;
-  //   красный        — сессия потеряна → клик сбрасывает сессию.
+  //   зелёный        — авторизация успешна → клик сбрасывает сессию;
+  //   красный        — авторизация не удалась (status === "error") или сессия потеряна
+  //                    (authLost: принудительный logout / 401) → клик сбрасывает сессию.
   // В MUI Switch цвет применяется к checked-состоянию, поэтому цветной = checked + color.
   const authLost = !!mtrxControlRdcr?.authLost;
   const mtrxAuthorized = mtrxControlRdcr?.status === "success";
-  const mtrxSwitchOn = authLost || mtrxAuthorized;
-  const mtrxSwitchColor = authLost ? "error" : mtrxAuthorized ? "success" : "primary";
+  const mtrxFailed = mtrxControlRdcr?.status === "error";
+  const mtrxSwitchOn = authLost || mtrxFailed || mtrxAuthorized;
+  const mtrxSwitchColor = authLost || mtrxFailed ? "error" : mtrxAuthorized ? "success" : "primary";
   const mtrxSwitchAria = authLost
     ? "Сбросить потерянную сессию Matrix"
-    : mtrxAuthorized
-      ? "Отключить сессию Matrix"
-      : "Автоматическая авторизация Matrix";
+    : mtrxFailed
+      ? "Сбросить неудачную авторизацию Matrix"
+      : mtrxAuthorized
+        ? "Отключить сессию Matrix"
+        : "Автоматическая авторизация Matrix";
 
   // Тумблер — и индикатор состояния сессии, и действие (что делать, решает контейнер)
   const handleToggleMtrx = () => {
