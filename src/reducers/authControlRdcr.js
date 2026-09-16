@@ -11,7 +11,9 @@ import {
 // store/preloadedState.js → preloadedState в configureStore.
 export const initialState = {
   displayAd: false,
-  displayAuthPad: true,
+  // Мост к сервисам показываем после успешной AD-авторизации (AUTHCTL_SUBMIT_SUCCESS);
+  // на старте вместо него — ссылки на обе формы авторизации (AuthLinks)
+  displayAuthPad: false,
   displayControl: true,
   uriAdAuth: "",
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'

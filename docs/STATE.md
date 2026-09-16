@@ -77,8 +77,8 @@ sequenceDiagram
   participant ADAPI as внешний AD-сервис
 
   Note over UI,Store: Старт
-  Note over UI: authControlRdcr.displayAd=false (форма AD скрыта), displayAuthPad=true → AuthPad
-  Note over UI: mtrxControlRdcr.displayReg=false, displayPad=false
+  Note over UI: срез AD: displayAd=false, displayAuthPad=false → на экране только ссылки AuthLinks
+  Note over UI: срез Matrix: displayReg=false, displayPad=false → чата нет
 
   Note over UI,Store: Restore
   UI->>Redux: handleRestoreSession
@@ -177,12 +177,14 @@ sequenceDiagram
 
 Thunk-и namespace-чистые: `authControlActions` не диспатчит `MTRXCTL_`, `mtrxControlActions` —
 `AUTHCTL_`. Оба направления моста живут в `AuthContainer`. `AuthPad` рендерится по флагу
-`displayAuthPad` (пункт меню «Мост к сервисам», ✕ снимает флаг), который выставляется в `true`
-на `AUTHCTL_SUBMIT_SUCCESS` и сбрасывается на `AUTHCTL_CLEAR`; при отсутствии AD-данных `AuthPad`
-информирует текстом.
+`displayAuthPad` (пункт меню «Мост к сервисам», ✕ снимает флаг): `initialState` — `false`,
+`true` выставляется на `AUTHCTL_SUBMIT_SUCCESS`, сбрасывается на `AUTHCTL_CLEAR`. Поэтому на
+старте панели нет, а на экране — стартовый блок `AuthLinks` с двумя ссылками на формы
+авторизации; после успеха AD панель появляется (при отсутствии AD-данных она информирует текстом).
 
-Владение рендером — по срезу: `AuthContainer` (домен `authControlRdcr`) держит оба AD-блока —
-форму `AuthAd` (флаг `displayAd` или `errComponent === "AuthAd"`) и `AuthPad`; `MtrxContainer`
+Владение рендером — по срезу: `AuthContainer` (домен `authControlRdcr`, плюс стартовые ссылки на
+обе формы и мост) держит форму `AuthAd` (флаг `displayAd` или `errComponent === "AuthAd"`),
+`AuthPad` и `AuthLinks`; `MtrxContainer`
 (домен `mtrxControlRdcr`) рендерит форму входа `MtrxReg` (флаг `displayReg` или
 `errComponent === "MtrxReg"`) и `MtrxPadContainer`, auth-срез не читает. Обе формы входа —
 модальный `Dialog` в портале, вне потока документа, поэтому их показ не раздвигает вёрстку;

@@ -4,6 +4,7 @@ import { bindActionCreators } from "redux";
 import * as authActions from "../actions/authControlActions.js";
 import * as mtrxActions from "../actions/mtrxControlActions.js";
 import AuthAd from "../components/AuthAd.jsx";
+import AuthLinks from "../components/AuthLinks.jsx";
 import AuthPad from "../components/AuthPad.jsx";
 
 // Ключ пары матричных реквизитов: защищает от повторных dispatch на каждый ререндер
@@ -86,6 +87,16 @@ const AuthContainer = () => {
     authControlActions.handleChangeStore("displayAuthPad", false);
   };
 
+  // Стартовый экран: ссылки открывают формы своего среза (переходов между срезами нет —
+  // каждый вызов пишет только в свой)
+  const handleOpenAd = () => {
+    authControlActions.handleChangeStore("displayAd", true);
+  };
+
+  const handleOpenMtrx = () => {
+    mtrxControlActions.handleChangeStore("displayReg", true);
+  };
+
   // Мост к сервисам (MTRXCTL_ → AUTHCTL_): AuthAdInfo читает матричный идентификатор.
   // Только в рамках активного AD-сеанса, иначе после AD-выхода responseData заполнится снова.
   useEffect(() => {
@@ -98,11 +109,16 @@ const AuthContainer = () => {
     });
   }, [authStatus, mtrxStatus, mtrxUserId, responseData, authControlActions]);
 
-  // Оба блока AD-домена: форма входа (displayAd) и мост к сервисам (displayAuthPad);
-  // без AD-данных AuthPad информирует текстом, поэтому рендерится всегда по флагу меню.
+  // Стартовый экран — ссылки на обе формы, пока ни одна авторизация не прошла.
+  // Дальше: успех AD → мост AuthPad, успех Matrix → чат MtrxPadContainer (MtrxContainer)
+  const showAuthLinks = authStatus !== "success" && mtrxStatus !== "success";
+
+  // Оба блока AD-домена: форма входа (displayAd) и мост к сервисам (displayAuthPad).
   // Форма — модальный Dialog (портал), в потоке документа она места не занимает
   return (
     <>
+      {showAuthLinks && <AuthLinks onOpenAd={handleOpenAd} onOpenMtrx={handleOpenMtrx} />}
+
       {(displayAd || authErrComponent === "AuthAd") && <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
 
       {displayAuthPad && (

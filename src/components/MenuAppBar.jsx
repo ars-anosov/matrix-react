@@ -77,7 +77,8 @@ function MenuAppBar(props) {
   };
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    // Без flexGrow: корень App — flex-колонка, и выросшая обёртка уводила бы футер вниз
+    <Box>
       <AppBar position="static">
         <Toolbar>
           <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={handleOpenMenu}>

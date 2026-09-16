@@ -55,7 +55,7 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
 ```
 src/
 ├── components/   # UI: MtrxReg, MtrxPad, MtrxRoom(List), MtrxDeviceVerification, MtrxIco, MtrxInfo,
-│                 #     AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar
+│                 #     AuthLinks, AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar
 ├── containers/   # связка со store: MtrxContainer, MtrxPadContainer, AuthContainer, MenuAppContainer
 ├── actions/      # thunk-actions; utils/ — kyError.js, matrixError.js
 ├── reducers/     # *Rdcr, rootReducer.js, authTimeoutMiddleware.js
@@ -102,9 +102,12 @@ dist/             # результат npm run build — вручную не п�
   reducers не содержат Matrix-логики.
 - Namespace-инвариант: thunk-и `AUTHCTL_` не диспатчат `MTRXCTL_` (и наоборот). Мост
   к сервисам (`AUTHCTL_` ↔ `MTRXCTL_`) — только в контейнере `AuthContainer`. Владение
-  рендером — по срезу: `AuthContainer` (домен `authControlRdcr`) рендерит `AuthAd` и `AuthPad`,
+  рендером — по срезу: `AuthContainer` (домен `authControlRdcr`, там же мост и стартовые ссылки
+  `AuthLinks` на обе формы) рендерит `AuthLinks`, `AuthAd` и `AuthPad`,
   `MtrxContainer` (домен `mtrxControlRdcr`) — `MtrxReg` и `MtrxPadContainer`; чужой срез читает
-  только `AuthContainer` — как мост. Тумблер `AuthPad`
+  только `AuthContainer` — как мост. Стартовый экран: пока ни AD-, ни Matrix-сессия не активны,
+  видны только ссылки `AuthLinks`; успех AD → `AuthPad` (`displayAuthPad` в `initialState`
+  равен `false`), успех Matrix → чат `MtrxPadContainer` (`displayPad`). Тумблер `AuthPad`
   отражает состояние сессии Matrix: откл — авто-авторизация данными AD; зелёный (`status ===
   "success"`) и красный (`status === "error"` — неудачная авторизация, `authLost` — принудительный
   logout сервером / 401) — сброс сессии (`handleRegClear` → `logoutMatrix`), после сброса тумблер

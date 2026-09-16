@@ -102,7 +102,7 @@ function AuthPad(props) {
       <Box sx={{ p: 1 }}>
         <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
           <Typography variant="body1" color="text.primary">
-            {`Вход в Matrix ${mtrxLogin || "—"}`}
+            {`Вход в Matrix под ${mtrxLogin || "—"}`}
           </Typography>
           <Switch
             checked={mtrxSwitchOn}
