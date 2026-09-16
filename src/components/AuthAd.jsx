@@ -91,11 +91,7 @@ function AdAuth(props) {
       </IconButton>
 
       {/* Блок Логотипа и Заголовка: DialogTitle — единственный заголовок окна (h2) */}
-      <DialogTitle
-        id="adAuthTitle"
-        variant="h5"
-        sx={{ pt: 4, pb: 1, fontWeight: 600, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}
-      >
+      <DialogTitle id="adAuthTitle" variant="h5" sx={{ pt: 4, pb: 1, fontWeight: 600, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
         <Avatar
           sx={{
             width: 56,

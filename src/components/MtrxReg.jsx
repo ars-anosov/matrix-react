@@ -8,7 +8,21 @@ import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
-import { Alert, Avatar, Box, Button, Collapse, IconButton, InputAdornment, Paper, Stack, TextField, Typography } from "@mui/material";
+import {
+  Alert,
+  Avatar,
+  Button,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  InputAdornment,
+  Stack,
+  TextField,
+} from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -43,31 +57,43 @@ function MtrxReg(props) {
 
   const isSubmitDisabled = isLoading || isSuccess || !login.trim() || !password.trim() || (import.meta.env.DEV && !uriMatrix.trim());
 
+  // Модальное окно: портал вне потока документа, поэтому форма не раздвигает
+  // остальные компоненты; Escape и клик по подложке закрывают её через onClose.
+  // Paper — сам тег form, поэтому Enter в поле отправляет запрос, а кнопки живут
+  // в DialogActions (см. MUI → Dialog → Form dialog).
   return (
-    <Paper
-      elevation={12}
-      sx={{
-        maxWidth: 400,
-        width: { xs: "80vw", sm: "100%" },
-        mx: "auto",
-        mt: 2,
-        p: { xs: 2, sm: 4 },
-        borderRadius: 3,
-        position: "relative",
-        boxSizing: "border-box",
+    <Dialog
+      open
+      onClose={handleClose}
+      maxWidth="xs"
+      fullWidth
+      aria-labelledby="mtrxRegTitle"
+      aria-describedby="mtrxRegSubtitle"
+      slotProps={{
+        paper: {
+          component: "form",
+          onSubmit: handleSubmit,
+          noValidate: true,
+          sx: { borderRadius: 3 },
+        },
       }}
     >
-      <IconButton onClick={handleClose} disabled={isLoading} sx={{ position: "absolute", top: 4, right: 4 }}>
+      {/* Кнопка закрытия формы в углу подложки */}
+      <IconButton aria-label="Закрыть форму входа Matrix" onClick={handleClose} disabled={isLoading} sx={{ position: "absolute", top: 8, right: 8 }}>
         <IconClose color="action" />
       </IconButton>
 
-      <Stack spacing={1} sx={{ alignItems: "center", mb: 4 }}>
+      {/* Блок Логотипа и Заголовка: DialogTitle — единственный заголовок окна (h2) */}
+      <DialogTitle
+        id="mtrxRegTitle"
+        variant="h5"
+        sx={{ pt: 4, pb: 1, fontWeight: 600, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}
+      >
         <Avatar
           sx={{
             width: 56,
             height: 56,
             backgroundColor: isSuccess ? "success.light" : "primary.light",
-            mb: 1,
             transition: "background-color 0.3s ease",
           }}
         >
@@ -78,16 +104,16 @@ function MtrxReg(props) {
             }}
           />
         </Avatar>
-        <Typography variant="h5" fontWeight="600">
-          Matrix
-        </Typography>
+        Matrix
+      </DialogTitle>
 
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
+      {/* DialogContent после DialogTitle идёт без верхнего паддинга — это штатное
+          правило MUI; первым элементом идёт подзаголовок, поэтому лейбл поля не обрезается */}
+      <DialogContent>
+        <DialogContentText id="mtrxRegSubtitle" variant="body2" sx={{ textAlign: "center", mb: 2.5 }}>
           {isSuccess ? responseData?.display_name || responseData?.user_id || "" : "Введите учетные данные"}
-        </Typography>
-      </Stack>
+        </DialogContentText>
 
-      <Box component="form" onSubmit={handleSubmit} noValidate>
         <Stack spacing={2.5}>
           <TextField
             fullWidth
@@ -160,45 +186,46 @@ function MtrxReg(props) {
             />
           )}
 
-          <Stack spacing={1.5} sx={{ pt: 1 }}>
-            {!isSuccess ? (
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                startIcon={<IconLogin />}
-                size="large"
-                fullWidth
-                disabled={isSubmitDisabled}
-                sx={{ py: 1.3, fontWeight: "bold", borderRadius: 2 }}
-              >
-                Войти в систему
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                variant="contained"
-                color="error"
-                startIcon={<IconLogout />}
-                size="large"
-                fullWidth
-                onClick={handleReset}
-                disabled={isLoading}
-                sx={{ py: 1.3, fontWeight: "bold", borderRadius: 2 }}
-              >
-                Выйти
-              </Button>
-            )}
-          </Stack>
+          <Collapse in={isError}>
+            <Alert severity="error" sx={{ borderRadius: 2 }}>
+              {mtrxControlRdcr.errText}
+            </Alert>
+          </Collapse>
         </Stack>
-      </Box>
+      </DialogContent>
 
-      <Collapse in={isError}>
-        <Alert severity="error" sx={{ mt: 3, borderRadius: 2 }}>
-          {mtrxControlRdcr.errText}
-        </Alert>
-      </Collapse>
-    </Paper>
+      {/* Блок управляющих кнопок */}
+      <DialogActions sx={{ px: 3, pb: 2.5 }}>
+        {!isSuccess ? (
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            startIcon={<IconLogin />}
+            size="large"
+            fullWidth
+            disabled={isSubmitDisabled}
+            sx={{ py: 1.3, fontWeight: "bold", borderRadius: 2 }}
+          >
+            Войти в систему
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="contained"
+            color="error"
+            startIcon={<IconLogout />}
+            size="large"
+            fullWidth
+            onClick={handleReset}
+            disabled={isLoading}
+            sx={{ py: 1.3, fontWeight: "bold", borderRadius: 2 }}
+          >
+            Выйти
+          </Button>
+        )}
+      </DialogActions>
+    </Dialog>
   );
 }
 

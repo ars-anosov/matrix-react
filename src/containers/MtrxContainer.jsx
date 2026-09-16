@@ -1,4 +1,4 @@
-import { Box, Grid } from "@mui/material";
+import { Grid } from "@mui/material";
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
@@ -9,7 +9,7 @@ import * as mtrxActions from "../actions/mtrxControlActions.js";
 import MtrxReg from "../components/MtrxReg.jsx";
 import MtrxPadContainer from "./MtrxPadContainer.jsx";
 
-// Контейнер среза Matrix: оверлей входа MtrxReg и мессенджер MtrxPadContainer.
+// Контейнер среза Matrix: форма входа MtrxReg и мессенджер MtrxPadContainer.
 // AD-вход (AuthAd) относится к authControlRdcr — его рендерит AuthContainer.
 const MtrxContainer = () => {
   const dispatch = useDispatch();
@@ -24,36 +24,11 @@ const MtrxContainer = () => {
 
   const { displayReg, displayPad, errComponent } = mtrxControlRdcr;
 
-  const isOverlayActive = displayReg || errComponent === "MtrxReg";
-
-  // Стили для оверлеев вынесены из тела рендера для производительности
-  const centerOverlayStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    zIndex: 10,
-    width: "auto",
-    pointerEvents: "auto",
-  };
-
+  // Форма входа — модальный Dialog (портал), в потоке документа она места не занимает,
+  // поэтому мессенджер под ней не сдвигается
   return (
-    <Box
-      sx={{
-        position: "relative",
-        width: "100%",
-        minHeight: isOverlayActive ? "400px" : "auto",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      {/* Центрирование MtrxReg */}
-      {(displayReg || errComponent === "MtrxReg") && (
-        <Box sx={centerOverlayStyle}>
-          <MtrxReg mtrxControlRdcr={mtrxControlRdcr} mtrxControlActions={mtrxControlActions} />
-        </Box>
-      )}
+    <>
+      {(displayReg || errComponent === "MtrxReg") && <MtrxReg mtrxControlRdcr={mtrxControlRdcr} mtrxControlActions={mtrxControlActions} />}
 
       <Grid
         container
@@ -71,7 +46,7 @@ const MtrxContainer = () => {
           </Grid>
         )}
       </Grid>
-    </Box>
+    </>
   );
 };
 

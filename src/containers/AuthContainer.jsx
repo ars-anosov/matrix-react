@@ -103,9 +103,7 @@ const AuthContainer = () => {
   // Форма — модальный Dialog (портал), в потоке документа она места не занимает
   return (
     <>
-      {(displayAd || authErrComponent === "AuthAd") && (
-        <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />
-      )}
+      {(displayAd || authErrComponent === "AuthAd") && <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
 
       {displayAuthPad && (
         <AuthPad authControlRdcr={authControlRdcr} mtrxControlRdcr={mtrxControlRdcr} onToggleMtrx={handleToggleMtrx} onClose={handleCloseAuthPad} />

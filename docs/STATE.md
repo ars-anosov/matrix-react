@@ -182,10 +182,11 @@ Thunk-и namespace-чистые: `authControlActions` не диспатчит `M
 информирует текстом.
 
 Владение рендером — по срезу: `AuthContainer` (домен `authControlRdcr`) держит оба AD-блока —
-форму `AuthAd` (флаг `displayAd` или `errComponent === "AuthAd"`, модальный `Dialog` в портале,
-вне потока документа) и `AuthPad`; `MtrxContainer` (домен `mtrxControlRdcr`) рендерит только
-`MtrxReg` и `MtrxPadContainer` и auth-срез не читает. Чужие срезы читает лишь `AuthContainer` —
-как мост.
+форму `AuthAd` (флаг `displayAd` или `errComponent === "AuthAd"`) и `AuthPad`; `MtrxContainer`
+(домен `mtrxControlRdcr`) рендерит форму входа `MtrxReg` (флаг `displayReg` или
+`errComponent === "MtrxReg"`) и `MtrxPadContainer`, auth-срез не читает. Обе формы входа —
+модальный `Dialog` в портале, вне потока документа, поэтому их показ не раздвигает вёрстку;
+чужие срезы читает лишь `AuthContainer` — как мост.
 
 Интерактивная Sequence-диаграмма этого процесса (archify):
 [`matrix-react-auth-sequence.html`](archify/matrix-react-auth-sequence.html) — AD-сессия, автовход
