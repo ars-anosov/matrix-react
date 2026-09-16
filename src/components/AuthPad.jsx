@@ -45,9 +45,18 @@ function AuthPad(props) {
     onToggleMtrx();
   };
 
-  // Подпись внизу вместо иконки-кругляша: пока AD-сеанса нет, Matrix-реквизиты
-  // (mtrx_login / mtrx_password) недоступны, поэтому тумблер автозапуска не сработает
-  const isAdRequired = authControlRdcr?.status !== "success";
+  // Информируем, если AD-авторизация не выполнена или не вернула матричную пару:
+  // без неё тумблер автозапуска не сработает
+  const missingFields = [];
+  if (!mtrxLogin) missingFields.push("mtrx_login");
+  if (!mtrxPassword) missingFields.push("mtrx_password");
+
+  let infoText = "";
+  if (authControlRdcr?.status !== "success") {
+    infoText = "AD авторизация не выполнена — mtrx_login / mtrx_password недоступны.";
+  } else if (missingFields.length > 0) {
+    infoText = `AD не вернул: ${missingFields.join(", ")}.`;
+  }
 
   return (
     <Paper
@@ -106,12 +115,12 @@ function AuthPad(props) {
           />
         </Stack>
 
-        {/* Отчерк и мелкая серая подпись по центру: AD-сеанса нет — реквизитов Matrix тоже */}
-        {isAdRequired && (
+        {/* Отчерк и мелкая серая подпись по центру: AD-сеанса нет или в нём нет матричной пары */}
+        {infoText && (
           <>
             <Divider sx={{ mt: 1 }} />
             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center" }}>
-              Требуется AD Авторизация
+              {infoText}
             </Typography>
           </>
         )}

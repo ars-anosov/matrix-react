@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
 import * as authActions from "../actions/authControlActions.js";
 import * as mtrxActions from "../actions/mtrxControlActions.js";
+import AuthAd from "../components/AuthAd.jsx";
 import AuthPad from "../components/AuthPad.jsx";
 
 // Ключ пары матричных реквизитов: защищает от повторных dispatch на каждый ререндер
@@ -20,7 +21,7 @@ const AuthContainer = () => {
   const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch]);
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { responseData, displayAuthPad, status: authStatus } = authControlRdcr;
+  const { responseData, displayAd, displayAuthPad, status: authStatus, errComponent: authErrComponent } = authControlRdcr;
   const { uriMatrix, status: mtrxStatus, authLost: mtrxAuthLost } = mtrxControlRdcr;
 
   // Реквизиты Matrix из ответа AD (см. README → AuthAd.jsx)
@@ -97,10 +98,20 @@ const AuthContainer = () => {
     });
   }, [authStatus, mtrxStatus, mtrxUserId, responseData, authControlActions]);
 
-  // AuthPad показывается по флагу меню; без AD-данных она информирует об этом
-  if (!displayAuthPad) return null;
+  // Оба блока AD-домена: форма входа (displayAd) и мост к сервисам (displayAuthPad);
+  // без AD-данных AuthPad информирует текстом, поэтому рендерится всегда по флагу меню.
+  // Форма — модальный Dialog (портал), в потоке документа она места не занимает
+  return (
+    <>
+      {(displayAd || authErrComponent === "AuthAd") && (
+        <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />
+      )}
 
-  return <AuthPad authControlRdcr={authControlRdcr} mtrxControlRdcr={mtrxControlRdcr} onToggleMtrx={handleToggleMtrx} onClose={handleCloseAuthPad} />;
+      {displayAuthPad && (
+        <AuthPad authControlRdcr={authControlRdcr} mtrxControlRdcr={mtrxControlRdcr} onToggleMtrx={handleToggleMtrx} onClose={handleCloseAuthPad} />
+      )}
+    </>
+  );
 };
 
 export default AuthContainer;

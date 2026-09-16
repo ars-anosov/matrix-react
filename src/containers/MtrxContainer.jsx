@@ -2,32 +2,29 @@ import { Box, Grid } from "@mui/material";
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
-import * as authActions from "../actions/authControlActions.js";
 // Actions
 import * as mtrxActions from "../actions/mtrxControlActions.js";
 
 // Components
-import AuthAd from "../components/AuthAd.jsx";
 import MtrxReg from "../components/MtrxReg.jsx";
 import MtrxPadContainer from "./MtrxPadContainer.jsx";
 
+// Контейнер среза Matrix: оверлей входа MtrxReg и мессенджер MtrxPadContainer.
+// AD-вход (AuthAd) относится к authControlRdcr — его рендерит AuthContainer.
 const MtrxContainer = () => {
   const dispatch = useDispatch();
 
   const mtrxControlRdcr = useSelector((state) => state.mtrxControlRdcr);
-  const authControlRdcr = useSelector((state) => state.authControlRdcr);
 
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
-  const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch]);
 
   useEffect(() => {
     mtrxControlActions.handleRestoreSession();
   }, [mtrxControlActions]);
 
-  const { displayAd, errComponent: authErrComponent } = authControlRdcr;
   const { displayReg, displayPad, errComponent } = mtrxControlRdcr;
 
-  const isOverlayActive = displayAd || authErrComponent === "AuthAd" || displayReg || errComponent === "MtrxReg";
+  const isOverlayActive = displayReg || errComponent === "MtrxReg";
 
   // Стили для оверлеев вынесены из тела рендера для производительности
   const centerOverlayStyle = {
@@ -51,13 +48,6 @@ const MtrxContainer = () => {
         justifyContent: "center",
       }}
     >
-      {/* Центрирование AuthAd */}
-      {(displayAd || authErrComponent === "AuthAd") && (
-        <Box sx={centerOverlayStyle}>
-          <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />
-        </Box>
-      )}
-
       {/* Центрирование MtrxReg */}
       {(displayReg || errComponent === "MtrxReg") && (
         <Box sx={centerOverlayStyle}>

@@ -101,7 +101,10 @@ dist/             # результат npm run build — вручную не п�
 - Actions только валидируют UI-ввод, вызывают сервисы и преобразуют результат в actions;
   reducers не содержат Matrix-логики.
 - Namespace-инвариант: thunk-и `AUTHCTL_` не диспатчат `MTRXCTL_` (и наоборот). Мост
-  к сервисам (`AUTHCTL_` ↔ `MTRXCTL_`) — только в контейнере `AuthContainer`. Тумблер `AuthPad`
+  к сервисам (`AUTHCTL_` ↔ `MTRXCTL_`) — только в контейнере `AuthContainer`. Владение
+  рендером — по срезу: `AuthContainer` (домен `authControlRdcr`) рендерит `AuthAd` и `AuthPad`,
+  `MtrxContainer` (домен `mtrxControlRdcr`) — `MtrxReg` и `MtrxPadContainer`; чужой срез читает
+  только `AuthContainer` — как мост. Тумблер `AuthPad`
   отражает состояние сессии Matrix: откл — авто-авторизация данными AD; зелёный (`status ===
   "success"`) и красный (`status === "error"` — неудачная авторизация, `authLost` — принудительный
   logout сервером / 401) — сброс сессии (`handleRegClear` → `logoutMatrix`), после сброса тумблер

@@ -181,6 +181,12 @@ Thunk-и namespace-чистые: `authControlActions` не диспатчит `M
 на `AUTHCTL_SUBMIT_SUCCESS` и сбрасывается на `AUTHCTL_CLEAR`; при отсутствии AD-данных `AuthPad`
 информирует текстом.
 
+Владение рендером — по срезу: `AuthContainer` (домен `authControlRdcr`) держит оба AD-блока —
+форму `AuthAd` (флаг `displayAd` или `errComponent === "AuthAd"`, модальный `Dialog` в портале,
+вне потока документа) и `AuthPad`; `MtrxContainer` (домен `mtrxControlRdcr`) рендерит только
+`MtrxReg` и `MtrxPadContainer` и auth-срез не читает. Чужие срезы читает лишь `AuthContainer` —
+как мост.
+
 Интерактивная Sequence-диаграмма этого процесса (archify):
 [`matrix-react-auth-sequence.html`](archify/matrix-react-auth-sequence.html) — AD-сессия, автовход
 данными AD, исход входа и сброс сессии.
