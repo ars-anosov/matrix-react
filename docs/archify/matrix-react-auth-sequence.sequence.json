@@ -2,109 +2,369 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "matrix-react: авторизация и сброс сессии Matrix",
+    "title": "matrix-react: вход, сессия Matrix и сброс",
     "quality_profile": "showcase",
-    "viewBox": [2400, 970],
+    "viewBox": [
+      2400,
+      1060
+    ],
     "column_fit": "spread",
     "views": [
       {
+        "id": "start-screen",
+        "label": "Стартовый экран",
+        "focus": [
+          "user",
+          "authlinks",
+          "authad"
+        ],
+        "note": "Пока ни AD-, ни Matrix-сессия не активны, AuthLinks показывает две иконки входа; обе формы — модальные диалоги."
+      },
+      {
         "id": "ad-session",
         "label": "AD-сессия",
-        "focus": ["user", "authad", "ad", "bridge"],
-        "note": "AuthAd.jsx отдаёт логин и пароль AD на внешний сервис и получает матричные реквизиты."
+        "focus": [
+          "user",
+          "authad",
+          "ad",
+          "bridge",
+          "authpad"
+        ],
+        "note": "AuthAd отдаёт логин и пароль AD на внешний сервис и получает матричные реквизиты."
       },
       {
         "id": "matrix-login",
         "label": "Автовход в Matrix",
-        "focus": ["user", "authpad", "bridge", "mtrx", "hs"],
+        "focus": [
+          "user",
+          "authpad",
+          "bridge",
+          "mtrx",
+          "hs"
+        ],
         "note": "Клик по тумблеру откл запускает handleRegister: успех — зелёный, ошибка — красный."
       },
       {
         "id": "session-reset",
         "label": "Сброс сессии",
-        "focus": ["user", "authpad", "bridge", "mtrx", "hs"],
+        "focus": [
+          "user",
+          "authpad",
+          "bridge",
+          "mtrx",
+          "hs"
+        ],
         "note": "Клик по цветному тумблеру вызывает handleRegClear: logout и очистка хранилищ."
       }
     ]
   },
   "participants": [
-    { "id": "user", "type": "external", "label": "Пользователь", "sublabel": "браузер" },
-    { "id": "authad", "type": "frontend", "label": "AuthAd.jsx", "sublabel": "форма AD" },
-    { "id": "ad", "type": "security", "label": "Сервис AD", "sublabel": "POST /user/ad" },
-    { "id": "authpad", "type": "frontend", "label": "AuthPad.jsx", "sublabel": "тумблер сессии" },
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Пользователь",
+      "sublabel": "браузер"
+    },
+    {
+      "id": "authlinks",
+      "type": "frontend",
+      "label": "AuthLinks.jsx",
+      "sublabel": "стартовый экран"
+    },
+    {
+      "id": "authad",
+      "type": "frontend",
+      "label": "AuthAd.jsx",
+      "sublabel": "диалог AD"
+    },
+    {
+      "id": "ad",
+      "type": "security",
+      "label": "Сервис AD",
+      "sublabel": "POST /user/ad"
+    },
+    {
+      "id": "authpad",
+      "type": "frontend",
+      "label": "AuthPad.jsx",
+      "sublabel": "тумблер сессии"
+    },
     {
       "id": "bridge",
       "type": "frontend",
       "label": "AuthContainer.jsx",
       "sublabel": "мост AUTHCTL_ ↔ MTRXCTL_"
     },
-    { "id": "mtrx", "type": "backend", "label": "matrixClient.js", "sublabel": "доменный API" },
-    { "id": "hs", "type": "external", "label": "Homeserver Matrix", "sublabel": "/_matrix/client/v3" }
+    {
+      "id": "mtrx",
+      "type": "backend",
+      "label": "matrixClient.js",
+      "sublabel": "доменный API"
+    },
+    {
+      "id": "hs",
+      "type": "external",
+      "label": "Homeserver Matrix",
+      "sublabel": "/_matrix/client/v3"
+    }
   ],
   "segments": [
-    { "from": 150, "to": 292, "label": "AD-сессия" },
-    { "from": 302, "to": 640, "label": "Автовход в Matrix" },
-    { "from": 650, "to": 900, "label": "Сброс сессии" }
+    {
+      "from": 150,
+      "to": 262,
+      "label": "Стартовый экран"
+    },
+    {
+      "from": 275,
+      "to": 478,
+      "label": "AD-сессия"
+    },
+    {
+      "from": 487,
+      "to": 778,
+      "label": "Вход в Matrix"
+    },
+    {
+      "from": 787,
+      "to": 950,
+      "label": "Сброс сессии"
+    }
   ],
   "messages": [
-    { "id": "ad-credentials", "from": "user", "to": "authad", "y": 185, "label": "логин и пароль AD", "variant": "emphasis" },
-    { "id": "ad-request", "from": "authad", "to": "ad", "y": 227, "label": "POST /user/ad", "variant": "security" },
-    { "id": "ad-response", "from": "ad", "to": "authad", "y": 269, "label": "mtrx_login · mtrx_password", "variant": "return" },
-
-    { "id": "tumbler-click-off", "from": "user", "to": "authpad", "y": 320, "label": "клик по тумблеру (откл)", "variant": "emphasis" },
-    { "id": "toggle", "from": "authpad", "to": "bridge", "y": 362, "label": "onToggleMtrx()" },
-    { "id": "register", "from": "bridge", "to": "mtrx", "y": 404, "label": "handleRegister({ login, password, uriMatrix })", "variant": "emphasis" },
-    { "id": "login-request", "from": "mtrx", "to": "hs", "y": 446, "label": "POST /_matrix/client/v3/login", "variant": "emphasis" },
-    { "id": "login-tokens", "from": "hs", "to": "mtrx", "y": 488, "label": "access_token · refresh_token", "variant": "return", "note": "ветка успеха" },
-    { "id": "login-error", "from": "hs", "to": "mtrx", "y": 530, "label": "403 M_FORBIDDEN", "variant": "dashed", "note": "ветка ошибки" },
-    { "id": "submit-success", "from": "mtrx", "to": "bridge", "y": 572, "label": "MTRXCTL_SUBMIT_SUCCESS → зелёный тумблер", "variant": "return" },
-    { "id": "submit-error", "from": "mtrx", "to": "bridge", "y": 614, "label": "MTRXCTL_SUBMIT_ERROR → красный, без формы MtrxReg", "variant": "dashed" },
-
-    { "id": "tumbler-click-color", "from": "user", "to": "authpad", "y": 664, "label": "клик по зелёному или красному", "variant": "emphasis" },
-    { "id": "toggle-clear", "from": "authpad", "to": "bridge", "y": 706, "label": "onToggleMtrx()" },
-    { "id": "reg-clear", "from": "bridge", "to": "mtrx", "y": 748, "label": "handleRegClear()", "variant": "emphasis" },
-    { "id": "logout-request", "from": "mtrx", "to": "hs", "y": 790, "label": "POST /_matrix/client/v3/logout", "variant": "emphasis" },
-    { "id": "clear", "from": "mtrx", "to": "bridge", "y": 832, "label": "MTRXCTL_CLEAR + очистка localStorage / IndexedDB", "variant": "return" },
-    { "id": "tumbler-off", "from": "bridge", "to": "authpad", "y": 874, "label": "тумблер откл: сессии нет", "variant": "return" }
+    {
+      "id": "open-entry",
+      "from": "user",
+      "to": "authlinks",
+      "y": 182,
+      "label": "клик по иконке входа",
+      "variant": "emphasis"
+    },
+    {
+      "id": "open-ad",
+      "from": "authlinks",
+      "to": "authad",
+      "y": 220,
+      "label": "открыть диалог AD (displayAd)"
+    },
+    {
+      "id": "ad-credentials",
+      "from": "user",
+      "to": "authad",
+      "y": 302,
+      "label": "логин и пароль AD",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ad-request",
+      "from": "authad",
+      "to": "ad",
+      "y": 340,
+      "label": "handleAdRegister → POST /user/ad",
+      "variant": "security"
+    },
+    {
+      "id": "ad-response",
+      "from": "ad",
+      "to": "authad",
+      "y": 378,
+      "label": "mtrx_login · mtrx_password",
+      "variant": "return"
+    },
+    {
+      "id": "ad-success",
+      "from": "authad",
+      "to": "bridge",
+      "y": 416,
+      "label": "AUTHCTL_SUBMIT_SUCCESS"
+    },
+    {
+      "id": "show-pad",
+      "from": "bridge",
+      "to": "authpad",
+      "y": 454,
+      "label": "displayAuthPad + логин AD подставлен"
+    },
+    {
+      "id": "tumbler-click-off",
+      "from": "user",
+      "to": "authpad",
+      "y": 494,
+      "label": "клик по тумблеру (откл)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "toggle",
+      "from": "authpad",
+      "to": "bridge",
+      "y": 532,
+      "label": "onToggleMtrx()"
+    },
+    {
+      "id": "register",
+      "from": "bridge",
+      "to": "mtrx",
+      "y": 570,
+      "label": "handleRegister({ login, password, uriMatrix })",
+      "variant": "emphasis"
+    },
+    {
+      "id": "login-request",
+      "from": "mtrx",
+      "to": "hs",
+      "y": 608,
+      "label": "POST /_matrix/client/v3/login",
+      "variant": "emphasis"
+    },
+    {
+      "id": "login-tokens",
+      "from": "hs",
+      "to": "mtrx",
+      "y": 646,
+      "label": "access_token · refresh_token",
+      "variant": "return",
+      "note": "ветка успеха"
+    },
+    {
+      "id": "login-error",
+      "from": "hs",
+      "to": "mtrx",
+      "y": 684,
+      "label": "403 M_FORBIDDEN",
+      "variant": "dashed",
+      "note": "ветка ошибки"
+    },
+    {
+      "id": "submit-success",
+      "from": "mtrx",
+      "to": "bridge",
+      "y": 722,
+      "label": "MTRXCTL_SUBMIT_SUCCESS → зелёный",
+      "variant": "return"
+    },
+    {
+      "id": "submit-error",
+      "from": "mtrx",
+      "to": "bridge",
+      "y": 760,
+      "label": "MTRXCTL_SUBMIT_ERROR → красный",
+      "variant": "dashed"
+    },
+    {
+      "id": "tumbler-click-color",
+      "from": "user",
+      "to": "authpad",
+      "y": 794,
+      "label": "клик по зелёному или красному",
+      "variant": "emphasis"
+    },
+    {
+      "id": "toggle-clear",
+      "from": "authpad",
+      "to": "bridge",
+      "y": 832,
+      "label": "onToggleMtrx()"
+    },
+    {
+      "id": "reg-clear",
+      "from": "bridge",
+      "to": "mtrx",
+      "y": 870,
+      "label": "handleRegClear()",
+      "variant": "emphasis"
+    },
+    {
+      "id": "logout-request",
+      "from": "mtrx",
+      "to": "hs",
+      "y": 908,
+      "label": "POST /_matrix/client/v3/logout",
+      "variant": "emphasis"
+    },
+    {
+      "id": "clear",
+      "from": "mtrx",
+      "to": "bridge",
+      "y": 946,
+      "label": "MTRXCTL_CLEAR + очистка localStorage / IndexedDB",
+      "variant": "return"
+    }
   ],
   "activations": [
-    { "participant": "authad", "from": 174, "to": 292, "type": "frontend" },
-    { "participant": "ad", "from": 221, "to": 276, "type": "security" },
-    { "participant": "authpad", "from": 314, "to": 380, "type": "frontend" },
-    { "participant": "bridge", "from": 356, "to": 596, "type": "frontend" },
-    { "participant": "mtrx", "from": 398, "to": 596, "type": "backend" },
-    { "participant": "hs", "from": 440, "to": 542, "type": "external" },
-    { "participant": "authpad", "from": 658, "to": 890, "type": "frontend" },
-    { "participant": "bridge", "from": 700, "to": 888, "type": "frontend" },
-    { "participant": "mtrx", "from": 742, "to": 840, "type": "backend" },
-    { "participant": "hs", "from": 784, "to": 836, "type": "external" }
+    {
+      "participant": "authlinks",
+      "from": 174,
+      "to": 250,
+      "type": "frontend"
+    },
+    {
+      "participant": "authad",
+      "from": 292,
+      "to": 450,
+      "type": "frontend"
+    },
+    {
+      "participant": "ad",
+      "from": 330,
+      "to": 395,
+      "type": "security"
+    },
+    {
+      "participant": "bridge",
+      "from": 410,
+      "to": 950,
+      "type": "frontend"
+    },
+    {
+      "participant": "authpad",
+      "from": 450,
+      "to": 950,
+      "type": "frontend"
+    },
+    {
+      "participant": "mtrx",
+      "from": 565,
+      "to": 950,
+      "type": "backend"
+    },
+    {
+      "participant": "hs",
+      "from": 600,
+      "to": 700,
+      "type": "external"
+    },
+    {
+      "participant": "hs",
+      "from": 900,
+      "to": 955,
+      "type": "external"
+    }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "AD-сессия",
+      "title": "Стартовый экран",
       "items": [
-        "AuthAd.jsx отправляет логин и пароль на сервис AD по https",
-        "В Redux попадают mtrx_login / mtrx_password из ответа",
-        "Срок сессии AD (24 ч) проверяет authTimeoutMiddleware"
+        "AuthLinks: Hub и AdminPanelSettings",
+        "Обе формы — модальные Dialog"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Автовход и его исход",
+      "title": "AD-сессия и мост",
       "items": [
-        "Тумблер откл → handleRegister данными AD; пароль в Redux не хранится",
-        "Успех — зелёный тумблер, ошибка входа — красный",
-        "Ветки ответа (access_token и 403) взаимоисключающие"
+        "AuthAd шлёт логин и пароль по https",
+        "Ответ AD: mtrx_login / mtrx_password",
+        "AuthContainer: логин → MtrxReg, AuthPad"
       ]
     },
     {
       "dot": "violet",
-      "title": "Сброс сессии",
+      "title": "Автовход и сброс",
       "items": [
-        "Клик по зелёному или красному тумблеру → handleRegClear",
-        "logoutMatrix(): POST /logout, очистка localStorage и IndexedDB",
-        "watchMatrixSession ловит logout сервером → authLost → красный тумблер"
+        "Тумблер откл — автовход данными AD",
+        "Успех зелёный, ошибка красный",
+        "Цветной клик → handleRegClear",
+        "logout сервером → authLost → красный"
       ]
     }
   ]

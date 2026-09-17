@@ -6,7 +6,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react.git",
-      "revision": "0a3f7e62bbac853fedede1bd092cf1f1d2c5793e"
+      "revision": "b6c1e0468c326428b047428a8ee0b12244ed6ca3"
     },
     "legend": {
       "mode": "auto",
@@ -47,13 +47,15 @@
         "id": "session-start",
         "label": "Старт и восстановление сессии",
         "focus": [
+          "ui",
+          "containers",
           "actions",
           "services",
           "storage",
           "sdk",
           "homeserver"
         ],
-        "note": "Вход по паролю или восстановление сохранённой сессии, затем /sync."
+        "note": "AuthLinks предлагает две иконки входа: диалог AD (AuthAd) и диалог Matrix (MtrxReg); сохранённая сессия восстанавливается до /sync."
       },
       {
         "id": "state-and-storage",
@@ -77,7 +79,7 @@
           "actions",
           "services"
         ],
-        "note": "Сессия AD в Redux: AuthContainer берёт mtrx_login / mtrx_password и зовёт handleRegister."
+        "note": "AuthContainer берёт mtrx_login / mtrx_password из ответа AD, подставляет логин в MtrxReg и показывает AuthPad с тумблером сессии."
       }
     ]
   },
@@ -100,7 +102,7 @@
       "id": "ui",
       "type": "frontend",
       "label": "Компоненты React",
-      "sublabel": "MtrxReg · MtrxPad",
+      "sublabel": "AuthLinks · MtrxReg/AuthAd",
       "tag": "Material UI",
       "pos": [
         256,
@@ -112,17 +114,19 @@
       ],
       "sources": [
         {
-          "path": "src/App.jsx",
-          "line": 7,
-          "label": "корневой layout"
-        },
-        {
-          "path": "src/components/MtrxPad.jsx",
-          "label": "чат"
+          "path": "src/components/AuthLinks.jsx",
+          "line": 17,
+          "label": "стартовый экран"
         },
         {
           "path": "src/components/MtrxReg.jsx",
-          "label": "вход"
+          "line": 29,
+          "label": "диалог Matrix"
+        },
+        {
+          "path": "src/components/AuthAd.jsx",
+          "line": 30,
+          "label": "диалог AD"
         }
       ]
     },
@@ -141,12 +145,17 @@
       ],
       "sources": [
         {
-          "path": "src/containers/MtrxPadContainer.jsx",
-          "line": 26
+          "path": "src/containers/AuthContainer.jsx",
+          "line": 16,
+          "label": "мост AD → Matrix"
         },
         {
           "path": "src/containers/MtrxContainer.jsx",
           "line": 14
+        },
+        {
+          "path": "src/containers/MenuAppContainer.jsx",
+          "line": 8
         }
       ]
     },
@@ -167,12 +176,17 @@
       "sources": [
         {
           "path": "src/actions/mtrxControlActions.js",
-          "line": 120,
+          "line": 118,
           "label": "handleRestoreSession"
         },
         {
+          "path": "src/actions/mtrxControlActions.js",
+          "line": 68,
+          "label": "handleRegister"
+        },
+        {
           "path": "src/actions/authControlActions.js",
-          "line": 18,
+          "line": 15,
           "label": "handleAdRegister"
         }
       ]
@@ -224,12 +238,12 @@
       "sources": [
         {
           "path": "src/services/matrixClient.js",
-          "line": 636,
+          "line": 625,
           "label": "loginMatrix"
         },
         {
           "path": "src/services/matrixRooms.js",
-          "line": 285,
+          "line": 279,
           "label": "watchRoomList"
         }
       ]
@@ -272,13 +286,13 @@
       "sources": [
         {
           "path": "src/services/matrixClient.js",
-          "line": 599,
-          "label": "startClient"
+          "line": 586,
+          "label": "startMatrixSync"
         },
         {
           "path": "src/services/matrixClient.js",
-          "line": 643,
-          "label": "loginRequest"
+          "line": 761,
+          "label": "logoutMatrix"
         }
       ]
     },
@@ -301,7 +315,7 @@
         },
         {
           "path": "src/services/matrixClient.js",
-          "line": 556,
+          "line": 545,
           "label": "persistMatrixSession"
         }
       ]
@@ -322,12 +336,12 @@
       "sources": [
         {
           "path": "src/services/matrixClient.js",
-          "line": 69,
+          "line": 63,
           "label": "IndexedDBStore"
         },
         {
           "path": "src/services/matrixClient.js",
-          "line": 129,
+          "line": 122,
           "label": "initRustCrypto"
         }
       ]
@@ -349,18 +363,18 @@
       "sources": [
         {
           "path": "src/containers/AuthContainer.jsx",
-          "line": 67,
+          "line": 69,
           "label": "тумблер: handleToggleMtrx"
         },
         {
-          "path": "src/components/AuthPad.jsx",
-          "line": 29,
-          "label": "откл / зелёный / красный"
+          "path": "src/containers/AuthContainer.jsx",
+          "line": 114,
+          "label": "стартовый экран AuthLinks"
         },
         {
-          "path": "src/actions/authControlActions.js",
-          "line": 43,
-          "label": "loginAd → mtrx_login"
+          "path": "src/components/AuthPad.jsx",
+          "line": 24,
+          "label": "откл / зелёный / красный"
         }
       ]
     },
@@ -487,7 +501,7 @@
       "id": "services-to-adauth",
       "from": "services",
       "to": "adauth",
-      "label": "проверка AD",
+      "label": "loginAd → POST /user/ad",
       "variant": "dashed",
       "fromSide": "bottom",
       "toSide": "left"
@@ -496,7 +510,7 @@
       "id": "bridge-to-actions",
       "from": "bridge",
       "to": "actions",
-      "label": "handleRegister",
+      "label": "handleRegister · handleRegClear",
       "fromSide": "top",
       "toSide": "bottom"
     }
@@ -506,32 +520,32 @@
       "dot": "cyan",
       "title": "Слои приложения",
       "items": [
-        "components/ — только презентация на Material UI",
-        "containers/ — useSelector, bindActionCreators; AuthContainer — мост AUTHCTL_ ↔ MTRXCTL_",
-        "actions/ — thunk-actions: валидация ввода и вызов сервиса",
-        "services/ — вся логика matrix-js-sdk, наружу узкий доменный API",
-        "store/ — configureStore + preloadedState: сид и DI middleware, reducers без сервисов"
+        "components/ — Material UI, формы в Dialog",
+        "containers/ — useSelector + bindActions",
+        "actions/ — thunk: валидация и вызов API",
+        "services/ — логика matrix-js-sdk, узкий API",
+        "store/ — configureStore + preloadedState"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Сессия Matrix",
+      "title": "Авторизация и сессия",
       "items": [
-        "loginMatrix() — m.login.password с refresh_token",
-        "restoreMatrixSession() — клиент по токенам",
-        "startClient({ initialSyncLimit: 10 }) — поток /sync",
-        "watchMatrixSession() — принудительный logout от сервера",
-        "AuthPad: откл — автовход AD; зелёный и красный — logoutMatrix"
+        "AuthLinks: вход в Matrix или AD",
+        "AD → mtrx_login в форму MtrxReg",
+        "loginMatrix() + refresh_token",
+        "startClient → /sync; watchMatrixSession",
+        "Тумблер: автовход AD или сброс"
       ]
     },
     {
       "dot": "violet",
       "title": "Состояние и хранилища",
       "items": [
-        "Redux — лёгкий UI-индекс, сообщения не сериализуются",
-        "localStorage — токены, deviceId, сессия AD (TTL 24 ч)",
-        "IndexedDB — sync store и Rust crypto (m.sas.v1)",
-        "Комнаты, таймлайн и участники — источник истины SDK"
+        "Redux — UI-индекс, не сообщения",
+        "localStorage — токены, deviceId, AD",
+        "IndexedDB — sync store и Rust crypto",
+        "Комнаты и таймлайн — истина SDK"
       ]
     }
   ]

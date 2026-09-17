@@ -4840,8 +4840,8 @@
       </div>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"main-flow","label":"Основной поток данных","focus":["users","ui","containers","actions","services","sdk","homeserver"],"note":"Ввод пользователя проходит слои React → Redux → services → matrix-js-sdk и уходит на homeserver."},{"id":"session-start","label":"Старт и восстановление сессии","focus":["actions","services","storage","sdk","homeserver"],"note":"Вход по паролю или восстановление сохранённой сессии, затем /sync."},{"id":"state-and-storage","label":"Состояние и хранилища","focus":["store","containers","storage","idb","sdk"],"note":"Redux держит только UI-индекс, данные комнат живут в SDK и IndexedDB."},{"id":"bridge-ad-matrix","label":"Мост AD → Matrix","focus":["adauth","store","bridge","actions","services"],"note":"Сессия AD в Redux: AuthContainer берёт mtrx_login / mtrx_password и зовёт handleRegister."}]</script>
-    <script id="archify-source-evidence-data" type="application/json">{"schemaVersion":1,"verified":true,"repository":{"url":"https://github.com/ars-anosov/matrix-react","revision":"0a3f7e62bbac853fedede1bd092cf1f1d2c5793e","shortRevision":"0a3f7e6"},"referenceCount":24,"nodes":{"ui":[{"path":"src/App.jsx","line":7,"label":"корневой layout","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/App.jsx#L7"},{"path":"src/components/MtrxPad.jsx","label":"чат","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/components/MtrxPad.jsx"},{"path":"src/components/MtrxReg.jsx","label":"вход","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/components/MtrxReg.jsx"}],"containers":[{"path":"src/containers/MtrxPadContainer.jsx","line":26,"href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/containers/MtrxPadContainer.jsx#L26"},{"path":"src/containers/MtrxContainer.jsx","line":14,"href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/containers/MtrxContainer.jsx#L14"}],"actions":[{"path":"src/actions/mtrxControlActions.js","line":120,"label":"handleRestoreSession","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/actions/mtrxControlActions.js#L120"},{"path":"src/actions/authControlActions.js","line":18,"label":"handleAdRegister","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/actions/authControlActions.js#L18"}],"store":[{"path":"src/reducers/mtrxControlRdcr.js","line":17,"label":"UI-индекс","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/reducers/mtrxControlRdcr.js#L17"},{"path":"src/store/configureStore.js","line":12,"label":"createStore + DI","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/store/configureStore.js#L12"},{"path":"src/store/preloadedState.js","line":7,"label":"сид uriAdAuth","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/store/preloadedState.js#L7"}],"services":[{"path":"src/services/matrixClient.js","line":636,"label":"loginMatrix","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L636"},{"path":"src/services/matrixRooms.js","line":285,"label":"watchRoomList","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixRooms.js#L285"}],"sdk":[{"path":"src/services/matrixSdk.js","line":8,"label":"loadMatrixSdk","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixSdk.js#L8"}],"homeserver":[{"path":"src/services/matrixClient.js","line":599,"label":"startClient","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L599"},{"path":"src/services/matrixClient.js","line":643,"label":"loginRequest","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L643"}],"storage":[{"path":"src/constants/storage.js","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/constants/storage.js"},{"path":"src/services/matrixClient.js","line":556,"label":"persistMatrixSession","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L556"}],"idb":[{"path":"src/services/matrixClient.js","line":69,"label":"IndexedDBStore","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L69"},{"path":"src/services/matrixClient.js","line":129,"label":"initRustCrypto","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/matrixClient.js#L129"}],"bridge":[{"path":"src/containers/AuthContainer.jsx","line":67,"label":"тумблер: handleToggleMtrx","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/containers/AuthContainer.jsx#L67"},{"path":"src/components/AuthPad.jsx","line":29,"label":"откл / зелёный / красный","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/components/AuthPad.jsx#L29"},{"path":"src/actions/authControlActions.js","line":43,"label":"loginAd → mtrx_login","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/actions/authControlActions.js#L43"}],"adauth":[{"path":"src/services/adAuth.js","line":70,"label":"loginAd","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/src/services/adAuth.js#L70"},{"path":"mock/vite-mock-api.js","label":"dev-mock","href":"https://github.com/ars-anosov/matrix-react/blob/0a3f7e62bbac853fedede1bd092cf1f1d2c5793e/mock/vite-mock-api.js"}]}}</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"main-flow","label":"Основной поток данных","focus":["users","ui","containers","actions","services","sdk","homeserver"],"note":"Ввод пользователя проходит слои React → Redux → services → matrix-js-sdk и уходит на homeserver."},{"id":"session-start","label":"Старт и восстановление сессии","focus":["ui","containers","actions","services","storage","sdk","homeserver"],"note":"AuthLinks предлагает две иконки входа: диалог AD (AuthAd) и диалог Matrix (MtrxReg); сохранённая сессия восстанавливается до /sync."},{"id":"state-and-storage","label":"Состояние и хранилища","focus":["store","containers","storage","idb","sdk"],"note":"Redux держит только UI-индекс, данные комнат живут в SDK и IndexedDB."},{"id":"bridge-ad-matrix","label":"Мост AD → Matrix","focus":["adauth","store","bridge","actions","services"],"note":"AuthContainer берёт mtrx_login / mtrx_password из ответа AD, подставляет логин в MtrxReg и показывает AuthPad с тумблером сессии."}]</script>
+    <script id="archify-source-evidence-data" type="application/json">{"schemaVersion":1,"verified":true,"repository":{"url":"https://github.com/ars-anosov/matrix-react","revision":"b6c1e0468c326428b047428a8ee0b12244ed6ca3","shortRevision":"b6c1e04"},"referenceCount":26,"nodes":{"ui":[{"path":"src/components/AuthLinks.jsx","line":17,"label":"стартовый экран","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/components/AuthLinks.jsx#L17"},{"path":"src/components/MtrxReg.jsx","line":29,"label":"диалог Matrix","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/components/MtrxReg.jsx#L29"},{"path":"src/components/AuthAd.jsx","line":30,"label":"диалог AD","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/components/AuthAd.jsx#L30"}],"containers":[{"path":"src/containers/AuthContainer.jsx","line":16,"label":"мост AD → Matrix","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/containers/AuthContainer.jsx#L16"},{"path":"src/containers/MtrxContainer.jsx","line":14,"href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/containers/MtrxContainer.jsx#L14"},{"path":"src/containers/MenuAppContainer.jsx","line":8,"href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/containers/MenuAppContainer.jsx#L8"}],"actions":[{"path":"src/actions/mtrxControlActions.js","line":118,"label":"handleRestoreSession","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/actions/mtrxControlActions.js#L118"},{"path":"src/actions/mtrxControlActions.js","line":68,"label":"handleRegister","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/actions/mtrxControlActions.js#L68"},{"path":"src/actions/authControlActions.js","line":15,"label":"handleAdRegister","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/actions/authControlActions.js#L15"}],"store":[{"path":"src/reducers/mtrxControlRdcr.js","line":17,"label":"UI-индекс","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/reducers/mtrxControlRdcr.js#L17"},{"path":"src/store/configureStore.js","line":12,"label":"createStore + DI","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/store/configureStore.js#L12"},{"path":"src/store/preloadedState.js","line":7,"label":"сид uriAdAuth","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/store/preloadedState.js#L7"}],"services":[{"path":"src/services/matrixClient.js","line":625,"label":"loginMatrix","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/matrixClient.js#L625"},{"path":"src/services/matrixRooms.js","line":279,"label":"watchRoomList","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/matrixRooms.js#L279"}],"sdk":[{"path":"src/services/matrixSdk.js","line":8,"label":"loadMatrixSdk","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/matrixSdk.js#L8"}],"homeserver":[{"path":"src/services/matrixClient.js","line":586,"label":"startMatrixSync","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/matrixClient.js#L586"},{"path":"src/services/matrixClient.js","line":761,"label":"logoutMatrix","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/matrixClient.js#L761"}],"storage":[{"path":"src/constants/storage.js","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/constants/storage.js"},{"path":"src/services/matrixClient.js","line":545,"label":"persistMatrixSession","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/matrixClient.js#L545"}],"idb":[{"path":"src/services/matrixClient.js","line":63,"label":"IndexedDBStore","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/matrixClient.js#L63"},{"path":"src/services/matrixClient.js","line":122,"label":"initRustCrypto","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/matrixClient.js#L122"}],"bridge":[{"path":"src/containers/AuthContainer.jsx","line":69,"label":"тумблер: handleToggleMtrx","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/containers/AuthContainer.jsx#L69"},{"path":"src/containers/AuthContainer.jsx","line":114,"label":"стартовый экран AuthLinks","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/containers/AuthContainer.jsx#L114"},{"path":"src/components/AuthPad.jsx","line":24,"label":"откл / зелёный / красный","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/components/AuthPad.jsx#L24"}],"adauth":[{"path":"src/services/adAuth.js","line":70,"label":"loginAd","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/src/services/adAuth.js#L70"},{"path":"mock/vite-mock-api.js","label":"dev-mock","href":"https://github.com/ars-anosov/matrix-react/blob/b6c1e0468c326428b047428a8ee0b12244ed6ca3/mock/vite-mock-api.js"}]}}</script>
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
       <div class="guided-view-copy">
@@ -4923,8 +4923,8 @@
         <path data-edge-from="store" data-edge-to="containers" data-edge-label="state" data-edge-key="7" data-edge-id="store-to-containers" data-composition-points="607,226;607,350" d="M 607 226 L 607 350" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="services" data-edge-to="storage" data-edge-label="persistMatrixSession" data-edge-key="8" data-edge-id="services-to-storage" data-composition-points="1156.5,350;1156.5,226" d="M 1156.5 350 L 1156.5 226" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="sdk" data-edge-to="idb" data-edge-label="store · crypto" data-edge-key="9" data-edge-id="sdk-to-idb" data-composition-points="1432.5,350;1432.5,226" d="M 1432.5 350 L 1432.5 226" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="services" data-edge-to="adauth" data-edge-label="проверка AD" data-edge-key="10" data-edge-id="services-to-adauth" data-composition-points="1156.5,416;1156.5,440;1587,440;1587,553;1611,553" d="M 1156.5 416 L 1156.5 432 Q 1156.5 440 1164.5 440 L 1579 440 Q 1587 440 1587 448 L 1587 545 Q 1587 553 1595 553 L 1611 553" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="bridge" data-edge-to="actions" data-edge-label="handleRegister" data-edge-key="11" data-edge-id="bridge-to-actions" data-composition-points="744.5,520;744.5,468;878,468;878,416" d="M 744.5 520 L 744.5 476 Q 744.5 468 752.5 468 L 870 468 Q 878 468 878 460 L 878 416" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="services" data-edge-to="adauth" data-edge-label="loginAd → POST /user/ad" data-edge-key="10" data-edge-id="services-to-adauth" data-composition-points="1156.5,416;1156.5,440;1587,440;1587,553;1611,553" d="M 1156.5 416 L 1156.5 432 Q 1156.5 440 1164.5 440 L 1579 440 Q 1587 440 1587 448 L 1587 545 Q 1587 553 1595 553 L 1611 553" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="bridge" data-edge-to="actions" data-edge-label="handleRegister · handleRegClear" data-edge-key="11" data-edge-id="bridge-to-actions" data-composition-points="744.5,520;744.5,468;878,468;878,416" d="M 744.5 520 L 744.5 476 Q 744.5 468 752.5 468 L 870 468 Q 878 468 878 460 L 878 416" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
         <!-- Components -->
         <g id="node-users" data-node-id="users" data-node-label="Пользователь" tabindex="0" role="button" aria-label="Focus Пользователь, браузер, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="браузер" data-node-context="Architecture component">
@@ -4939,8 +4939,8 @@
         <text data-detail="context" x="95" y="397" class="t-muted" font-size="9" text-anchor="middle">браузер</text>
         </g>
 
-        <g id="node-ui" data-node-id="ui" data-node-label="Компоненты React" tabindex="0" role="button" aria-label="Focus Компоненты React, MtrxReg · MtrxPad, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="MtrxReg · MtrxPad" data-node-tag="Material UI" data-node-context="Клиентское SPA в браузере">
-          <title>Компоненты React · MtrxReg · MtrxPad · Клиентское SPA в браузере · Material UI</title>
+        <g id="node-ui" data-node-id="ui" data-node-label="Компоненты React" tabindex="0" role="button" aria-label="Focus Компоненты React, AuthLinks · MtrxReg/AuthAd, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="AuthLinks · MtrxReg/AuthAd" data-node-tag="Material UI" data-node-context="Клиентское SPA в браузере">
+          <title>Компоненты React · AuthLinks · MtrxReg/AuthAd · Клиентское SPA в браузере · Material UI</title>
           <rect x="256" y="350" width="165" height="66" rx="6" class="c-mask"/>
           <rect x="256" y="350" width="165" height="66" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(262 356) scale(0.6875)">
@@ -4950,7 +4950,7 @@
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-detail-anchor x="338.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Компоненты React</text>
-        <text data-detail="context" x="338.5" y="397" class="t-muted" font-size="9" text-anchor="middle">MtrxReg · MtrxPad</text>
+        <text data-detail="context" x="338.5" y="397" class="t-muted" font-size="9" text-anchor="middle">AuthLinks · MtrxReg/AuthAd</text>
         <text data-detail="fine" x="338.5" y="408" class="t-frontend" font-size="7" text-anchor="middle">Material UI</text>
         </g>
 
@@ -5120,13 +5120,13 @@
           <rect x="1393.9" y="330" width="77.2" height="14" rx="3" class="c-mask"/>
           <text x="1432.5" y="340" class="t-muted" font-size="8" text-anchor="middle">store · crypto</text>
         </g>
-        <g data-detail="context" data-edge-from="services" data-edge-to="adauth" data-edge-label="проверка AD" data-edge-key="10" data-edge-id="services-to-adauth">
-          <rect x="1340.35" y="420" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="1371.75" y="430" class="t-messagebus" font-size="8" text-anchor="middle">проверка AD</text>
+        <g data-detail="context" data-edge-from="services" data-edge-to="adauth" data-edge-label="loginAd → POST /user/ad" data-edge-key="10" data-edge-id="services-to-adauth">
+          <rect x="1311.55" y="420" width="120.39999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="1371.75" y="430" class="t-messagebus" font-size="8" text-anchor="middle">loginAd → POST /user/ad</text>
         </g>
-        <g data-detail="context" data-edge-from="bridge" data-edge-to="actions" data-edge-label="handleRegister" data-edge-key="11" data-edge-id="bridge-to-actions">
-          <rect x="772.65" y="448" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="811.25" y="458" class="t-muted" font-size="8" text-anchor="middle">handleRegister</text>
+        <g data-detail="context" data-edge-from="bridge" data-edge-to="actions" data-edge-label="handleRegister · handleRegClear" data-edge-key="11" data-edge-id="bridge-to-actions">
+          <rect x="731.85" y="448" width="158.79999999999998" height="14" rx="3" class="c-mask"/>
+          <text x="811.25" y="458" class="t-muted" font-size="8" text-anchor="middle">handleRegister · handleRegClear</text>
         </g>
 
         <!-- Legend -->
@@ -5342,25 +5342,25 @@
           <h3>Слои приложения</h3>
         </div>
         <ul>
-          <li>&bull; components/ — только презентация на Material UI</li>
-          <li>&bull; containers/ — useSelector, bindActionCreators; AuthContainer — мост AUTHCTL_ ↔ MTRXCTL_</li>
-          <li>&bull; actions/ — thunk-actions: валидация ввода и вызов сервиса</li>
-          <li>&bull; services/ — вся логика matrix-js-sdk, наружу узкий доменный API</li>
-          <li>&bull; store/ — configureStore + preloadedState: сид и DI middleware, reducers без сервисов</li>
+          <li>&bull; components/ — Material UI, формы в Dialog</li>
+          <li>&bull; containers/ — useSelector + bindActions</li>
+          <li>&bull; actions/ — thunk: валидация и вызов API</li>
+          <li>&bull; services/ — логика matrix-js-sdk, узкий API</li>
+          <li>&bull; store/ — configureStore + preloadedState</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot emerald"></div>
-          <h3>Сессия Matrix</h3>
+          <h3>Авторизация и сессия</h3>
         </div>
         <ul>
-          <li>&bull; loginMatrix() — m.login.password с refresh_token</li>
-          <li>&bull; restoreMatrixSession() — клиент по токенам</li>
-          <li>&bull; startClient({ initialSyncLimit: 10 }) — поток /sync</li>
-          <li>&bull; watchMatrixSession() — принудительный logout от сервера</li>
-          <li>&bull; AuthPad: откл — автовход AD; зелёный и красный — logoutMatrix</li>
+          <li>&bull; AuthLinks: вход в Matrix или AD</li>
+          <li>&bull; AD → mtrx_login в форму MtrxReg</li>
+          <li>&bull; loginMatrix() + refresh_token</li>
+          <li>&bull; startClient → /sync; watchMatrixSession</li>
+          <li>&bull; Тумблер: автовход AD или сброс</li>
         </ul>
       </div>
 
@@ -5370,10 +5370,10 @@
           <h3>Состояние и хранилища</h3>
         </div>
         <ul>
-          <li>&bull; Redux — лёгкий UI-индекс, сообщения не сериализуются</li>
-          <li>&bull; localStorage — токены, deviceId, сессия AD (TTL 24 ч)</li>
-          <li>&bull; IndexedDB — sync store и Rust crypto (m.sas.v1)</li>
-          <li>&bull; Комнаты, таймлайн и участники — источник истины SDK</li>
+          <li>&bull; Redux — UI-индекс, не сообщения</li>
+          <li>&bull; localStorage — токены, deviceId, AD</li>
+          <li>&bull; IndexedDB — sync store и Rust crypto</li>
+          <li>&bull; Комнаты и таймлайн — истина SDK</li>
         </ul>
       </div>
     </div>

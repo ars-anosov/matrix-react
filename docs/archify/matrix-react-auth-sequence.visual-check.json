@@ -6,8 +6,8 @@
   "visualReview": "pending",
   "artifact": {
     "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-auth-sequence.html",
-    "sha256": "fdd5c2eb6c42f90eb7a153d14c517d48ac44f903e5e24814b59e1f22b3425838",
-    "bytes": 647724
+    "sha256": "b952934bd0586303ad22983ade9dbed9d52f0204d2779b2a2cbec0cc31b082df",
+    "bytes": 652026
   },
   "state": {
     "detail": "read",

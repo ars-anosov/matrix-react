@@ -29,25 +29,19 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
 
 ## Инструменты и среда (DSH)
 
-Профиль DSH `web` уже содержит плагины окружения — инструменты доступны сразу, доустанавливать
-ничего не нужно. Общие для машины правила (WSL ↔ Windows, Mermaid, archify) — в user-global
-`~/.dsh/AGENTS.md`; повторяемые процедуры — навыками в `.dsh/skills/`. Здесь только специфика
-репозитория:
+Общие для машины правила (WSL ↔ Windows, браузер агента, Mermaid, archify) и правила по навыкам —
+в user-global `~/.dsh/AGENTS.md`. Здесь только специфика репозитория:
 
-- **Диаграммы-артефакты** — skill `archify`, результат в `docs/archify/`; готовые HTML/JSON
-  только перегенерацией, проверка — навык `archify-visual-check`. В git остаются лишь
+- **Диаграммы** — артефакты генерирует skill `archify` в `docs/archify/`: в git остаются лишь
   `*.visual-check.2048x1320.light.png` (превью для README) и receipt `*.visual-check.json`,
-  остальные скриншоты и contact sheet — временные (перечислены в `.gitignore`).
-- **Диаграммы в ответе** — Mermaid-блоком, а не ASCII-артом; образец — `docs/STATE.md`.
-- **Проверка UI** — `npm run dev` (порт 3000): человеку открывать `win_open_url`
-  (`http://localhost:3000`), агенту — обёртка `.dsh/bin/browser`; пошаговый порядок — навык
-  `ui-verify`. Настройки Playwright лежат в репозитории: `.playwright/cli.config.json` —
-  chromium, viewport 1280×800, уровень `warning`, вывод в `.playwright/cache/output`. Файлы
-  с авто-именами (`page-*`, `console-*`) там копятся: обёртка удаляет их старше суток, свежие
-  за прогон убирает шаг 7 навыка `ui-verify`; рантайм демона — в игнорируемом
-  `.playwright/cache/`. Общие правила браузера агента (обёртка обязательна, весь сценарий —
-  одной цепочкой команд в одном вызове `bash`, только headless, браузеры в
-  `~/.cache/ms-playwright`) — в user-global `~/.dsh/AGENTS.md`.
+  остальные скриншоты и contact sheet — временные (перечислены в `.gitignore`); образец
+  Mermaid-схемы для ответа — `docs/STATE.md`.
+- **Проверка UI** — `npm run dev` (порт 3000): человеку — `win_open_url` на
+  `http://localhost:3000`, агенту — обёртка `.dsh/bin/browser` по навыку `ui-verify`. Настройки
+  Playwright лежат в репозитории: `.playwright/cli.config.json` — chromium, viewport 1280×800,
+  уровень `warning`, вывод в `.playwright/cache/output`; авто-имена `page-*`/`console-*` копятся —
+  старше суток их чистит обёртка, свежие за прогон убирает шаг 7 навыка `ui-verify`, рантайм
+  демона — в игнорируемом `.playwright/cache/`.
 
 ## Структура
 
@@ -66,13 +60,12 @@ mock/             # mock API для dev (vite plugin, apply: "serve")
 public/           # статика: img/, sounds/, sw.js
 img/              # скриншоты компонентов для README
 docs/             # документация и GitHub Pages (ars-anosov.github.io/matrix-react):
-                  # index.html (лендинг), STATE.md (Mermaid-схемы), archify/ (генерация skill'ом
-                  # archify, исключён из Biome)
-dist/             # результат npm run build — вручную не править
+                  # index.html (лендинг), STATE.md (Mermaid-схемы), archify/ (исключён из Biome)
+dist/             # результат npm run build
 .github/          # CI (workflows/ci.yml: npm ci + build) и адаптер copilot-instructions.md
 .dsh/             # навыки агента (skills/ui-verify) и обёртка bin/browser
-.playwright/      # конфиг Playwright CLI (cli.config.json); cache/ — рантайм и вывод проверок
-                  # (авто-имена page-*/console-* чистят обёртка и навык ui-verify), в git не хранится
+.playwright/      # конфиг Playwright CLI (cli.config.json); cache/ — рантайм и вывод проверок,
+                  # в git не хранится
 .devcontainer/    # devcontainer: образ javascript-node 24, forwardPorts 3000 и 4173
 .vscode/          # редактор: Biome-форматтер и formatOnSave, рекомендации расширений,
                   # sftp-профиль dist (ars-dev.ru, /var/www/html/matrix-react/)
@@ -83,7 +76,7 @@ jsconfig.json     # настройки JS-проекта для редактор
 biome.json        # линтер и форматтер; includes исключает dist, node_modules, docs/archify
 README.md         # описание проекта и быстрый старт (Node.js 24), скриншоты — в img/
 LICENSE           # MIT
-deploy.sh         # выкладка dist по rsync --delete (DEPLOY_USER / DEPLOY_HOST / DEPLOY_PATH)
+deploy.sh         # выкладка dist на прод по rsync --delete
 ```
 
 ## Архитектура Matrix
@@ -138,9 +131,6 @@ deploy.sh         # выкладка dist по rsync --delete (DEPLOY_USER / DEP
   из него `store/preloadedState.js` собирает срез для `preloadedState`.
 - **Прочее:** ключи `localStorage` — в `constants/storage.js`; HTTP-запросы (`ky`) и `localStorage` —
   только в `services/`; ошибки API — `actions/utils/kyError.js` (там же разбирается `HTTPError` из ky).
-- **Внешние библиотеки:** перед использованием незнакомого метода API сначала сверяться с
-  официальной документацией, а при объяснении и в ответе давать ссылку на раздел документации
-  этого метода. Ссылки — только на официальные источники стека: matrix-js-sdk.
 
 ## Эталон интерфейса
 
@@ -156,7 +146,7 @@ TypeScript-архитектуру Cinny не переносить без явн�
 3. Для критичных изменений указывать риски и шаги проверки.
 4. Не добавлять TypeScript, тесты, CI, зависимости и инфраструктуру без явного запроса.
 5. `dist` вручную не редактировать — только через `npm run build`.
-6. Документация, комментарии и ответы — на русском.
-7. Формат — по Biome: отступ 2 пробела, только пробелы, без табов; с автоформатом не спорить.
-8. Для каждого использованного метода внешних библиотек давать ссылку на официальную
-   документацию этого метода; не выдумывать API по памяти, а сверяться с источником.
+6. Формат — по Biome: отступ 2 пробела, только пробелы, без табов; с автоформатом не спорить.
+7. Внешние библиотеки: перед использованием незнакомого метода сверяться с официальной
+   документацией, в объяснении и ответе давать ссылку на её раздел; источники — только
+   официальные (стек: matrix-js-sdk), API по памяти не выдумывать.
