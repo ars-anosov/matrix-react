@@ -1,6 +1,8 @@
 import { Avatar, List, ListItemAvatar, ListItemButton, ListItemText, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
+import { PAPER_BACKGROUND } from "../theme.js";
+
 function getRoomInitial(name = "") {
   return name.trim().charAt(0).toUpperCase() || "#";
 }
@@ -13,6 +15,7 @@ function MtrxRoomList({ rooms, selectedRoomId = "", onSelect, fullHeight = false
         color="text.secondary"
         sx={{
           height: fullHeight ? "100%" : undefined,
+          bgcolor: PAPER_BACKGROUND,
           display: fullHeight ? "flex" : undefined,
           alignItems: fullHeight ? "center" : undefined,
           justifyContent: fullHeight ? "center" : undefined,
@@ -33,6 +36,7 @@ function MtrxRoomList({ rooms, selectedRoomId = "", onSelect, fullHeight = false
       sx={{
         height: fullHeight ? "100%" : undefined,
         maxHeight: fullHeight ? undefined : 360,
+        bgcolor: PAPER_BACKGROUND,
         overflowY: "auto",
         scrollbarWidth: "thin",
       }}

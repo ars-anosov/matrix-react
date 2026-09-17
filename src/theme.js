@@ -1,5 +1,12 @@
 import { createTheme } from "@mui/material/styles";
 
+// Фон «шапок»: панель мессенджера и шапка комнаты.
+export const HEADER_BACKGROUND = "grey.100";
+
+// Фон контейнеров, внутри которых лежит шапка HEADER_BACKGROUND: панели
+// AuthPad/MtrxPad, комната и верхняя панель с меню. Сейчас белый.
+export const PAPER_BACKGROUND = "background.paper";
+
 // Современная тема в стиле чистых интерфейсов Material You / Modern UI
 const theme = createTheme({
   cssVariables: true,
@@ -44,7 +51,7 @@ const theme = createTheme({
       dark: "#0369a1",
     },
     background: {
-      // default: "#f8fafc", // slate-50
+      default: "#f8fafc", // slate-50
       paper: "#ffffff",
     },
     text: {
@@ -71,7 +78,8 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: ({ theme }) => ({
-          backgroundColor: "#ffffff",
+          // PAPER_BACKGROUND — тот же palette.background.paper (CSS-var темы)
+          backgroundColor: theme.palette.background.paper,
           color: "#0f172a",
           borderRadius: theme.shape.borderRadius * 3,
           boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)",
@@ -83,6 +91,8 @@ const theme = createTheme({
       styleOverrides: {
         paper: ({ theme }) => ({
           width: 260,
+          // Меню-панель: фон как у контейнеров с шапкой (PAPER_BACKGROUND)
+          backgroundColor: theme.palette.background.paper,
           // У temporary-варианта MUI рамку не рисует (Drawer.js:133 — только для
           // не-temporary), а display/flexDirection/height задаёт сам.
           borderRight: `1px solid ${theme.palette.divider}`,

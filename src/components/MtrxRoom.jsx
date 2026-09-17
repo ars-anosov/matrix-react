@@ -3,7 +3,7 @@ import { Avatar, Box, Divider, List, ListItem, Stack, Typography } from "@mui/ma
 import PropTypes from "prop-types";
 import { Fragment, useEffect, useRef } from "react";
 
-import { HEADER_BACKGROUND } from "../constants/ui.js";
+import { HEADER_BACKGROUND, PAPER_BACKGROUND } from "../theme.js";
 
 const ALLOWED_FORMATTED_TAGS = new Set([
   "A",
@@ -153,7 +153,7 @@ function MtrxRoom({ room, fullHeight = false }) {
         height: fullHeight ? "100%" : undefined,
         minHeight: fullHeight ? 0 : 220,
         overflow: "hidden",
-        bgcolor: "background.paper",
+        bgcolor: PAPER_BACKGROUND,
         display: fullHeight ? "flex" : undefined,
         flexDirection: fullHeight ? "column" : undefined,
       }}

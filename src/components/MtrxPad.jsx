@@ -2,7 +2,7 @@ import { Close as IconClose, ForumOutlined as IconForum } from "@mui/icons-mater
 import { Box, Divider, IconButton, Paper, Stack, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
-import { HEADER_BACKGROUND } from "../constants/ui.js";
+import { HEADER_BACKGROUND, PAPER_BACKGROUND } from "../theme.js";
 import MtrxRoom from "./MtrxRoom";
 import MtrxRoomList from "./MtrxRoomList";
 
@@ -33,6 +33,7 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
         minHeight: { xs: 500, sm: 600 },
         mx: "auto",
         mt: 2,
+        bgcolor: PAPER_BACKGROUND,
         borderRadius: 3,
         position: "relative",
         display: "flex",
@@ -97,7 +98,7 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
             borderRight: { sm: 1 },
             borderBottom: { xs: 1, sm: 0 },
             borderColor: "divider",
-            bgcolor: "background.default",
+            bgcolor: PAPER_BACKGROUND,
             p: 1,
             scrollbarWidth: "thin",
           }}

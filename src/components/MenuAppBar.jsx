@@ -19,7 +19,7 @@ import {
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import Copyright from "../Copyright";
-import { HEADER_BACKGROUND } from "../constants/ui.js";
+import { HEADER_BACKGROUND } from "../theme.js";
 import AuthAdInfo from "./AuthAdInfo";
 import AuthIco from "./AuthIco";
 import MtrxIco from "./MtrxIco";

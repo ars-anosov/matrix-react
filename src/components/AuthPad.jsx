@@ -2,7 +2,7 @@ import { Close as IconClose } from "@mui/icons-material";
 import { Box, Divider, IconButton, Paper, Stack, Switch, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect } from "react";
-import { HEADER_BACKGROUND } from "../constants/ui.js";
+import { HEADER_BACKGROUND, PAPER_BACKGROUND } from "../theme.js";
 
 // Панель «Мост к сервисам». Сама ничего не диспатчит: все действия — колбэки
 // контейнера AuthContainer, который держит оба среза (AUTHCTL_ и MTRXCTL_).
@@ -64,6 +64,7 @@ function AuthPad(props) {
       sx={{
         maxWidth: 320,
         width: "100%",
+        bgcolor: PAPER_BACKGROUND,
         mx: "auto",
         mt: 2,
         borderRadius: 3,
