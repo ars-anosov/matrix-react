@@ -46,6 +46,12 @@ npm run dev
 curl -sf -o /dev/null http://localhost:3000/ && echo ready
 ```
 
+Порт 3000 может быть занят чужим dev-сервером: `strictPort` у `server` не выставлен, и Vite
+молча возьмёт следующий свободный (3001, 3002, …). Тогда проверять готовность и ходить браузером
+нужно по фактическому порту из вывода `npm run dev`, но dev-дефолт `uriAdAuth` в `index.html`
+жёстко указывает на `http://localhost:3000/user/ad` — либо освободить 3000, либо перезаписать
+ключ через `localstorage-set`.
+
 2. Открыть приложение человеку — инструментом `win_open_url` на `http://localhost:3000`.
 
 3. **Весь сценарий проверки выполнять одной командой в одном вызове `bash`.** Демон CLI живёт
@@ -67,10 +73,14 @@ having a XServer running» (у песочницы приватный `/tmp`, X-�
 
 ```bash
 .dsh/bin/browser snapshot --depth=4          # частичное дерево
-.dsh/bin/browser find "Отправить"            # точечный поиск с контекстом
+.dsh/bin/browser find "<текст узла>"         # поиск по текстовым узлам снапшота
 .dsh/bin/browser console error               # только ошибки
 .dsh/bin/browser localstorage-list
 ```
+
+`find` ищет **текстовые узлы** снапшота, а не accessible names: подпись кнопки из снапшота
+(`button "…"`) он не находит (`No matches found`), хотя текст есть в DOM — для имён и состояний
+элементов использовать `eval`/`run-code`.
 
 5. Смотреть именно то, что затронуто правкой:
 
