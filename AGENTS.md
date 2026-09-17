@@ -47,8 +47,9 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
 
 ```
 src/
-├── components/   # UI: MtrxReg, MtrxPad, MtrxRoom(List), MtrxDeviceVerification, MtrxIco, MtrxInfo,
-│                 #     AuthLinks, AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar
+├── components/   # UI: MtrxReg, MtrxPad, MtrxRoom(List), MtrxSpace, MtrxComposer,
+│                 #     MtrxInvite, MtrxLeaveRoom, MtrxDeviceVerification, MtrxIco,
+│                 #     MtrxInfo, AuthLinks, AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar
 ├── containers/   # связка со store: MtrxContainer, MtrxPadContainer, AuthContainer, MenuAppContainer
 ├── actions/      # thunk-actions; utils/ — kyError.js, matrixError.js
 ├── reducers/     # *Rdcr, rootReducer.js, authTimeoutMiddleware.js
@@ -88,8 +89,19 @@ deploy.sh         # выкладка dist на прод по rsync --delete
   `selectedRoomId`, `roomsMeta` и при необходимости счётчики. Метаданные и сообщения активной
   комнаты читаются из сервиса по требованию (`getRoomMeta`, `getRoomMessages` / `watchRoomMessages`)
   и в стор не сериализуются.
-- Список комнат обновляется дельтами (INITIALIZE / PUT / DELETE одного `roomId`), без полной
-  перезаписи массива на каждое событие SDK.
+- Список комнат обновляется дельтами (INITIALIZE / PUT / DELETE), без полной перезаписи массива
+  на каждое событие SDK. В индекс попадают участие и приглашения (`membership` в `roomsMeta`);
+  приглашения идут первыми, принять/отклонить — `joinRoom` / `leaveRoom`.
+- Мутации чата — тот же доменный API `matrixRooms`: `createRoom` (preset `private_chat` плюс
+  проверка приглашаемых через `getProfileInfo` и `invite`), `joinRoom` / `leaveRoom`,
+  `sendRoomMessage`, `markRoomRead`. Результат мутации индекс обновляет оптимистично, не
+  дожидаясь `/sync`; полный снимок метаданных догоняет через `getRoomMeta`.
+- Непрочитанное считает SDK (`getUnreadNotificationCount`: `total` → `unread`, `highlight` →
+  упоминания), числа лежат в `roomsMeta` и рисуются бейджами (`MtrxRoomList`, суммарно `MtrxIco`).
+  Пространство (`m.space`) — комната, но не чат: идёт в конец списка, таймлайна и composer у него
+  нет, внутри `MtrxSpace` — дочерние комнаты из `m.space.child`.
+- Статус собеседника в личной комнате приходит не в sync-фильтре: `MtrxPadContainer` раз в
+  `ROOM_STATUS_REFRESH_MS` перечитывает `getRoomMeta` (`getPresence` внутри сервиса).
 - Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают
   Matrix API напрямую.
 - Компоненты и контейнеры получают из сервисов только узкий доменный API, без SDK-объектов:

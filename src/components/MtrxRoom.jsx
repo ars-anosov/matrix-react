@@ -1,9 +1,13 @@
-import { ForumOutlined as IconForum } from "@mui/icons-material";
-import { Avatar, Box, Divider, List, ListItem, Stack, Typography } from "@mui/material";
+import { ForumOutlined as IconForum, LogoutOutlined as IconLeave } from "@mui/icons-material";
+import { Avatar, Box, Divider, IconButton, List, ListItem, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
 import { HEADER_BACKGROUND, PAPER_BACKGROUND } from "../theme.js";
+import MtrxComposer from "./MtrxComposer";
+import MtrxInvite from "./MtrxInvite";
+import MtrxLeaveRoom from "./MtrxLeaveRoom";
+import MtrxSpace from "./MtrxSpace";
 
 const ALLOWED_FORMATTED_TAGS = new Set([
   "A",
@@ -135,10 +139,16 @@ function renderMessageBody(message) {
   return Array.from(document.body.childNodes).map((node, index) => renderFormattedNode(node, `formatted-${message.eventId}-${index}`));
 }
 
-function MtrxRoom({ room, fullHeight = false }) {
+function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onAcceptInvite, onDeclineInvite, onLeaveRoom }) {
   const messages = room.messages || [];
   const messageListRef = useRef(null);
   const roomId = room.roomId;
+  const isSpace = Boolean(room.isSpace);
+  const isInvite = room.membership === "invite";
+  const isJoined = room.membership === "join";
+  // Чат — только присоединённая обычная комната: в пространстве сообщений нет
+  const isChat = isJoined && !isSpace;
+  const [isLeaveOpen, setIsLeaveOpen] = useState(false);
 
   useEffect(() => {
     const messageList = messageListRef.current;
@@ -165,19 +175,23 @@ function MtrxRoom({ room, fullHeight = false }) {
           alignItems: "center",
           px: 2,
           py: 1.5,
+          // Шапка чата — скруглённая карточка с отступом, а не полоса во всю ширину
+          mx: 1,
+          mt: 1,
           flexShrink: 0,
           bgcolor: HEADER_BACKGROUND,
+          borderRadius: 2,
         }}
       >
         <Avatar
           src={room.avatarUrl || undefined}
           alt=""
           sx={{
-            width: 42,
-            height: 42,
+            width: 36,
+            height: 36,
             bgcolor: "action.selected",
             color: "primary.main",
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: 700,
           }}
         >
@@ -191,183 +205,213 @@ function MtrxRoom({ room, fullHeight = false }) {
             {room.subtitle || room.roomId}
           </Typography>
         </Box>
-        {messages.length > 0 && (
+        {!isSpace && messages.length > 0 && (
           <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, display: { xs: "none", sm: "block" } }}>
             {getMessageCountLabel(messages.length)}
           </Typography>
         )}
+        {isJoined && (
+          <Tooltip title="Покинуть комнату">
+            <IconButton aria-label="Покинуть комнату" onClick={() => setIsLeaveOpen(true)} size="small" sx={{ flexShrink: 0 }}>
+              <IconLeave fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
       </Stack>
 
-      <Divider />
-
-      {messages.length === 0 ? (
-        <Stack
-          spacing={1}
-          sx={{
-            minHeight: fullHeight ? 0 : 220,
-            flex: fullHeight ? 1 : undefined,
-            alignItems: "center",
-            justifyContent: "center",
-            px: 2,
-            py: 4,
-            color: "text.secondary",
-            textAlign: "center",
-          }}
-        >
-          <IconForum sx={{ fontSize: 32, opacity: 0.55 }} />
-          <Typography variant="body2">Сообщений пока нет.</Typography>
-          <Typography variant="caption">Здесь появятся новые сообщения комнаты</Typography>
-        </Stack>
+      {isInvite ? (
+        <MtrxInvite roomName={room.name} onAccept={onAcceptInvite} onDecline={onDeclineInvite} />
+      ) : isSpace ? (
+        <MtrxSpace room={room} onSelectRoom={onSelectRoom} />
       ) : (
-        <List
-          ref={messageListRef}
-          disablePadding
-          aria-label={`Последние сообщения комнаты ${room.name}`}
-          sx={{
-            maxHeight: fullHeight ? undefined : 320,
-            flex: fullHeight ? 1 : undefined,
-            minHeight: fullHeight ? 0 : undefined,
-            overflowY: "auto",
-            bgcolor: "background.default",
-            px: { xs: 1, sm: 1.5 },
-            py: 1,
-            scrollbarWidth: "thin",
-          }}
-        >
-          {messages.map((message, index) => {
-            const previousMessage = messages[index - 1];
-            const isContinuation = previousMessage?.sender === message.sender;
-            const messageDate = getMessageDate(message.timestamp);
-            const previousDate = getMessageDate(previousMessage?.timestamp);
-            const showDateDivider = messageDate && messageDate !== previousDate;
+        <>
+          {messages.length === 0 ? (
+            <Stack
+              spacing={1}
+              sx={{
+                minHeight: fullHeight ? 0 : 220,
+                flex: fullHeight ? 1 : undefined,
+                alignItems: "center",
+                justifyContent: "center",
+                px: 2,
+                py: 4,
+                color: "text.secondary",
+                textAlign: "center",
+              }}
+            >
+              <IconForum sx={{ fontSize: 32, opacity: 0.55 }} />
+              <Typography variant="body2">Сообщений пока нет.</Typography>
+              <Typography variant="caption">Здесь появятся новые сообщения комнаты</Typography>
+            </Stack>
+          ) : (
+            <List
+              ref={messageListRef}
+              disablePadding
+              aria-label={`Последние сообщения комнаты ${room.name}`}
+              sx={{
+                maxHeight: fullHeight ? undefined : 320,
+                flex: fullHeight ? 1 : undefined,
+                minHeight: fullHeight ? 0 : undefined,
+                overflowY: "auto",
+                // Панель сообщений — тот же фон, что у списка комнат
+                bgcolor: PAPER_BACKGROUND,
+                px: { xs: 1, sm: 1.5 },
+                py: 1,
+                scrollbarWidth: "thin",
+              }}
+            >
+              {messages.map((message, index) => {
+                const previousMessage = messages[index - 1];
+                const isContinuation = previousMessage?.sender === message.sender;
+                const messageDate = getMessageDate(message.timestamp);
+                const previousDate = getMessageDate(previousMessage?.timestamp);
+                const showDateDivider = messageDate && messageDate !== previousDate;
 
-            return (
-              <Fragment key={message.eventId}>
-                {showDateDivider && (
-                  <Stack direction="row" spacing={1} sx={{ alignItems: "center", px: 0.5, py: 1 }}>
-                    <Divider sx={{ flex: 1 }} />
-                    <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
-                      {messageDate}
-                    </Typography>
-                    <Divider sx={{ flex: 1 }} />
-                  </Stack>
-                )}
-                <ListItem
-                  disableGutters
-                  alignItems="flex-start"
-                  sx={{
-                    gap: 1.25,
-                    px: 0.5,
-                    py: isContinuation ? 0.35 : 0.75,
-                    borderRadius: 2,
-                    transition: "background-color 120ms ease",
-                    "&:hover": {
-                      bgcolor: "action.hover",
-                      "& .message-time": { opacity: 1 },
-                    },
-                  }}
-                >
-                  <Avatar
-                    alt=""
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      mt: isContinuation ? 0.25 : 0,
-                      flexShrink: 0,
-                      visibility: isContinuation ? "hidden" : "visible",
-                      bgcolor: getAvatarColor(message.sender),
-                      objectFit: "cover",
-                      color: "common.white",
-                      fontSize: 12,
-                      fontWeight: 700,
-                    }}
-                    src={message.avatarUrl || undefined}
-                  >
-                    {getInitials(message.sender)}
-                  </Avatar>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    {!isContinuation && (
-                      <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", minWidth: 0 }}>
-                        <Typography
-                          variant="body2"
-                          component="span"
-                          noWrap
-                          sx={{
-                            minWidth: 0,
-                            maxWidth: "75%",
-                            color: getAvatarColor(message.sender),
-                            fontWeight: 700,
-                          }}
-                        >
-                          {message.sender}
+                return (
+                  <Fragment key={message.eventId}>
+                    {showDateDivider && (
+                      <Stack direction="row" spacing={1} sx={{ alignItems: "center", px: 0.5, py: 1 }}>
+                        <Divider sx={{ flex: 1 }} />
+                        <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
+                          {messageDate}
                         </Typography>
-                        <Typography variant="caption" component="span" color="text.secondary" sx={{ flexShrink: 0 }}>
-                          {formatMessageTime(message.timestamp)}
-                        </Typography>
+                        <Divider sx={{ flex: 1 }} />
                       </Stack>
                     )}
-                    {isContinuation && formatMessageTime(message.timestamp) && (
-                      <Typography
-                        className="message-time"
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{
-                          float: "right",
-                          ml: 1,
-                          opacity: 0,
-                          transition: "opacity 120ms ease",
-                        }}
-                      >
-                        {formatMessageTime(message.timestamp)}
-                      </Typography>
-                    )}
-                    <Box
-                      component="div"
+                    <ListItem
+                      disableGutters
+                      alignItems="flex-start"
                       sx={{
-                        mt: isContinuation ? 0 : 0.15,
-                        whiteSpace: "pre-wrap",
-                        overflowWrap: "anywhere",
-                        color: "text.primary",
-                        fontSize: 14,
-                        lineHeight: 1.4,
-                        "& p": { my: 0 },
-                        "& p + p": { mt: 1 },
-                        "& a": { color: "primary.main" },
-                        "& blockquote": {
-                          m: 0,
-                          pl: 1.5,
-                          borderLeft: 3,
-                          borderColor: "divider",
-                          color: "text.secondary",
+                        gap: 1.25,
+                        px: 0.5,
+                        // Отступ между сообщениями: небольшой у подряд идущих
+                        // строк одного отправителя и больше перед новым блоком
+                        py: isContinuation ? 0.5 : 0.75,
+                        mt: 0.5,
+                        borderRadius: 2,
+                        transition: "background-color 120ms ease",
+                        "&:hover": {
+                          bgcolor: "action.hover",
+                          "& .message-time": { opacity: 1 },
                         },
-                        "& code": {
-                          px: 0.5,
-                          py: 0.15,
-                          borderRadius: 1,
-                          bgcolor: "action.selected",
-                          fontFamily: "monospace",
-                          fontSize: "0.9em",
-                        },
-                        "& pre": {
-                          m: 0,
-                          p: 1,
-                          overflowX: "auto",
-                          borderRadius: 2,
-                          bgcolor: "action.selected",
-                          fontFamily: "monospace",
-                        },
-                        "& ul, & ol": { mt: 0.5, mb: 0, pl: 2.5 },
                       }}
                     >
-                      {renderMessageBody(message)}
-                    </Box>
-                  </Box>
-                </ListItem>
-              </Fragment>
-            );
-          })}
-        </List>
+                      <Avatar
+                        alt=""
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          mt: isContinuation ? 0.25 : 0,
+                          flexShrink: 0,
+                          visibility: isContinuation ? "hidden" : "visible",
+                          bgcolor: getAvatarColor(message.sender),
+                          objectFit: "cover",
+                          color: "common.white",
+                          fontSize: 12,
+                          fontWeight: 700,
+                        }}
+                        src={message.avatarUrl || undefined}
+                      >
+                        {getInitials(message.sender)}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        {!isContinuation && (
+                          <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", minWidth: 0 }}>
+                            <Typography
+                              variant="body2"
+                              component="span"
+                              noWrap
+                              sx={{
+                                minWidth: 0,
+                                maxWidth: "75%",
+                                color: getAvatarColor(message.sender),
+                                fontWeight: 700,
+                              }}
+                            >
+                              {message.sender}
+                            </Typography>
+                            <Typography variant="caption" component="span" color="text.secondary" sx={{ flexShrink: 0 }}>
+                              {formatMessageTime(message.timestamp)}
+                            </Typography>
+                          </Stack>
+                        )}
+                        {isContinuation && formatMessageTime(message.timestamp) && (
+                          <Typography
+                            className="message-time"
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                              float: "right",
+                              ml: 1,
+                              opacity: 0,
+                              transition: "opacity 120ms ease",
+                            }}
+                          >
+                            {formatMessageTime(message.timestamp)}
+                          </Typography>
+                        )}
+                        <Box
+                          component="div"
+                          sx={{
+                            mt: isContinuation ? 0 : 0.15,
+                            whiteSpace: "pre-wrap",
+                            overflowWrap: "anywhere",
+                            color: "text.primary",
+                            fontSize: 14,
+                            lineHeight: 1.4,
+                            "& p": { my: 0 },
+                            "& p + p": { mt: 1 },
+                            "& a": { color: "primary.main" },
+                            "& blockquote": {
+                              m: 0,
+                              pl: 1.5,
+                              borderLeft: 3,
+                              borderColor: "divider",
+                              color: "text.secondary",
+                            },
+                            "& code": {
+                              px: 0.5,
+                              py: 0.15,
+                              borderRadius: 1,
+                              border: 1,
+                              borderColor: "divider",
+                              // Код в сообщении — мельче основного текста и серый
+                              color: "text.secondary",
+                              fontFamily: "monospace",
+                              fontSize: "0.8em",
+                            },
+                            "& pre": {
+                              m: 0,
+                              p: 1,
+                              overflowX: "auto",
+                              borderRadius: 2,
+                              border: 1,
+                              borderColor: "divider",
+                              // Блок кода — та же стилистика, что у <code>
+                              color: "text.secondary",
+                              fontFamily: "monospace",
+                              fontSize: "0.8em",
+                            },
+                            // <code> внутри <pre> уже уменьшен самим <pre>, а
+                            // рамку и отступы рисует блок — иначе рамка двойная
+                            "& pre code": { px: 0, py: 0, border: 0, fontSize: "1em" },
+                            "& ul, & ol": { mt: 0.5, mb: 0, pl: 2.5 },
+                          }}
+                        >
+                          {renderMessageBody(message)}
+                        </Box>
+                      </Box>
+                    </ListItem>
+                  </Fragment>
+                );
+              })}
+            </List>
+          )}
+          {isChat && <MtrxComposer onSend={onSendMessage} />}
+        </>
       )}
+
+      <MtrxLeaveRoom open={isLeaveOpen} roomName={room.name} onClose={() => setIsLeaveOpen(false)} onConfirm={onLeaveRoom} />
     </Box>
   );
 }
@@ -378,6 +422,14 @@ MtrxRoom.propTypes = {
     name: PropTypes.string.isRequired,
     avatarUrl: PropTypes.string,
     subtitle: PropTypes.string,
+    membership: PropTypes.oneOf(["join", "invite", ""]),
+    isSpace: PropTypes.bool,
+    children: PropTypes.arrayOf(
+      PropTypes.shape({
+        roomId: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,
+      }),
+    ),
     messages: PropTypes.arrayOf(
       PropTypes.shape({
         eventId: PropTypes.string.isRequired,
@@ -390,6 +442,11 @@ MtrxRoom.propTypes = {
     ),
   }).isRequired,
   fullHeight: PropTypes.bool,
+  onSelectRoom: PropTypes.func.isRequired,
+  onSendMessage: PropTypes.func.isRequired,
+  onAcceptInvite: PropTypes.func.isRequired,
+  onDeclineInvite: PropTypes.func.isRequired,
+  onLeaveRoom: PropTypes.func.isRequired,
 };
 
 export default MtrxRoom;

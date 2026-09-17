@@ -294,15 +294,15 @@ const handleLoadRoomMeta = (roomId) => async (dispatch) => {
   }
 };
 
-const handleRoomListInitialize = (roomIds) => (dispatch) => {
-  dispatch({ type: MTRXCTL_ROOM_LIST_INITIALIZE, payload: { roomIds } });
-  roomIds.forEach((roomId) => {
+const handleRoomListInitialize = (rooms) => (dispatch) => {
+  dispatch({ type: MTRXCTL_ROOM_LIST_INITIALIZE, payload: { rooms } });
+  rooms.forEach(({ roomId }) => {
     dispatch(handleLoadRoomMeta(roomId));
   });
 };
 
-const handleRoomListPut = (roomId) => (dispatch) => {
-  dispatch({ type: MTRXCTL_ROOM_LIST_PUT, payload: { roomId } });
+const handleRoomListPut = (roomId, membership, isSpace, unread, highlight) => (dispatch) => {
+  dispatch({ type: MTRXCTL_ROOM_LIST_PUT, payload: { roomId, membership, isSpace, unread, highlight } });
   dispatch(handleLoadRoomMeta(roomId));
 };
 
@@ -315,9 +315,9 @@ const handleStartRoomWatch = () => (dispatch) => {
 
   unsubscribeRoomList = matrixRooms.watchRoomList((delta) => {
     if (delta.type === "INITIALIZE") {
-      dispatch(handleRoomListInitialize(delta.roomIds));
+      dispatch(handleRoomListInitialize(delta.rooms));
     } else if (delta.type === "PUT") {
-      dispatch(handleRoomListPut(delta.roomId));
+      dispatch(handleRoomListPut(delta.roomId, delta.membership, delta.isSpace, delta.unread, delta.highlight));
     } else if (delta.type === "DELETE") {
       dispatch(handleRoomListDelete(delta.roomId));
     }
@@ -331,7 +331,69 @@ const handleStopRoomWatch = () => () => {
 
 const handleSelectRoom = (roomId) => (dispatch) => {
   dispatch({ type: MTRXCTL_SET_SELECTED_ROOM, payload: { roomId } });
+  // Клик по комнате = прочитано: без read receipt сервер не сбросит счётчик
+  matrixRooms.markRoomRead(roomId);
 };
+
+const handleJoinRoom = (roomId) => async (dispatch) => {
+  try {
+    const result = await matrixRooms.joinRoom(roomId);
+    // Оптимистично снимаем приглашение: сервер вход уже подтвердил, а /sync
+    // с обновлённым состоянием комнаты может прийти заметно позже
+    dispatch({
+      type: MTRXCTL_ROOM_LIST_PUT,
+      payload: { roomId, membership: "join" },
+    });
+    return result;
+  } catch (error) {
+    throw new Error(getMatrixErrorMessage(error, "Не удалось принять приглашение."), { cause: error });
+  }
+};
+
+const handleLeaveRoom = (roomId) => async (dispatch) => {
+  try {
+    const result = await matrixRooms.leaveRoom(roomId);
+    dispatch(handleRoomListDelete(roomId));
+    return result;
+  } catch (error) {
+    throw new Error(getMatrixErrorMessage(error, "Не удалось выйти из комнаты."), { cause: error });
+  }
+};
+
+const handleSendMessage = (roomId, body) => async () => {
+  try {
+    return await matrixRooms.sendRoomMessage(roomId, body);
+  } catch (error) {
+    throw new Error(getMatrixErrorMessage(error, "Не удалось отправить сообщение."), { cause: error });
+  }
+};
+
+const handleCreateRoom =
+  (formData = {}) =>
+  async (dispatch) => {
+    try {
+      const { roomId, name } = await matrixRooms.createRoom(formData);
+
+      // Комната придёт в /sync позже: показываем её сразу с введённым названием,
+      // иначе до следующего sync в списке висел бы только roomId
+      dispatch({
+        type: MTRXCTL_ROOM_LIST_PUT,
+        payload: { roomId, membership: "join", isSpace: false },
+      });
+      dispatch({
+        type: MTRXCTL_ROOM_META_STORE,
+        payload: {
+          roomId,
+          meta: { roomId, name, avatarUrl: "", subtitle: "", membership: "join", isSpace: false, children: [] },
+        },
+      });
+      dispatch(handleSelectRoom(roomId));
+
+      return { roomId, name };
+    } catch (error) {
+      throw new Error(getMatrixErrorMessage(error, "Не удалось создать комнату."), { cause: error });
+    }
+  };
 
 export {
   handleAcceptDeviceVerification,
@@ -339,7 +401,10 @@ export {
   handleChangeStore,
   handleClearDeviceVerification,
   handleConfirmDeviceVerification,
+  handleCreateRoom,
   handleHydrateStoredMatrixData,
+  handleJoinRoom,
+  handleLeaveRoom,
   handleLoadDeviceVerification,
   handleLoadRoomMeta,
   handleRegClear,
@@ -347,6 +412,7 @@ export {
   handleRequestDeviceVerification,
   handleRestoreSession,
   handleSelectRoom,
+  handleSendMessage,
   handleStartDeviceVerification,
   handleStartRoomWatch,
   handleStopRoomWatch,

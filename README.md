@@ -36,15 +36,33 @@ npm run check   # линт + форматирование с записью
 
 ![component_MtrxReg.png](img/component_MtrxReg.png)
 
+## MtrxPad.jsx
+Мессенджер: список комнат, поле логина для нового чата и панель активной комнаты.
+
 ## MtrxRoomList.jsx
-Список комнат.
+Список комнат: аватар, название, «Приглашение» или «Пространство», бейдж непрочитанного.
+Строка списка фильтруется по логину из поля нового чата.
 
 ![component_MtrxRoomList.png](img/component_MtrxRoomList.png)
 
 ## MtrxRoom.jsx
-Комната: шапка и таймлайн последних сообщений.
+Активная комната: шапка с аватаром и подписью, таймлайн последних сообщений, кнопка выхода.
+Панель выбирает ветку: приглашение (`MtrxInvite`), пространство (`MtrxSpace`) или чат
+с composer'ом.
 
 ![component_MtrxRoom.png](img/component_MtrxRoom.png)
+
+### MtrxComposer.jsx
+Ввод сообщения: Enter — отправка, Shift+Enter — перенос строки; при ошибке текст возвращается в поле.
+
+### MtrxInvite.jsx
+Приглашение в комнату: «Принять» (`joinRoom`) или «Отклонить» (`leaveRoom`).
+
+### MtrxLeaveRoom.jsx
+Диалог подтверждения выхода из комнаты.
+
+### MtrxSpace.jsx
+Пространство `m.space`: список дочерних комнат, писать сообщения нельзя.
 
 ## MtrxDeviceVerification.jsx
 E2EE: авторизация устройства — SAS по emoji или recovery key.
@@ -81,6 +99,8 @@ POST-запрос к серверу авторизации, ожидаемый �
 [![Архитектура matrix-react](docs/archify/matrix-react-architecture.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html)
 
 [![Вход, сессия Matrix и сброс](docs/archify/matrix-react-auth-sequence.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-auth-sequence.html)
+
+[![Комнаты и чат](docs/archify/matrix-react-chat-sequence.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-chat-sequence.html)
 
 Все документы: <https://ars-anosov.github.io/matrix-react/>
 

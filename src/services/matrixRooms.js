@@ -5,6 +5,9 @@ import { getMatrixClient } from "./matrixClientStore.js";
 // и не плодить blob-URL без revoke.
 const avatarUrlCache = new Map();
 
+// RoomEvent.UnreadNotifications: строку держим здесь, чтобы сервис не тянул SDK
+const ROOM_UNREAD_EVENT = "Room.UnreadNotifications";
+
 function clearRoomAvatarCache() {
   for (const url of avatarUrlCache.values()) {
     if (typeof url === "string" && url.startsWith("blob:")) {
@@ -18,10 +21,41 @@ function clearRoomAvatarCache() {
   avatarUrlCache.clear();
 }
 
+// Последнее имя комнаты из таймлайна. У комнаты, созданной в текущей сессии,
+// `m.room.name` приходит только в timeline, а состояние и Room.name отстают.
+function getTimelineRoomName(room) {
+  const events = room?.getLiveTimeline?.()?.getEvents?.() || [];
+
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    if (events[index].getType?.() !== "m.room.name") continue;
+
+    const name = events[index].getContent?.()?.name;
+    return typeof name === "string" ? name.trim() : "";
+  }
+
+  return "";
+}
+
+/**
+ * Имя комнаты: явное событие `m.room.name` важнее вычисленного SDK, иначе
+ * `Room.name` у комнаты без имени вернул бы сгенерированное «Empty room».
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#name
+ */
 function getRoomDisplayName(room) {
   if (!room) return "Без названия";
 
-  // Room.name заполняется SDK после sync / из state
+  const nameEvent = room.currentState?.getStateEvents?.("m.room.name", "");
+  const stateName = nameEvent?.getContent?.()?.name;
+  if (typeof stateName === "string" && stateName.trim()) return stateName.trim();
+
+  // Таймлайн смотрим, только если события имени в состоянии нет вовсе:
+  // пустое событие означает, что имя сняли, и подставлять старое нельзя
+  if (!nameEvent) {
+    const timelineName = getTimelineRoomName(room);
+    if (timelineName) return timelineName;
+  }
+
   const name = typeof room.name === "string" ? room.name.trim() : "";
   if (name) return name;
 
@@ -146,25 +180,93 @@ function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
     .slice(-limit);
 }
 
+// Membership текущего пользователя: "join" | "invite" | "leave" | "ban" | "knock".
+function getRoomMembership(room) {
+  return room?.getMyMembership?.() || "";
+}
+
+// В список комнат попадают только те, где пользователь участник или приглашён.
+function isListedMembership(membership) {
+  return membership === "join" || membership === "invite";
+}
+
+// Пространство — комната с типом `m.space` (MSC1772), а не чат.
+function isSpace(room) {
+  return Boolean(room?.isSpaceRoom?.() ?? room?.getType?.() === "m.space");
+}
+
 /**
- * `roomId` всех комнат, где пользователь в membership `join`, по алфавиту.
+ * Комнаты внутри пространства: `m.space.child` (state_key — roomId ребёнка).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#isspaceroom
+ * @see https://spec.matrix.org/latest/client-server-api/#spaces
+ */
+function getSpaceChildren(room) {
+  const events = room?.currentState?.getStateEvents?.("m.space.child") || [];
+  const client = getMatrixClient();
+  const children = [];
+
+  for (const event of events) {
+    const roomId = event?.getStateKey?.();
+    if (typeof roomId !== "string" || !roomId.startsWith("!") || children.some((child) => child.roomId === roomId)) continue;
+
+    // Комнаты нет в клиенте — имени у неё не будет, и в списке появлялась
+    // служебная строка «Без названия»; такую ссылку просто не показываем
+    const childRoom = client?.getRoom?.(roomId);
+    if (!childRoom) continue;
+
+    children.push({
+      roomId,
+      name: getRoomDisplayName(childRoom),
+    });
+  }
+
+  return children;
+}
+
+/**
+ * Список комнат для UI: приглашения первыми, затем `join` по алфавиту,
+ * пространства — в конце (это не чаты).
  *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#getmymembership
  */
-function getJoinedRoomIds() {
+function getRoomList() {
   const client = getMatrixClient();
   if (!client?.getRooms) return [];
 
-  // KnownMembership.Join === "join"
-  return client
-    .getRooms()
-    .filter((room) => room?.getMyMembership?.() === "join")
-    .sort((a, b) =>
-      getRoomDisplayName(a).localeCompare(getRoomDisplayName(b), undefined, {
-        sensitivity: "base",
-      }),
-    )
-    .map((room) => room.roomId);
+  const byName = (a, b) =>
+    getRoomDisplayName(a).localeCompare(getRoomDisplayName(b), undefined, {
+      sensitivity: "base",
+    });
+
+  // KnownMembership.Invite === "invite", KnownMembership.Join === "join"
+  const rooms = client.getRooms();
+  const invited = rooms.filter((room) => getRoomMembership(room) === "invite").sort(byName);
+  const joined = rooms.filter((room) => getRoomMembership(room) === "join" && !isSpace(room)).sort(byName);
+  const spaces = rooms.filter((room) => getRoomMembership(room) === "join" && isSpace(room)).sort(byName);
+
+  return [...invited, ...joined, ...spaces].map((room) => ({
+    roomId: room.roomId,
+    membership: getRoomMembership(room),
+    isSpace: isSpace(room),
+    ...getRoomUnreadCounts(room),
+  }));
+}
+
+/**
+ * Счётчики непрочитанного: `total` — все новые сообщения, `highlight` — те,
+ * что адресованы пользователю (упоминание). Значения строк совпадают с
+ * `NotificationCountType` из matrix-js-sdk.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#getunreadnotificationcount
+ */
+function getRoomUnreadCounts(room) {
+  if (typeof room?.getUnreadNotificationCount !== "function") return { unread: 0, highlight: 0 };
+
+  return {
+    unread: room.getUnreadNotificationCount("total") || 0,
+    highlight: room.getUnreadNotificationCount("highlight") || 0,
+  };
 }
 
 const PRESENCE_LABELS = {
@@ -220,10 +322,25 @@ async function getPeerStatusText(client, peer) {
   }
 }
 
+// Кто пригласил: отправитель `m.room.member` текущего пользователя.
+function getInviterName(room, myUserId) {
+  const memberEvent = room?.currentState?.getStateEvents?.("m.room.member", myUserId);
+  const senderId = memberEvent?.getSender?.() || "";
+  if (!senderId) return "";
+
+  const member = room?.getMember?.(senderId);
+  return member?.name || member?.rawDisplayName || senderId;
+}
+
 async function getRoomSubtitle(client, room) {
   const myUserId = client?.getUserId?.();
-  const peer = getRoomPeer(room, myUserId);
 
+  if (getRoomMembership(room) === "invite") {
+    const inviter = getInviterName(room, myUserId);
+    return inviter ? `Приглашение от ${inviter}` : "Приглашение в комнату";
+  }
+
+  const peer = getRoomPeer(room, myUserId);
   if (peer) return getPeerStatusText(client, peer);
 
   const count = room?.getJoinedMemberCount?.() || 0;
@@ -231,7 +348,8 @@ async function getRoomSubtitle(client, room) {
 }
 
 /**
- * Сериализуемый снимок метаданных комнаты для UI (имя, аватар, подпись).
+ * Сериализуемый снимок метаданных комнаты для UI (имя, аватар, подпись,
+ * membership, тип пространства и его дочерние комнаты).
  *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html
  */
@@ -240,11 +358,19 @@ async function getRoomMeta(roomId) {
   const room = client?.getRoom?.(roomId);
   if (!room) return null;
 
+  const space = isSpace(room);
+
   return {
     roomId,
     name: getRoomDisplayName(room),
     avatarUrl: await resolveRoomAvatarUrl(client, room),
-    subtitle: await getRoomSubtitle(client, room),
+    subtitle: space ? "Пространство" : await getRoomSubtitle(client, room),
+    membership: getRoomMembership(room),
+    isSpace: space,
+    // Собеседник личной комнаты: по нему UI понимает, что чат с этим логином уже есть
+    peerId: space ? "" : (getRoomPeer(room, client?.getUserId?.())?.userId ?? ""),
+    ...getRoomUnreadCounts(room),
+    children: space ? getSpaceChildren(room) : [],
   };
 }
 
@@ -271,7 +397,7 @@ async function getRoomMessages(roomId, limit = ROOM_MESSAGES_LIMIT) {
 }
 
 /**
- * Дельта-подписка на список комнат: INITIALIZE / PUT / DELETE одного roomId.
+ * Дельта-подписка на список комнат: INITIALIZE / PUT / DELETE.
  *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#getrooms
  * @see https://spec.matrix.org/latest/client-server-api/#syncing
@@ -280,35 +406,270 @@ function watchRoomList(onChange) {
   const client = getMatrixClient();
   if (!client?.on) return () => {};
 
-  const handleRoom = (room) => {
-    if (room?.getMyMembership?.() === "join") {
-      onChange?.({ type: "PUT", roomId: room.roomId });
-    }
+  const emitPut = (room) => {
+    onChange?.({
+      type: "PUT",
+      roomId: room.roomId,
+      membership: getRoomMembership(room),
+      isSpace: isSpace(room),
+      ...getRoomUnreadCounts(room),
+    });
   };
 
+  // RoomEvent.UnreadNotifications эмитит сама комната, клиент его не переиздаёт —
+  // поэтому подписка на каждую комнату, а не на клиент
+  const roomListeners = new Map();
+
+  const attachRoom = (room) => {
+    if (!room?.on || !room.roomId || roomListeners.has(room.roomId)) return;
+
+    const listener = () => emitPut(room);
+    room.on(ROOM_UNREAD_EVENT, listener);
+    roomListeners.set(room.roomId, { room, listener });
+  };
+
+  const detachRoom = (roomId) => {
+    const entry = roomListeners.get(roomId);
+    if (!entry) return;
+
+    entry.room.removeListener(ROOM_UNREAD_EVENT, entry.listener);
+    roomListeners.delete(roomId);
+  };
+
+  const handleRoom = (room) => {
+    if (!isListedMembership(getRoomMembership(room))) return;
+
+    attachRoom(room);
+    emitPut(room);
+  };
+
+  // Смена membership: приглашение → участие (PUT меняет метаданные комнаты),
+  // выход/бан → комната уходит из списка.
   const handleMembershipChange = (room) => {
-    if (room?.getMyMembership?.() === "join") {
-      onChange?.({ type: "PUT", roomId: room.roomId });
+    if (isListedMembership(getRoomMembership(room))) {
+      attachRoom(room);
+      emitPut(room);
     } else {
+      detachRoom(room.roomId);
       onChange?.({ type: "DELETE", roomId: room.roomId });
     }
   };
 
   const handleDeleteRoom = (roomId) => {
+    detachRoom(roomId);
     onChange?.({ type: "DELETE", roomId });
   };
 
-  onChange?.({ type: "INITIALIZE", roomIds: getJoinedRoomIds() });
+  // Чтение с другого устройства приходит receipt'ом — счётчики пересчитываем
+  const handleReceipt = (_event, room) => {
+    if (room?.roomId) emitPut(room);
+  };
+
+  const initialRooms = client.getRooms?.() || [];
+  initialRooms.forEach((room) => {
+    if (isListedMembership(getRoomMembership(room))) attachRoom(room);
+  });
+
+  onChange?.({ type: "INITIALIZE", rooms: getRoomList() });
 
   client.on("Room", handleRoom);
   client.on("Room.myMembership", handleMembershipChange);
+  client.on("Room.receipt", handleReceipt);
   client.on("deleteRoom", handleDeleteRoom);
 
   return () => {
     client.removeListener("Room", handleRoom);
     client.removeListener("Room.myMembership", handleMembershipChange);
+    client.removeListener("Room.receipt", handleReceipt);
     client.removeListener("deleteRoom", handleDeleteRoom);
+
+    roomListeners.forEach(({ room, listener }) => {
+      room.removeListener(ROOM_UNREAD_EVENT, listener);
+    });
+    roomListeners.clear();
   };
+}
+
+/**
+ * Принимает приглашение (или входит в публичную комнату): POST /join/{roomId}.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#joinroom
+ * @see https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3joinroomidoralias
+ */
+async function joinRoom(roomId) {
+  const client = getMatrixClient();
+  if (!client?.joinRoom) throw new Error("Клиент Matrix не инициализирован.");
+  if (!roomId) throw new Error("Не указан идентификатор комнаты.");
+
+  const room = await client.joinRoom(roomId);
+  return { roomId: room?.roomId || roomId };
+}
+
+/**
+ * Отклоняет приглашение или покидает комнату: POST /leave/{roomId}.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#leave
+ * @see https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidleave
+ */
+async function leaveRoom(roomId) {
+  const client = getMatrixClient();
+  if (!client || typeof client.leave !== "function") {
+    throw new Error("Клиент Matrix не инициализирован.");
+  }
+  if (!roomId) throw new Error("Не указан идентификатор комнаты.");
+
+  await client.leave(roomId);
+  return { roomId };
+}
+
+/**
+ * Отправляет текстовое сообщение в комнату. Шифрование (если комната encrypted)
+ * выполняет SDK внутри `sendEvent`.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#sendtextmessage
+ * @see https://spec.matrix.org/latest/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
+ */
+async function sendRoomMessage(roomId, body) {
+  const client = getMatrixClient();
+  const text = typeof body === "string" ? body.trim() : "";
+
+  if (typeof client?.sendTextMessage !== "function") {
+    throw new Error("Клиент Matrix не инициализирован.");
+  }
+  if (!roomId) throw new Error("Не указан идентификатор комнаты.");
+  if (!text) throw new Error("Сообщение не может быть пустым.");
+
+  const { event_id: eventId } = await client.sendTextMessage(roomId, text);
+  return { roomId, eventId };
+}
+
+/**
+ * Помечает комнату прочитанной: `m.read` receipt на последнее событие таймлайна.
+ * По этому receipt сервер сбрасывает notification_count, и бейджи непрочитанного
+ * гаснут (в том числе на других устройствах пользователя).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#sendreadreceipt
+ * @see https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3roomsroomidreceiptreceipttypeeventid
+ */
+async function markRoomRead(roomId) {
+  const client = getMatrixClient();
+  const room = client?.getRoom?.(roomId);
+  if (!room || typeof client.sendReadReceipt !== "function") return;
+
+  const events = room.getLiveTimeline?.()?.getEvents?.() || [];
+  const lastEvent = events[events.length - 1];
+  if (!lastEvent) return;
+
+  try {
+    await client.sendReadReceipt(lastEvent);
+  } catch (error) {
+    // Прочитанность не критична для UI: ошибку только логируем
+    if (import.meta.env.DEV) {
+      console.warn("[matrixRooms] sendReadReceipt failed", roomId, error);
+    }
+  }
+}
+
+/**
+ * Приводит ввод пользователя к Matrix ID: `test2` → `@test2:<домен текущего
+ * пользователя>`, `@test2:server` и `test2:server` — к полному виду.
+ */
+function normalizeUserId(value, myUserId) {
+  const userId = typeof value === "string" ? value.trim().replace(/^@/, "") : "";
+  if (!userId) return "";
+
+  if (userId.includes(":")) return `@${userId}`;
+
+  const myId = String(myUserId || "");
+  const domain = myId.slice(myId.indexOf(":") + 1);
+  return domain ? `@${userId}:${domain}` : `@${userId}`;
+}
+
+const MXID_PATTERN = /^@[^\s:]+:[^\s:]+$/;
+
+// Логин без домена: домен дописываем сами, поэтому требуем ASCII-локалпарт —
+// иначе «не mxid» превратилось бы в два приглашения для опечаток
+const LOCALPART_PATTERN = /^[a-z0-9._=+/-]+$/i;
+
+// Список приглашаемых: нормализуем, отбрасываем пустые и себя, убираем дубли.
+function normalizeInvitees(invitees, myUserId) {
+  const list = Array.isArray(invitees) ? invitees : [];
+  const normalized = [];
+
+  for (const raw of list) {
+    const value = typeof raw === "string" ? raw.trim().replace(/^@/, "") : "";
+    if (!value) continue;
+
+    if (!value.includes(":") && !LOCALPART_PATTERN.test(value)) {
+      throw new Error(`Некорректный Matrix ID: ${String(raw).trim()}`);
+    }
+
+    const userId = normalizeUserId(value, myUserId);
+    if (!userId || userId === myUserId) continue;
+
+    if (!MXID_PATTERN.test(userId)) {
+      throw new Error(`Некорректный Matrix ID: ${String(raw).trim()}`);
+    }
+
+    if (!normalized.includes(userId)) normalized.push(userId);
+  }
+
+  return normalized;
+}
+
+/**
+ * Проверяет, что пользователь известен серверу: `GET /profile/{userId}`.
+ * Неизвестный логин сервер отдаёт как 404 `M_NOT_FOUND` — тогда комнату
+ * создавать нельзя.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#getprofileinfo
+ * @see https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3profileuserid
+ */
+async function assertUserExists(client, userId) {
+  if (typeof client.getProfileInfo !== "function") return;
+
+  try {
+    await client.getProfileInfo(userId);
+  } catch (error) {
+    if (error?.errcode === "M_NOT_FOUND" || error?.httpStatus === 404) {
+      throw new Error(`Пользователь ${userId} не найден на сервере.`, { cause: error });
+    }
+
+    throw new Error(`Не удалось проверить пользователя ${userId} на сервере.`, { cause: error });
+  }
+}
+
+/**
+ * Создаёт комнату (`private_chat` — вход только по приглашению) и приглашает
+ * в неё перечисленных пользователей. Пользователей предварительно проверяем
+ * на сервере: с несуществующим логином комната не создаётся.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#createroom
+ * @see https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3createroom
+ * @see https://spec.matrix.org/latest/client-server-api/#mroomcreate
+ */
+async function createRoom({ name, invitees } = {}) {
+  const client = getMatrixClient();
+  if (typeof client?.createRoom !== "function") {
+    throw new Error("Клиент Matrix не инициализирован.");
+  }
+
+  const roomName = typeof name === "string" ? name.trim() : "";
+  if (!roomName) throw new Error("Введите название комнаты.");
+
+  const invited = normalizeInvitees(invitees, client.getUserId?.());
+  for (const userId of invited) {
+    await assertUserExists(client, userId);
+  }
+
+  // Preset.PrivateChat === "private_chat"
+  const { room_id: roomId } = await client.createRoom({
+    name: roomName,
+    preset: "private_chat",
+    invite: invited,
+  });
+
+  return { roomId, name: roomName };
 }
 
 /**
@@ -346,4 +707,16 @@ function watchRoomMessages(roomId, onChange) {
   };
 }
 
-export { clearRoomAvatarCache, getJoinedRoomIds, getRoomMessages, getRoomMeta, watchRoomList, watchRoomMessages };
+export {
+  clearRoomAvatarCache,
+  createRoom,
+  getRoomList,
+  getRoomMessages,
+  getRoomMeta,
+  joinRoom,
+  leaveRoom,
+  markRoomRead,
+  sendRoomMessage,
+  watchRoomList,
+  watchRoomMessages,
+};

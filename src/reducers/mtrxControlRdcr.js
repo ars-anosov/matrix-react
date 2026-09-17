@@ -30,6 +30,8 @@ const initialState = {
   roomIds: [],
   selectedRoomId: "",
   roomsMeta: {},
+  // Логин для нового чата: лежит в Redux, чтобы поле мог заполнить любой компонент
+  newRoomLogin: "",
   deviceVerification: {
     status: "idle", // 'idle' | 'loading' | 'requested' | 'ready' | 'started' | 'success' | 'cancelled' | 'error'
     verified: false,
@@ -106,6 +108,7 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayPad: false,
         responseData: null,
         ...emptyRooms,
+        newRoomLogin: "",
         deviceVerification: initialState.deviceVerification,
         errComponent: "",
         errText: "",
@@ -131,18 +134,54 @@ export default function mtrxControlRdcr(state = initialState, action) {
         login: action.payload.login,
       };
 
-    case MTRXCTL_ROOM_LIST_INITIALIZE:
+    case MTRXCTL_ROOM_LIST_INITIALIZE: {
+      // membership и тип комнаты кладём в индекс сразу: от них зависит UI,
+      // а полные метаданные приходят асинхронно (getRoomMeta)
+      const roomsMeta = {};
+      action.payload.rooms.forEach((room) => {
+        roomsMeta[room.roomId] = {
+          ...state.roomsMeta[room.roomId],
+          membership: room.membership,
+          isSpace: room.isSpace,
+          unread: room.unread || 0,
+          highlight: room.highlight || 0,
+        };
+      });
+
       return {
         ...state,
-        roomIds: action.payload.roomIds,
+        roomIds: action.payload.rooms.map((room) => room.roomId),
+        roomsMeta,
       };
+    }
 
     case MTRXCTL_ROOM_LIST_PUT: {
-      const roomId = action.payload.roomId;
-      if (state.roomIds.includes(roomId)) return state;
+      const { roomId, membership, isSpace, unread, highlight } = action.payload;
+      // Патчим только пришедшие поля: у PUT от SDK они есть, у оптимистичных — нет
+      const patch = {
+        ...(membership ? { membership } : {}),
+        ...(typeof isSpace === "boolean" ? { isSpace } : {}),
+        ...(typeof unread === "number" ? { unread } : {}),
+        ...(typeof highlight === "number" ? { highlight } : {}),
+      };
+      const roomsMeta = Object.keys(patch).length
+        ? {
+            ...state.roomsMeta,
+            [roomId]: { ...state.roomsMeta[roomId], ...patch },
+          }
+        : state.roomsMeta;
+
+      if (state.roomIds.includes(roomId)) {
+        return roomsMeta === state.roomsMeta ? state : { ...state, roomsMeta };
+      }
+
+      // Приглашения держим в начале списка — их важно увидеть первыми
+      const roomIds = membership === "invite" ? [roomId, ...state.roomIds] : [...state.roomIds, roomId];
+
       return {
         ...state,
-        roomIds: [...state.roomIds, roomId],
+        roomIds,
+        roomsMeta,
       };
     }
 

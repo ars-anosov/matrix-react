@@ -27,7 +27,7 @@ const MtrxPadContainer = () => {
   const dispatch = useDispatch();
   const actions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { roomIds, roomsMeta, selectedRoomId, status } = useSelector((state) => state.mtrxControlRdcr);
+  const { roomIds, roomsMeta, selectedRoomId, newRoomLogin, status } = useSelector((state) => state.mtrxControlRdcr);
 
   const messages = useRoomMessages(selectedRoomId);
 
@@ -54,6 +54,11 @@ const MtrxPadContainer = () => {
         name: roomsMeta[roomId]?.name || roomId,
         avatarUrl: roomsMeta[roomId]?.avatarUrl || "",
         subtitle: roomsMeta[roomId]?.subtitle || "",
+        membership: roomsMeta[roomId]?.membership || "",
+        isSpace: Boolean(roomsMeta[roomId]?.isSpace),
+        peerId: roomsMeta[roomId]?.peerId || "",
+        unread: roomsMeta[roomId]?.unread || 0,
+        highlight: roomsMeta[roomId]?.highlight || 0,
       })),
     [roomIds, roomsMeta],
   );
@@ -67,6 +72,9 @@ const MtrxPadContainer = () => {
       name: meta?.name || selectedRoomId,
       avatarUrl: meta?.avatarUrl || "",
       subtitle: meta?.subtitle || "",
+      membership: meta?.membership || "",
+      isSpace: Boolean(meta?.isSpace),
+      children: meta?.children || [],
       messages,
     };
   }, [selectedRoomId, roomsMeta, messages]);
@@ -76,8 +84,16 @@ const MtrxPadContainer = () => {
       rooms={rooms}
       selectedRoomId={selectedRoomId}
       selectedRoom={selectedRoom}
+      newRoomLogin={newRoomLogin}
+      onNewRoomLoginChange={(value) => actions.handleChangeStore("newRoomLogin", value)}
       onSelectRoom={(roomId) => actions.handleSelectRoom(roomId)}
       onClose={() => actions.handleChangeStore("displayPad", false)}
+      // Название комнаты равно логину — логика продукта остаётся в контейнере
+      onCreateRoom={(login) => actions.handleCreateRoom({ name: login, invitees: [login] })}
+      onSendMessage={(body) => actions.handleSendMessage(selectedRoomId, body)}
+      onAcceptInvite={() => actions.handleJoinRoom(selectedRoomId)}
+      onDeclineInvite={() => actions.handleLeaveRoom(selectedRoomId)}
+      onLeaveRoom={() => actions.handleLeaveRoom(selectedRoomId)}
     />
   );
 };

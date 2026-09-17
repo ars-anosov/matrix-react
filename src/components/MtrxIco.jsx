@@ -1,6 +1,6 @@
 import IconHub from "@mui/icons-material/Hub";
 import IconSync from "@mui/icons-material/Sync";
-import { alpha, IconButton, keyframes, Tooltip, useTheme } from "@mui/material";
+import { alpha, Badge, IconButton, keyframes, Tooltip, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect, useMemo } from "react";
 
@@ -13,7 +13,8 @@ const pulse = keyframes`
 `;
 
 // Индикатор состояния Matrix: цвет иконки и подложки задаёт статус,
-// подпись дублирует его в tooltip и aria-label.
+// подпись дублирует его в tooltip и aria-label. Красный бейдж — сумма
+// непрочитанных по всем комнатам.
 function MtrxIco({ mtrxControlRdcr }) {
   const theme = useTheme();
   const status = mtrxControlRdcr?.status;
@@ -24,6 +25,11 @@ function MtrxIco({ mtrxControlRdcr }) {
       return () => console.log("MtrxIco UNMOUNT");
     }
   }, []);
+
+  const unreadTotal = useMemo(
+    () => Object.values(mtrxControlRdcr?.roomsMeta || {}).reduce((sum, meta) => sum + (meta?.unread || 0), 0),
+    [mtrxControlRdcr?.roomsMeta],
+  );
 
   const cfg = useMemo(() => {
     switch (status) {
@@ -60,36 +66,47 @@ function MtrxIco({ mtrxControlRdcr }) {
   }, [status, theme]);
 
   const { icon, color, pulse: isPulsing, label } = cfg;
+  const unreadLabel = unreadTotal > 0 ? `${label}, непрочитанных: ${unreadTotal}` : label;
 
   return (
-    <Tooltip title={label}>
-      <IconButton
-        size="small"
-        aria-label={label}
-        sx={{
-          ml: 1,
-          width: 42,
-          height: 42,
-          "--status-pulse": alpha(color, 0.45),
-          color,
-          backgroundColor: alpha(color, 0.12),
-          border: `1px solid ${alpha(color, 0.28)}`,
-          animation: isPulsing ? `${pulse} 1.4s ease-out infinite` : "none",
-          transition: theme.transitions.create(["background-color", "border-color", "transform"], {
-            duration: theme.transitions.duration.short,
-          }),
-          "&:hover": {
-            backgroundColor: alpha(color, 0.2),
-            borderColor: alpha(color, 0.45),
-            transform: "translateY(-1px)",
-          },
-          "& .MuiSvgIcon-root": {
-            fontSize: "1.35rem",
-          },
-        }}
+    <Tooltip title={unreadLabel}>
+      <Badge
+        color="error"
+        max={99}
+        overlap="circular"
+        showZero={false}
+        badgeContent={unreadTotal}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{ badge: { sx: { fontWeight: 700, fontSize: 11 }, "aria-hidden": true } }}
       >
-        {icon}
-      </IconButton>
+        <IconButton
+          size="small"
+          aria-label={unreadLabel}
+          sx={{
+            ml: 1,
+            width: 42,
+            height: 42,
+            "--status-pulse": alpha(color, 0.45),
+            color,
+            backgroundColor: alpha(color, 0.12),
+            border: `1px solid ${alpha(color, 0.28)}`,
+            animation: isPulsing ? `${pulse} 1.4s ease-out infinite` : "none",
+            transition: theme.transitions.create(["background-color", "border-color", "transform"], {
+              duration: theme.transitions.duration.short,
+            }),
+            "&:hover": {
+              backgroundColor: alpha(color, 0.2),
+              borderColor: alpha(color, 0.45),
+              transform: "translateY(-1px)",
+            },
+            "& .MuiSvgIcon-root": {
+              fontSize: "1.35rem",
+            },
+          }}
+        >
+          {icon}
+        </IconButton>
+      </Badge>
     </Tooltip>
   );
 }
@@ -97,6 +114,13 @@ function MtrxIco({ mtrxControlRdcr }) {
 MtrxIco.propTypes = {
   mtrxControlRdcr: PropTypes.shape({
     status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
+    // Из среза читаем только счётчики непрочитанного
+    roomsMeta: PropTypes.objectOf(
+      PropTypes.shape({
+        unread: PropTypes.number,
+        highlight: PropTypes.number,
+      }),
+    ),
   }).isRequired,
 };
 

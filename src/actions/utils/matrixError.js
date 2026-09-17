@@ -1,4 +1,4 @@
-export function getMatrixErrorMessage(error) {
+export function getMatrixErrorMessage(error, fallback = "Ошибка авторизации Matrix") {
   if (!error) return "Неизвестная ошибка";
 
   if (typeof error.error === "string" && error.error.trim()) {
@@ -13,5 +13,5 @@ export function getMatrixErrorMessage(error) {
     return error.errcode.trim();
   }
 
-  return "Ошибка авторизации Matrix";
+  return fallback;
 }

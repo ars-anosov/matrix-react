@@ -16,7 +16,7 @@ flowchart LR
 
   subgraph SVC["src/services"]
     CL["matrixClient<br/>session / crypto / sync / токены<br/>(+ matrixClientStore, matrixSdk)"]
-    ROOMS["matrixRooms<br/>getRoomMeta / getRoomMessages<br/>watchRoomList / watchRoomMessages"]
+    ROOMS["matrixRooms<br/>getRoomMeta / getRoomMessages / watchRoomList<br/>watchRoomMessages / create·join·leave<br/>sendRoomMessage / markRoomRead"]
     ADSV["adAuth<br/>валидация https · POST · сессия AD"]
   end
 
@@ -146,17 +146,18 @@ sequenceDiagram
   Note over UI,Store: Список комнат (дельта)
   UI->>Redux: handleStartRoomWatch
   Redux->>Rooms: watchRoomList
-  Rooms->>SDK: on Room / Room.myMembership / deleteRoom
-  Rooms-->>Redux: INITIALIZE (roomIds)
+  Rooms->>SDK: on Room / Room.myMembership / Room.receipt / deleteRoom
+  Rooms-->>Redux: INITIALIZE (roomId · membership · isSpace · unread)
   Redux->>Rooms: getRoomMeta(roomId)
-  Rooms->>SDK: read Room
-  SDK-->>Rooms: name / avatarUrl
+  Rooms->>SDK: read Room / getPresence (подпись личной комнаты)
+  SDK-->>Rooms: name / avatarUrl / subtitle / membership / children
   Rooms-->>Redux: roomsMeta (STORE)
-  SDK-->>Rooms: PUT / DELETE (roomId)
+  SDK-->>Rooms: PUT (membership · unread · highlight) / DELETE
   Rooms-->>Redux: PUT / DELETE → индекс
 
   Note over UI,Store: Выбор комнаты + сообщения
   UI->>Redux: handleSelectRoom(roomId)
+  Redux->>Rooms: markRoomRead(roomId) → m.read receipt (бейджи гаснут)
   Redux-->>UI: selectedRoomId
   UI->>Rooms: watchRoomMessages(roomId)
   Rooms->>SDK: read Timeline (getRoomMessages)
@@ -165,6 +166,22 @@ sequenceDiagram
   SDK-->>Rooms: Room.timeline / Event.decrypted
   Rooms-->>UI: обновлённые сообщения
 
+  Note over UI,Store: Приглашение (MtrxInvite), создание чата (поле в MtrxPad), выход (MtrxLeaveRoom)
+  UI->>Redux: handleJoinRoom(roomId)
+  Redux->>Rooms: joinRoom() → POST /join
+  Redux-->>Redux: PUT membership=join (оптимистично, не ждём /sync)
+  UI->>Redux: handleCreateRoom(name + invitees)
+  Redux->>Rooms: createRoom(name + invitees)
+  Rooms->>SDK: getProfileInfo(userId) — проверка приглашаемых
+  Rooms->>SDK: POST /createRoom (preset private_chat, invite)
+  Redux-->>Redux: PUT + roomsMeta (введённое имя) + выбор комнаты
+  UI->>Redux: handleLeaveRoom(roomId) — «Отклонить» или «Покинуть комнату»
+  Redux->>Rooms: leaveRoom() → POST /leave
+  Redux-->>Redux: DELETE → комната уходит из списка
+  UI->>Redux: handleSendMessage(roomId, body)
+  Redux->>Rooms: sendRoomMessage() → sendTextMessage (E2EE — внутри SDK)
+  Note over UI,Rooms: Пространство m.space сообщений не пишет: MtrxSpace показывает m.space.child
+
   Note over UI,Store: Logout (MtrxReg) / invalidate
   UI->>Redux: handleRegClear
   Redux->>Client: logout / invalidate
@@ -172,6 +189,15 @@ sequenceDiagram
   Client-->>Redux: CLEAR → Redux
   Note over Redux,UI: authLost=true → форсируется AuthPad с красным тумблером (клик — сброс сессии)
 ```
+
+Интерактивные archify-диаграммы к этой схеме:
+
+- [`matrix-react-architecture.html`](archify/matrix-react-architecture.html) — архитектура: слои,
+  хранилища и мост AD → Matrix;
+- [`matrix-react-chat-sequence.html`](archify/matrix-react-chat-sequence.html) — комнаты и чат:
+  дельта-список, выбор комнаты и read receipt, таймлайн, приглашение, новый чат, отправка и выход;
+- [`matrix-react-auth-sequence.html`](archify/matrix-react-auth-sequence.html) — вход, сессия
+  Matrix и сброс.
 
 ## Мост к сервисам (`AuthContainer`)
 
