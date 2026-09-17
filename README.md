@@ -100,7 +100,7 @@ POST-запрос к серверу авторизации, ожидаемый �
 
 [![Вход, сессия Matrix и сброс](docs/archify/matrix-react-auth-sequence.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-auth-sequence.html)
 
-[![Комнаты и чат](docs/archify/matrix-react-chat-sequence.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-chat-sequence.html)
+[![Чат: данные и команды](docs/archify/matrix-react-chat-flow.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-chat-flow.html)
 
 Все документы: <https://ars-anosov.github.io/matrix-react/>
 

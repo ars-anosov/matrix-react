@@ -194,8 +194,8 @@ sequenceDiagram
 
 - [`matrix-react-architecture.html`](archify/matrix-react-architecture.html) — архитектура: слои,
   хранилища и мост AD → Matrix;
-- [`matrix-react-chat-sequence.html`](archify/matrix-react-chat-sequence.html) — комнаты и чат:
-  дельта-список, выбор комнаты и read receipt, таймлайн, приглашение, новый чат, отправка и выход;
+- [`matrix-react-chat-flow.html`](archify/matrix-react-chat-flow.html) — чат: данные и команды
+  (поток чтения из SDK в индекс и UI и поток команд обратно);
 - [`matrix-react-auth-sequence.html`](archify/matrix-react-auth-sequence.html) — вход, сессия
   Matrix и сброс.
 

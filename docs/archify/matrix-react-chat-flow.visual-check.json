@@ -5,9 +5,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-chat-sequence.html",
-    "sha256": "5c2163b51307dae5c7f92bf10542f184d1089d18f7543f03d448979d2a357b3e",
-    "bytes": 663353
+    "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-chat-flow.html",
+    "sha256": "fc23d2c4db55be6b0bdd702d184771dde75004ca368d1681240ce8ccf524168e",
+    "bytes": 638477
   },
   "state": {
     "detail": "read",
@@ -89,7 +89,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-chat-sequence.visual-check.1440x900.light.png"
+        "file": "matrix-react-chat-flow.visual-check.1440x900.light.png"
       },
       {
         "width": 1440,
@@ -103,7 +103,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-chat-sequence.visual-check.1440x900.dark.png"
+        "file": "matrix-react-chat-flow.visual-check.1440x900.dark.png"
       },
       {
         "width": 2048,
@@ -117,7 +117,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-chat-sequence.visual-check.2048x1320.light.png"
+        "file": "matrix-react-chat-flow.visual-check.2048x1320.light.png"
       },
       {
         "width": 2048,
@@ -131,13 +131,13 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-chat-sequence.visual-check.2048x1320.dark.png"
+        "file": "matrix-react-chat-flow.visual-check.2048x1320.dark.png"
       }
     ],
-    "contactSheet": "matrix-react-chat-sequence.visual-check.html"
+    "contactSheet": "matrix-react-chat-flow.visual-check.html"
   },
   "sidecars": {
-    "receipt": "matrix-react-chat-sequence.visual-check.json",
-    "contactSheet": "matrix-react-chat-sequence.visual-check.html"
+    "receipt": "matrix-react-chat-flow.visual-check.json",
+    "contactSheet": "matrix-react-chat-flow.visual-check.html"
   }
 }
