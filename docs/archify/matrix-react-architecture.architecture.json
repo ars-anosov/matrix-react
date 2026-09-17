@@ -6,7 +6,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react.git",
-      "revision": "b6c1e0468c326428b047428a8ee0b12244ed6ca3"
+      "revision": "2902532ece278458de813679acd2b26905068e34"
     },
     "legend": {
       "mode": "auto",
@@ -70,6 +70,20 @@
         "note": "Redux держит только UI-индекс, данные комнат живут в SDK и IndexedDB."
       },
       {
+        "id": "chat-and-rooms",
+        "label": "Комнаты и чат",
+        "focus": [
+          "ui",
+          "containers",
+          "actions",
+          "services",
+          "store",
+          "sdk",
+          "homeserver"
+        ],
+        "note": "Список комнат — дельтами в индекс; сообщения, приглашения, новый чат и выход идут через matrixRooms."
+      },
+      {
         "id": "bridge-ad-matrix",
         "label": "Мост AD → Matrix",
         "focus": [
@@ -102,7 +116,7 @@
       "id": "ui",
       "type": "frontend",
       "label": "Компоненты React",
-      "sublabel": "AuthLinks · MtrxReg/AuthAd",
+      "sublabel": "AuthLinks · MtrxPad",
       "tag": "Material UI",
       "pos": [
         256,
@@ -119,14 +133,14 @@
           "label": "стартовый экран"
         },
         {
-          "path": "src/components/MtrxReg.jsx",
-          "line": 29,
-          "label": "диалог Matrix"
+          "path": "src/components/MtrxPad.jsx",
+          "line": 54,
+          "label": "список комнат и новый чат"
         },
         {
-          "path": "src/components/AuthAd.jsx",
-          "line": 30,
-          "label": "диалог AD"
+          "path": "src/components/MtrxRoom.jsx",
+          "line": 142,
+          "label": "комната: таймлайн и composer"
         }
       ]
     },
@@ -154,8 +168,9 @@
           "line": 14
         },
         {
-          "path": "src/containers/MenuAppContainer.jsx",
-          "line": 8
+          "path": "src/containers/MtrxPadContainer.jsx",
+          "line": 26,
+          "label": "watchRoomMessages + polling статуса"
         }
       ]
     },
@@ -176,18 +191,18 @@
       "sources": [
         {
           "path": "src/actions/mtrxControlActions.js",
-          "line": 118,
-          "label": "handleRestoreSession"
-        },
-        {
-          "path": "src/actions/mtrxControlActions.js",
           "line": 68,
           "label": "handleRegister"
         },
         {
-          "path": "src/actions/authControlActions.js",
-          "line": 15,
-          "label": "handleAdRegister"
+          "path": "src/actions/mtrxControlActions.js",
+          "line": 313,
+          "label": "handleStartRoomWatch"
+        },
+        {
+          "path": "src/actions/mtrxControlActions.js",
+          "line": 363,
+          "label": "handleSendMessage"
         }
       ]
     },
@@ -243,8 +258,13 @@
         },
         {
           "path": "src/services/matrixRooms.js",
-          "line": 279,
+          "line": 405,
           "label": "watchRoomList"
+        },
+        {
+          "path": "src/services/matrixRooms.js",
+          "line": 532,
+          "label": "sendRoomMessage"
         }
       ]
     },
@@ -520,7 +540,7 @@
       "dot": "cyan",
       "title": "Слои приложения",
       "items": [
-        "components/ — Material UI, формы в Dialog",
+        "components/ — Material UI: чат, Dialog",
         "containers/ — useSelector + bindActions",
         "actions/ — thunk: валидация и вызов API",
         "services/ — логика matrix-js-sdk, узкий API",
@@ -540,12 +560,13 @@
     },
     {
       "dot": "violet",
-      "title": "Состояние и хранилища",
+      "title": "Комнаты, чат и хранилища",
       "items": [
-        "Redux — UI-индекс, не сообщения",
-        "localStorage — токены, deviceId, AD",
-        "IndexedDB — sync store и Rust crypto",
-        "Комнаты и таймлайн — истина SDK"
+        "Индекс комнат: INITIALIZE / PUT / DELETE",
+        "Приглашение, новый чат, выход — matrixRooms",
+        "Непрочитанное: unread / highlight → бейджи",
+        "m.space — комната, но не чат",
+        "Сообщения и таймлайн — истина SDK"
       ]
     }
   ]

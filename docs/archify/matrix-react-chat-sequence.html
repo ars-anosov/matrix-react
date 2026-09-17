@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="archify 2.14.0">
-  <title>matrix-react: архитектура приложения Diagram</title>
+  <title>matrix-react: комнаты и чат Diagram</title>
   <script>
     // Resolve the theme before first paint so light-preference users don't
     // see a dark flash. The toolbar script below re-applies with UI state.
@@ -4836,12 +4836,12 @@
     <div class="header">
       <div class="header-row">
         <div class="pulse-dot"></div>
-        <h1>matrix-react: архитектура приложения</h1>
+        <h1>matrix-react: комнаты и чат</h1>
       </div>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"main-flow","label":"Основной поток данных","focus":["users","ui","containers","actions","services","sdk","homeserver"],"note":"Ввод пользователя проходит слои React → Redux → services → matrix-js-sdk и уходит на homeserver."},{"id":"session-start","label":"Старт и восстановление сессии","focus":["ui","containers","actions","services","storage","sdk","homeserver"],"note":"AuthLinks предлагает две иконки входа: диалог AD (AuthAd) и диалог Matrix (MtrxReg); сохранённая сессия восстанавливается до /sync."},{"id":"state-and-storage","label":"Состояние и хранилища","focus":["store","containers","storage","idb","sdk"],"note":"Redux держит только UI-индекс, данные комнат живут в SDK и IndexedDB."},{"id":"chat-and-rooms","label":"Комнаты и чат","focus":["ui","containers","actions","services","store","sdk","homeserver"],"note":"Список комнат — дельтами в индекс; сообщения, приглашения, новый чат и выход идут через matrixRooms."},{"id":"bridge-ad-matrix","label":"Мост AD → Matrix","focus":["adauth","store","bridge","actions","services"],"note":"AuthContainer берёт mtrx_login / mtrx_password из ответа AD, подставляет логин в MtrxReg и показывает AuthPad с тумблером сессии."}]</script>
-    <script id="archify-source-evidence-data" type="application/json">{"schemaVersion":1,"verified":true,"repository":{"url":"https://github.com/ars-anosov/matrix-react","revision":"2902532ece278458de813679acd2b26905068e34","shortRevision":"2902532"},"referenceCount":27,"nodes":{"ui":[{"path":"src/components/AuthLinks.jsx","line":17,"label":"стартовый экран","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/components/AuthLinks.jsx#L17"},{"path":"src/components/MtrxPad.jsx","line":54,"label":"список комнат и новый чат","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/components/MtrxPad.jsx#L54"},{"path":"src/components/MtrxRoom.jsx","line":142,"label":"комната: таймлайн и composer","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/components/MtrxRoom.jsx#L142"}],"containers":[{"path":"src/containers/AuthContainer.jsx","line":16,"label":"мост AD → Matrix","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/containers/AuthContainer.jsx#L16"},{"path":"src/containers/MtrxContainer.jsx","line":14,"href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/containers/MtrxContainer.jsx#L14"},{"path":"src/containers/MtrxPadContainer.jsx","line":26,"label":"watchRoomMessages + polling статуса","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/containers/MtrxPadContainer.jsx#L26"}],"actions":[{"path":"src/actions/mtrxControlActions.js","line":68,"label":"handleRegister","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/actions/mtrxControlActions.js#L68"},{"path":"src/actions/mtrxControlActions.js","line":313,"label":"handleStartRoomWatch","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/actions/mtrxControlActions.js#L313"},{"path":"src/actions/mtrxControlActions.js","line":363,"label":"handleSendMessage","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/actions/mtrxControlActions.js#L363"}],"store":[{"path":"src/reducers/mtrxControlRdcr.js","line":17,"label":"UI-индекс","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/reducers/mtrxControlRdcr.js#L17"},{"path":"src/store/configureStore.js","line":12,"label":"createStore + DI","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/store/configureStore.js#L12"},{"path":"src/store/preloadedState.js","line":7,"label":"сид uriAdAuth","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/store/preloadedState.js#L7"}],"services":[{"path":"src/services/matrixClient.js","line":625,"label":"loginMatrix","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixClient.js#L625"},{"path":"src/services/matrixRooms.js","line":405,"label":"watchRoomList","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixRooms.js#L405"},{"path":"src/services/matrixRooms.js","line":532,"label":"sendRoomMessage","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixRooms.js#L532"}],"sdk":[{"path":"src/services/matrixSdk.js","line":8,"label":"loadMatrixSdk","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixSdk.js#L8"}],"homeserver":[{"path":"src/services/matrixClient.js","line":586,"label":"startMatrixSync","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixClient.js#L586"},{"path":"src/services/matrixClient.js","line":761,"label":"logoutMatrix","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixClient.js#L761"}],"storage":[{"path":"src/constants/storage.js","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/constants/storage.js"},{"path":"src/services/matrixClient.js","line":545,"label":"persistMatrixSession","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixClient.js#L545"}],"idb":[{"path":"src/services/matrixClient.js","line":63,"label":"IndexedDBStore","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixClient.js#L63"},{"path":"src/services/matrixClient.js","line":122,"label":"initRustCrypto","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/matrixClient.js#L122"}],"bridge":[{"path":"src/containers/AuthContainer.jsx","line":69,"label":"тумблер: handleToggleMtrx","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/containers/AuthContainer.jsx#L69"},{"path":"src/containers/AuthContainer.jsx","line":114,"label":"стартовый экран AuthLinks","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/containers/AuthContainer.jsx#L114"},{"path":"src/components/AuthPad.jsx","line":24,"label":"откл / зелёный / красный","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/components/AuthPad.jsx#L24"}],"adauth":[{"path":"src/services/adAuth.js","line":70,"label":"loginAd","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/src/services/adAuth.js#L70"},{"path":"mock/vite-mock-api.js","label":"dev-mock","href":"https://github.com/ars-anosov/matrix-react/blob/2902532ece278458de813679acd2b26905068e34/mock/vite-mock-api.js"}]}}</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"room-list","label":"Список комнат","focus":["pad","cont","act","rooms","sdk"],"note":"watchRoomList отдаёт дельты INITIALIZE / PUT / DELETE; в индекс идут membership, тип комнаты и счётчики."},{"id":"messages","label":"Комната и сообщения","focus":["user","pad","cont","room","rooms","sdk"],"note":"Клик по комнате шлёт m.read receipt; watchRoomMessages отдаёт снимок таймлайна и обновляет его на событиях SDK."},{"id":"invite-create","label":"Приглашение и новый чат","focus":["user","pad","room","act","rooms","hs"],"note":"Принять/Отклонить — joinRoom / leaveRoom; новый чат — createRoom с preset private_chat и приглашением."},{"id":"send-leave","label":"Сообщение и выход","focus":["user","room","act","rooms","sdk","hs"],"note":"MtrxComposer шлёт текст через sendRoomMessage; выход подтверждается и уходит в leaveRoom."}]</script>
+
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
       <div class="guided-view-copy">
@@ -4883,9 +4883,9 @@
 
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read">
-      <svg viewBox="0 0 1846 674" role="img" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase">
-        <title id="archify-diagram-title">matrix-react: архитектура приложения</title>
-        <desc id="archify-diagram-description">A architecture diagram generated by Archify.</desc>
+      <svg viewBox="0 0 3600 1560" role="img" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase">
+        <title id="archify-diagram-title">matrix-react: комнаты и чат</title>
+        <desc id="archify-diagram-description">A sequence diagram generated by Archify.</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -4908,249 +4908,461 @@
         <!-- Background Grid -->
         <rect width="100%" height="100%" fill="url(#grid)" />
 
-        <!-- Boundaries (behind everything) -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" x="222" y="126" width="1327" height="480" rx="12" class="c-region" stroke-width="1"/>
-        <text x="230" y="144" class="t-cloud" font-size="9" font-weight="600">Клиентское SPA в браузере</text>
+        <!-- Time Segments -->
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="150" width="3504" height="200" rx="10" class="c-lane" stroke-width="1"/>
 
-        <!-- Connection paths (before components for correct z-order) -->
-        <path data-edge-from="users" data-edge-to="ui" data-edge-label="ввод и клики" data-edge-key="0" data-edge-id="users-to-ui" data-composition-points="160,383;256,383" d="M 160 383 L 256 383" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="ui" data-edge-to="containers" data-edge-label="события UI" data-edge-key="1" data-edge-id="ui-to-containers" data-composition-points="421,383;517,383" d="M 421 383 L 517 383" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="containers" data-edge-to="actions" data-edge-label="вызов action" data-edge-key="2" data-edge-id="containers-to-actions" data-composition-points="697,383;793,383" d="M 697 383 L 793 383" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="actions" data-edge-to="services" data-edge-label="доменный API" data-edge-key="3" data-edge-id="actions-to-services" data-composition-points="963,383;1059,383" d="M 963 383 L 1059 383" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="services" data-edge-to="sdk" data-edge-label="MatrixClient API" data-edge-key="4" data-edge-id="services-to-sdk" data-composition-points="1254,383;1350,383" d="M 1254 383 L 1350 383" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="sdk" data-edge-to="homeserver" data-edge-label="/sync · /login" data-edge-key="5" data-edge-id="sdk-to-homeserver" data-composition-points="1515,383;1611,383" d="M 1515 383 L 1611 383" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="actions" data-edge-to="store" data-edge-label="dispatch(action)" data-edge-key="6" data-edge-id="actions-to-store" data-composition-points="878,350;878,193;697,193" d="M 878 350 L 878 201 Q 878 193 870 193 L 697 193" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="store" data-edge-to="containers" data-edge-label="state" data-edge-key="7" data-edge-id="store-to-containers" data-composition-points="607,226;607,350" d="M 607 226 L 607 350" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="services" data-edge-to="storage" data-edge-label="persistMatrixSession" data-edge-key="8" data-edge-id="services-to-storage" data-composition-points="1156.5,350;1156.5,226" d="M 1156.5 350 L 1156.5 226" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="sdk" data-edge-to="idb" data-edge-label="store · crypto" data-edge-key="9" data-edge-id="sdk-to-idb" data-composition-points="1432.5,350;1432.5,226" d="M 1432.5 350 L 1432.5 226" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="services" data-edge-to="adauth" data-edge-label="loginAd → POST /user/ad" data-edge-key="10" data-edge-id="services-to-adauth" data-composition-points="1156.5,416;1156.5,440;1587,440;1587,553;1611,553" d="M 1156.5 416 L 1156.5 432 Q 1156.5 440 1164.5 440 L 1579 440 Q 1587 440 1587 448 L 1587 545 Q 1587 553 1595 553 L 1611 553" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="bridge" data-edge-to="actions" data-edge-label="handleRegister · handleRegClear" data-edge-key="11" data-edge-id="bridge-to-actions" data-composition-points="744.5,520;744.5,468;878,468;878,416" d="M 744.5 520 L 744.5 476 Q 744.5 468 752.5 468 L 870 468 Q 878 468 878 460 L 878 416" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="355" width="3504" height="338" rx="10" class="c-lane" stroke-width="1"/>
 
-        <!-- Components -->
-        <g id="node-users" data-node-id="users" data-node-label="Пользователь" tabindex="0" role="button" aria-label="Focus Пользователь, браузер, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="браузер" data-node-context="Architecture component">
-          <title>Пользователь · браузер · Architecture component</title>
-          <rect x="30" y="350" width="130" height="66" rx="6" class="c-mask"/>
-          <rect x="30" y="350" width="130" height="66" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(36 356) scale(0.6875)">
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="698" width="3504" height="375" rx="10" class="c-lane" stroke-width="1"/>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="3" x="48" y="1078" width="3504" height="382" rx="10" class="c-lane" stroke-width="1"/>
+
+        <!-- Lifelines -->
+        <path d="M 157 142 L 157 1495" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 629.5714285714286 142 L 629.5714285714286 1495" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 1102.142857142857 142 L 1102.142857142857 1495" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 1574.7142857142858 142 L 1574.7142857142858 1495" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 2047.2857142857142 142 L 2047.2857142857142 1495" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 2519.8571428571427 142 L 2519.8571428571427 1495" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 2992.4285714285716 142 L 2992.4285714285716 1495" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 3465 142 L 3465 1495" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+
+        <!-- Activations -->
+        <rect x="1569.7142857142858" y="170" width="10" height="330" rx="3" class="c-mask"/>
+        <rect x="1569.7142857142858" y="170" width="10" height="330" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="2042.2857142857142" y="178" width="10" height="1267" rx="3" class="c-mask"/>
+        <rect x="2042.2857142857142" y="178" width="10" height="1267" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="2514.8571428571427" y="214" width="10" height="1231" rx="3" class="c-mask"/>
+        <rect x="2514.8571428571427" y="214" width="10" height="1231" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="624.5714285714286" y="320" width="10" height="110" rx="3" class="c-mask"/>
+        <rect x="624.5714285714286" y="320" width="10" height="110" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="624.5714285714286" y="900" width="10" height="170" rx="3" class="c-mask"/>
+        <rect x="624.5714285714286" y="900" width="10" height="170" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="2987.4285714285716" y="250" width="10" height="100" rx="3" class="c-mask"/>
+        <rect x="2987.4285714285716" y="250" width="10" height="100" rx="3" class="c-external" stroke-width="1"/>
+        <rect x="2987.4285714285716" y="520" width="10" height="170" rx="3" class="c-mask"/>
+        <rect x="2987.4285714285716" y="520" width="10" height="170" rx="3" class="c-external" stroke-width="1"/>
+        <rect x="2987.4285714285716" y="1200" width="10" height="60" rx="3" class="c-mask"/>
+        <rect x="2987.4285714285716" y="1200" width="10" height="60" rx="3" class="c-external" stroke-width="1"/>
+        <rect x="1097.142857142857" y="590" width="10" height="100" rx="3" class="c-mask"/>
+        <rect x="1097.142857142857" y="590" width="10" height="100" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="1097.142857142857" y="1080" width="10" height="360" rx="3" class="c-mask"/>
+        <rect x="1097.142857142857" y="1080" width="10" height="360" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="3460" y="820" width="10" height="20" rx="3" class="c-mask"/>
+        <rect x="3460" y="820" width="10" height="20" rx="3" class="c-external" stroke-width="1"/>
+        <rect x="3460" y="1010" width="10" height="20" rx="3" class="c-mask"/>
+        <rect x="3460" y="1010" width="10" height="20" rx="3" class="c-external" stroke-width="1"/>
+        <rect x="3460" y="1240" width="10" height="20" rx="3" class="c-mask"/>
+        <rect x="3460" y="1240" width="10" height="20" rx="3" class="c-external" stroke-width="1"/>
+        <rect x="3460" y="1390" width="10" height="20" rx="3" class="c-mask"/>
+        <rect x="3460" y="1390" width="10" height="20" rx="3" class="c-external" stroke-width="1"/>
+
+        <!-- Messages -->
+        <g data-edge-from="cont" data-edge-to="act" data-edge-label="handleStartRoomWatch()" data-edge-key="0" data-edge-id="start-watch">
+          <path data-composition-edge-from="cont" data-composition-edge-to="act" data-composition-edge-id="start-watch" data-composition-points="1581.7142857142858,182;2040.2857142857142,182" d="M 1581.7142857142858 182 L 2040.2857142857142 182" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1747.8" y="162" width="126.4" height="16" rx="3" class="c-mask"/>
+          <text x="1811" y="172" class="t-backend" font-size="9" text-anchor="middle">handleStartRoomWatch()</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="rooms" data-edge-label="watchRoomList(onChange)" data-edge-key="1" data-edge-id="watch-list">
+          <path data-composition-edge-from="act" data-composition-edge-to="rooms" data-composition-edge-id="watch-list" data-composition-points="2054.285714285714,220;2512.8571428571427,220" d="M 2054.285714285714 220 L 2512.8571428571427 220" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2217.7714285714283" y="200" width="131.60000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="2283.5714285714284" y="210" class="t-backend" font-size="9" text-anchor="middle">watchRoomList(onChange)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="sdk" data-edge-label="Room · Room.myMembership · Room.receipt · deleteRoom" data-edge-key="2" data-edge-id="subscribe-sdk">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="sdk" data-composition-edge-id="subscribe-sdk" data-composition-points="2526.8571428571427,258;2985.4285714285716,258" d="M 2526.8571428571427 258 L 2985.4285714285716 258" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2614.942857142857" y="238" width="282.40000000000003" height="16" rx="3" class="c-mask"/>
+          <text x="2756.142857142857" y="248" class="t-backend" font-size="9" text-anchor="middle">Room · Room.myMembership · Room.receipt · deleteRoom</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="act" data-edge-label="INITIALIZE: roomId · membership · isSpace" data-edge-key="3" data-edge-id="initialize">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="act" data-composition-edge-id="initialize" data-composition-points="2512.8571428571427,296;2054.285714285714,296" d="M 2512.8571428571427 296 L 2054.285714285714 296" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2170.9714285714285" y="276" width="225.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="2283.5714285714284" y="286" class="t-muted" font-size="9" text-anchor="middle">INITIALIZE: roomId · membership · isSpace</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="pad" data-edge-label="roomIds + roomsMeta (unread · highlight)" data-edge-key="4" data-edge-id="index-fill">
+          <path data-composition-edge-from="act" data-composition-edge-to="pad" data-composition-edge-id="index-fill" data-composition-points="2040.2857142857142,334;636.5714285714286,334" d="M 2040.2857142857142 334 L 636.5714285714286 334" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1228.4285714285713" y="314" width="220" height="16" rx="3" class="c-mask"/>
+          <text x="1338.4285714285713" y="324" class="t-muted" font-size="9" text-anchor="middle">roomIds + roomsMeta (unread · highlight)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="user" data-edge-to="pad" data-edge-label="выбор комнаты" data-edge-key="5" data-edge-id="pick-room">
+          <path data-composition-edge-from="user" data-composition-edge-to="pad" data-composition-edge-id="pick-room" data-composition-points="164,372;622.5714285714286,372" d="M 164 372 L 622.5714285714286 372" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="353.48571428571427" y="352" width="79.60000000000001" height="16" rx="3" class="c-mask"/>
+          <text x="393.2857142857143" y="362" class="t-backend" font-size="9" text-anchor="middle">выбор комнаты</text>
+        </g>
+        </g>
+
+        <g data-edge-from="pad" data-edge-to="act" data-edge-label="handleSelectRoom(roomId)" data-edge-key="6" data-edge-id="select-room">
+          <path data-composition-edge-from="pad" data-composition-edge-to="act" data-composition-edge-id="select-room" data-composition-points="636.5714285714286,410;2040.2857142857142,410" d="M 636.5714285714286 410 L 2040.2857142857142 410" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1270.0285714285712" y="390" width="136.8" height="16" rx="3" class="c-mask"/>
+          <text x="1338.4285714285713" y="400" class="t-backend" font-size="9" text-anchor="middle">handleSelectRoom(roomId)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="rooms" data-edge-label="markRoomRead → POST /receipt/m.read" data-edge-key="7" data-edge-id="read-receipt">
+          <path data-composition-edge-from="act" data-composition-edge-to="rooms" data-composition-edge-id="read-receipt" data-composition-points="2054.285714285714,448;2512.8571428571427,448" d="M 2054.285714285714 448 L 2512.8571428571427 448" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2186.5714285714284" y="428" width="194" height="16" rx="3" class="c-mask"/>
+          <text x="2283.5714285714284" y="438" class="t-backend" font-size="9" text-anchor="middle">markRoomRead → POST /receipt/m.read</text>
+        </g>
+        </g>
+
+        <g data-edge-from="cont" data-edge-to="rooms" data-edge-label="watchRoomMessages(roomId, setMessages)" data-edge-key="8" data-edge-id="watch-messages">
+          <path data-composition-edge-from="cont" data-composition-edge-to="rooms" data-composition-edge-id="watch-messages" data-composition-points="1581.7142857142858,486;2512.8571428571427,486" d="M 1581.7142857142858 486 L 2512.8571428571427 486" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1942.4857142857143" y="466" width="209.6" height="16" rx="3" class="c-mask"/>
+          <text x="2047.2857142857142" y="476" class="t-backend" font-size="9" text-anchor="middle">watchRoomMessages(roomId, setMessages)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="sdk" data-edge-label="Room.getLiveTimeline()" data-edge-key="9" data-edge-id="read-timeline">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="sdk" data-composition-edge-id="read-timeline" data-composition-points="2526.8571428571427,524;2985.4285714285716,524" d="M 2526.8571428571427 524 L 2985.4285714285716 524" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2692.942857142857" y="504" width="126.4" height="16" rx="3" class="c-mask"/>
+          <text x="2756.142857142857" y="514" class="t-backend" font-size="9" text-anchor="middle">Room.getLiveTimeline()</text>
+        </g>
+        </g>
+
+        <g data-edge-from="sdk" data-edge-to="rooms" data-edge-label="снимок: sender · body · formattedBody" data-edge-key="10" data-edge-id="messages-snapshot">
+          <path data-composition-edge-from="sdk" data-composition-edge-to="rooms" data-composition-edge-id="messages-snapshot" data-composition-points="2985.4285714285716,562;2526.8571428571427,562" d="M 2985.4285714285716 562 L 2526.8571428571427 562" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2653.942857142857" y="542" width="204.4" height="16" rx="3" class="c-mask"/>
+          <text x="2756.142857142857" y="552" class="t-muted" font-size="9" text-anchor="middle">снимок: sender · body · formattedBody</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="room" data-edge-label="сообщения активной комнаты" data-edge-key="11" data-edge-id="messages-render">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="room" data-composition-edge-id="messages-render" data-composition-points="2512.8571428571427,600;1109.142857142857,600" d="M 2512.8571428571427 600 L 1109.142857142857 600" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1737.4" y="580" width="147.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="1811" y="590" class="t-muted" font-size="9" text-anchor="middle">сообщения активной комнаты</text>
+        </g>
+        </g>
+
+        <g data-edge-from="sdk" data-edge-to="rooms" data-edge-label="Room.timeline · Event.decrypted" data-edge-key="12" data-edge-id="timeline-event">
+          <path data-composition-edge-from="sdk" data-composition-edge-to="rooms" data-composition-edge-id="timeline-event" data-composition-points="2985.4285714285716,638;2526.8571428571427,638" d="M 2985.4285714285716 638 L 2526.8571428571427 638" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2669.542857142857" y="618" width="173.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="2756.142857142857" y="628" class="t-muted" font-size="9" text-anchor="middle">Room.timeline · Event.decrypted</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="room" data-edge-label="обновлённый снимок" data-edge-key="13" data-edge-id="messages-update">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="room" data-composition-edge-id="messages-update" data-composition-points="2512.8571428571427,676;1109.142857142857,676" d="M 2512.8571428571427 676 L 1109.142857142857 676" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1758.2" y="656" width="105.60000000000001" height="16" rx="3" class="c-mask"/>
+          <text x="1811" y="666" class="t-muted" font-size="9" text-anchor="middle">обновлённый снимок</text>
+        </g>
+        </g>
+
+        <g data-edge-from="user" data-edge-to="room" data-edge-label="«Принять» / «Отклонить»" data-edge-key="14" data-edge-id="invite-action">
+          <path data-composition-edge-from="user" data-composition-edge-to="room" data-composition-edge-id="invite-action" data-composition-points="164,714;1095.142857142857,714" d="M 164 714 L 1095.142857142857 714" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="563.7714285714285" y="694" width="131.60000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="629.5714285714284" y="704" class="t-backend" font-size="9" text-anchor="middle">«Принять» / «Отклонить»</text>
+        </g>
+        </g>
+
+        <g data-edge-from="room" data-edge-to="act" data-edge-label="handleJoinRoom / handleLeaveRoom" data-edge-key="15" data-edge-id="invite-handler">
+          <path data-composition-edge-from="room" data-composition-edge-to="act" data-composition-edge-id="invite-handler" data-composition-points="1109.142857142857,752;2040.2857142857142,752" d="M 1109.142857142857 752 L 2040.2857142857142 752" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1485.5142857142857" y="732" width="178.4" height="16" rx="3" class="c-mask"/>
+          <text x="1574.7142857142858" y="742" class="t-backend" font-size="9" text-anchor="middle">handleJoinRoom / handleLeaveRoom</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="rooms" data-edge-label="joinRoom() / leaveRoom()" data-edge-key="16" data-edge-id="join-leave">
+          <path data-composition-edge-from="act" data-composition-edge-to="rooms" data-composition-edge-id="join-leave" data-composition-points="2054.285714285714,790;2512.8571428571427,790" d="M 2054.285714285714 790 L 2512.8571428571427 790" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2215.1714285714284" y="770" width="136.8" height="16" rx="3" class="c-mask"/>
+          <text x="2283.5714285714284" y="780" class="t-backend" font-size="9" text-anchor="middle">joinRoom() / leaveRoom()</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="hs" data-edge-label="POST /join/{roomId} · /leave/{roomId}" data-edge-key="17" data-edge-id="join-request">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="hs" data-composition-edge-id="join-request" data-composition-points="2526.8571428571427,828;3458,828" d="M 2526.8571428571427 828 L 3458 828" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2890.2285714285717" y="808" width="204.4" height="16" rx="3" class="c-mask"/>
+          <text x="2992.4285714285716" y="818" class="t-backend" font-size="9" text-anchor="middle">POST /join/{roomId} · /leave/{roomId}</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="pad" data-edge-label="PUT membership=join / DELETE" data-edge-key="18" data-edge-id="membership-put">
+          <path data-composition-edge-from="act" data-composition-edge-to="pad" data-composition-edge-id="membership-put" data-composition-points="2040.2857142857142,866;636.5714285714286,866" d="M 2040.2857142857142 866 L 636.5714285714286 866" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1259.6285714285714" y="846" width="157.6" height="16" rx="3" class="c-mask"/>
+          <text x="1338.4285714285713" y="856" class="t-muted" font-size="9" text-anchor="middle">PUT membership=join / DELETE</text>
+        </g>
+        </g>
+
+        <g data-edge-from="user" data-edge-to="pad" data-edge-label="логин и «Создать чат»" data-edge-key="19" data-edge-id="new-chat-login">
+          <path data-composition-edge-from="user" data-composition-edge-to="pad" data-composition-edge-id="new-chat-login" data-composition-points="164,904;622.5714285714286,904" d="M 164 904 L 622.5714285714286 904" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="332.68571428571425" y="884" width="121.2" height="16" rx="3" class="c-mask"/>
+          <text x="393.2857142857143" y="894" class="t-backend" font-size="9" text-anchor="middle">логин и «Создать чат»</text>
+        </g>
+        </g>
+
+        <g data-edge-from="pad" data-edge-to="act" data-edge-label="handleCreateRoom({ name, invitees })" data-edge-key="20" data-edge-id="create-handler">
+          <path data-composition-edge-from="pad" data-composition-edge-to="act" data-composition-edge-id="create-handler" data-composition-points="636.5714285714286,942;2040.2857142857142,942" d="M 636.5714285714286 942 L 2040.2857142857142 942" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1238.8285714285714" y="922" width="199.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="1338.4285714285713" y="932" class="t-backend" font-size="9" text-anchor="middle">handleCreateRoom({ name, invitees })</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="rooms" data-edge-label="createRoom({ name, invitees })" data-edge-key="21" data-edge-id="create-room">
+          <path data-composition-edge-from="act" data-composition-edge-to="rooms" data-composition-edge-id="create-room" data-composition-points="2054.285714285714,980;2512.8571428571427,980" d="M 2054.285714285714 980 L 2512.8571428571427 980" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2199.5714285714284" y="960" width="168" height="16" rx="3" class="c-mask"/>
+          <text x="2283.5714285714284" y="970" class="t-backend" font-size="9" text-anchor="middle">createRoom({ name, invitees })</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="hs" data-edge-label="GET /profile/{userId} → POST /createRoom" data-edge-key="22" data-edge-id="create-request">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="hs" data-composition-edge-id="create-request" data-composition-points="2526.8571428571427,1018;3458,1018" d="M 2526.8571428571427 1018 L 3458 1018" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2882.4285714285716" y="998" width="220" height="16" rx="3" class="c-mask"/>
+          <text x="2992.4285714285716" y="1008" class="t-backend" font-size="9" text-anchor="middle">GET /profile/{userId} → POST /createRoom</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="pad" data-edge-label="PUT + roomsMeta + выбор комнаты" data-edge-key="23" data-edge-id="create-put">
+          <path data-composition-edge-from="act" data-composition-edge-to="pad" data-composition-edge-id="create-put" data-composition-points="2040.2857142857142,1056;636.5714285714286,1056" d="M 2040.2857142857142 1056 L 636.5714285714286 1056" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1251.8285714285714" y="1036" width="173.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="1338.4285714285713" y="1046" class="t-muted" font-size="9" text-anchor="middle">PUT + roomsMeta + выбор комнаты</text>
+        </g>
+        </g>
+
+        <g data-edge-from="user" data-edge-to="room" data-edge-label="текст + Enter (MtrxComposer)" data-edge-key="24" data-edge-id="message-send">
+          <path data-composition-edge-from="user" data-composition-edge-to="room" data-composition-edge-id="message-send" data-composition-points="164,1094;1095.142857142857,1094" d="M 164 1094 L 1095.142857142857 1094" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="550.7714285714286" y="1074" width="157.6" height="16" rx="3" class="c-mask"/>
+          <text x="629.5714285714286" y="1084" class="t-backend" font-size="9" text-anchor="middle">текст + Enter (MtrxComposer)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="room" data-edge-to="act" data-edge-label="handleSendMessage(roomId, body)" data-edge-key="25" data-edge-id="send-handler">
+          <path data-composition-edge-from="room" data-composition-edge-to="act" data-composition-edge-id="send-handler" data-composition-points="1109.142857142857,1132;2040.2857142857142,1132" d="M 1109.142857142857 1132 L 2040.2857142857142 1132" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1488.1142857142859" y="1112" width="173.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="1574.7142857142858" y="1122" class="t-backend" font-size="9" text-anchor="middle">handleSendMessage(roomId, body)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="rooms" data-edge-label="sendRoomMessage() → sendTextMessage" data-edge-key="26" data-edge-id="send-service">
+          <path data-composition-edge-from="act" data-composition-edge-to="rooms" data-composition-edge-id="send-service" data-composition-points="2054.285714285714,1170;2512.8571428571427,1170" d="M 2054.285714285714 1170 L 2512.8571428571427 1170" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2186.5714285714284" y="1150" width="194" height="16" rx="3" class="c-mask"/>
+          <text x="2283.5714285714284" y="1160" class="t-backend" font-size="9" text-anchor="middle">sendRoomMessage() → sendTextMessage</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="sdk" data-edge-label="sendEvent (E2EE внутри SDK)" data-edge-key="27" data-edge-id="send-event">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="sdk" data-composition-edge-id="send-event" data-composition-points="2526.8571428571427,1208;2985.4285714285716,1208" d="M 2526.8571428571427 1208 L 2985.4285714285716 1208" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2679.942857142857" y="1188" width="152.4" height="16" rx="3" class="c-mask"/>
+          <text x="2756.142857142857" y="1198" class="t-backend" font-size="9" text-anchor="middle">sendEvent (E2EE внутри SDK)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="sdk" data-edge-to="hs" data-edge-label="PUT /send/m.room.message/{txnId}" data-edge-key="28" data-edge-id="send-request">
+          <path data-composition-edge-from="sdk" data-composition-edge-to="hs" data-composition-edge-id="send-request" data-composition-points="2999.4285714285716,1246;3458,1246" d="M 2999.4285714285716 1246 L 3458 1246" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="3139.514285714286" y="1226" width="178.4" height="16" rx="3" class="c-mask"/>
+          <text x="3228.714285714286" y="1236" class="t-backend" font-size="9" text-anchor="middle">PUT /send/m.room.message/{txnId}</text>
+        </g>
+        </g>
+
+        <g data-edge-from="user" data-edge-to="room" data-edge-label="«Покинуть комнату» + подтверждение" data-edge-key="29" data-edge-id="leave-dialog">
+          <path data-composition-edge-from="user" data-composition-edge-to="room" data-composition-edge-id="leave-dialog" data-composition-points="164,1284;1095.142857142857,1284" d="M 164 1284 L 1095.142857142857 1284" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-detail="context">
+          <rect x="535.1714285714286" y="1264" width="188.8" height="16" rx="3" class="c-mask"/>
+          <text x="629.5714285714286" y="1274" class="t-backend" font-size="9" text-anchor="middle">«Покинуть комнату» + подтверждение</text>
+        </g>
+        </g>
+
+        <g data-edge-from="room" data-edge-to="act" data-edge-label="handleLeaveRoom(roomId)" data-edge-key="30" data-edge-id="leave-handler">
+          <path data-composition-edge-from="room" data-composition-edge-to="act" data-composition-edge-id="leave-handler" data-composition-points="1109.142857142857,1322;2040.2857142857142,1322" d="M 1109.142857142857 1322 L 2040.2857142857142 1322" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1508.9142857142858" y="1302" width="131.60000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="1574.7142857142858" y="1312" class="t-backend" font-size="9" text-anchor="middle">handleLeaveRoom(roomId)</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="rooms" data-edge-label="leaveRoom()" data-edge-key="31" data-edge-id="leave-service">
+          <path data-composition-edge-from="act" data-composition-edge-to="rooms" data-composition-edge-id="leave-service" data-composition-points="2054.285714285714,1360;2512.8571428571427,1360" d="M 2054.285714285714 1360 L 2512.8571428571427 1360" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2248.9714285714285" y="1340" width="69.2" height="16" rx="3" class="c-mask"/>
+          <text x="2283.5714285714284" y="1350" class="t-backend" font-size="9" text-anchor="middle">leaveRoom()</text>
+        </g>
+        </g>
+
+        <g data-edge-from="rooms" data-edge-to="hs" data-edge-label="POST /leave/{roomId}" data-edge-key="32" data-edge-id="leave-request">
+          <path data-composition-edge-from="rooms" data-composition-edge-to="hs" data-composition-edge-id="leave-request" data-composition-points="2526.8571428571427,1398;3458,1398" d="M 2526.8571428571427 1398 L 3458 1398" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="2934.4285714285716" y="1378" width="116" height="16" rx="3" class="c-mask"/>
+          <text x="2992.4285714285716" y="1388" class="t-backend" font-size="9" text-anchor="middle">POST /leave/{roomId}</text>
+        </g>
+        </g>
+
+        <g data-edge-from="act" data-edge-to="pad" data-edge-label="DELETE → комната уходит из списка" data-edge-key="33" data-edge-id="leave-delete">
+          <path data-composition-edge-from="act" data-composition-edge-to="pad" data-composition-edge-id="leave-delete" data-composition-points="2040.2857142857142,1436;636.5714285714286,1436" d="M 2040.2857142857142 1436 L 636.5714285714286 1436" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-detail="context">
+          <rect x="1246.6285714285714" y="1416" width="183.6" height="16" rx="3" class="c-mask"/>
+          <text x="1338.4285714285713" y="1426" class="t-muted" font-size="9" text-anchor="middle">DELETE → комната уходит из списка</text>
+        </g>
+        </g>
+
+        <!-- Segment Labels -->
+        <g data-graph-role="segment-label" data-segment-id="0">
+          <rect x="56" y="128" width="128.4" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="141" class="t-dim" font-size="9" font-weight="600">Список комнат (дельта)</text>
+        </g>
+        <g data-graph-role="segment-label" data-segment-id="1">
+          <rect x="56" y="333" width="112.8" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="346" class="t-dim" font-size="9" font-weight="600">Комната и сообщения</text>
+        </g>
+        <g data-graph-role="segment-label" data-segment-id="2">
+          <rect x="56" y="676" width="133.60000000000002" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="689" class="t-dim" font-size="9" font-weight="600">Приглашение и новый чат</text>
+        </g>
+        <g data-graph-role="segment-label" data-segment-id="3">
+          <rect x="56" y="1056" width="102.4" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="1069" class="t-dim" font-size="9" font-weight="600">Сообщение и выход</text>
+        </g>
+
+        <!-- Participants -->
+        <g id="node-user" data-node-id="user" data-node-label="Пользователь" tabindex="0" role="button" aria-label="Focus Пользователь, браузер, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="браузер" data-node-context="Sequence participant">
+          <title>Пользователь · браузер · Sequence participant</title>
+          <rect x="62" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="62" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(68 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-detail-anchor x="95" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Пользователь</text>
-        <text data-detail="context" x="95" y="397" class="t-muted" font-size="9" text-anchor="middle">браузер</text>
+          <text data-detail-anchor x="157" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Пользователь</text>
+          <text data-detail="context" x="157" y="111" class="t-muted" font-size="7" text-anchor="middle">браузер</text>
         </g>
 
-        <g id="node-ui" data-node-id="ui" data-node-label="Компоненты React" tabindex="0" role="button" aria-label="Focus Компоненты React, AuthLinks · MtrxPad, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="AuthLinks · MtrxPad" data-node-tag="Material UI" data-node-context="Клиентское SPA в браузере">
-          <title>Компоненты React · AuthLinks · MtrxPad · Клиентское SPA в браузере · Material UI</title>
-          <rect x="256" y="350" width="165" height="66" rx="6" class="c-mask"/>
-          <rect x="256" y="350" width="165" height="66" rx="6" class="c-frontend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(262 356) scale(0.6875)">
+        <g id="node-pad" data-node-id="pad" data-node-label="MtrxPad.jsx" tabindex="0" role="button" aria-label="Focus MtrxPad.jsx, список · новый чат, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="список · новый чат" data-node-context="Sequence participant">
+          <title>MtrxPad.jsx · список · новый чат · Sequence participant</title>
+          <rect x="534.5714285714286" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="534.5714285714286" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(540.5714285714286 78) scale(0.6875)">
             <rect x="2" y="3" width="12" height="10" rx="2"/>
             <path d="M2 6.5h12"/>
             <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
-          <text data-detail-anchor x="338.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Компоненты React</text>
-        <text data-detail="context" x="338.5" y="397" class="t-muted" font-size="9" text-anchor="middle">AuthLinks · MtrxPad</text>
-        <text data-detail="fine" x="338.5" y="408" class="t-frontend" font-size="7" text-anchor="middle">Material UI</text>
+          <text data-detail-anchor x="629.5714285714286" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">MtrxPad.jsx</text>
+          <text data-detail="context" x="629.5714285714286" y="111" class="t-muted" font-size="7" text-anchor="middle">список · новый чат</text>
         </g>
 
-        <g id="node-containers" data-node-id="containers" data-node-label="Контейнеры" tabindex="0" role="button" aria-label="Focus Контейнеры, useSelector · bindActionCreators, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="useSelector · bindActionCreators" data-node-context="Клиентское SPA в браузере">
-          <title>Контейнеры · useSelector · bindActionCreators · Клиентское SPA в браузере</title>
-          <rect x="517" y="350" width="180" height="66" rx="6" class="c-mask"/>
-          <rect x="517" y="350" width="180" height="66" rx="6" class="c-frontend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(523 356) scale(0.6875)">
+        <g id="node-room" data-node-id="room" data-node-label="MtrxRoom.jsx" tabindex="0" role="button" aria-label="Focus MtrxRoom.jsx, комната · таймлайн, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="комната · таймлайн" data-node-context="Sequence participant">
+          <title>MtrxRoom.jsx · комната · таймлайн · Sequence participant</title>
+          <rect x="1007.1428571428571" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="1007.1428571428571" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(1013.1428571428571 78) scale(0.6875)">
             <rect x="2" y="3" width="12" height="10" rx="2"/>
             <path d="M2 6.5h12"/>
             <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
-          <text data-detail-anchor x="607" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Контейнеры</text>
-        <text data-detail="context" x="607" y="397" class="t-muted" font-size="8.9" text-anchor="middle">useSelector · bindActionCreators</text>
+          <text data-detail-anchor x="1102.142857142857" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">MtrxRoom.jsx</text>
+          <text data-detail="context" x="1102.142857142857" y="111" class="t-muted" font-size="7" text-anchor="middle">комната · таймлайн</text>
         </g>
 
-        <g id="node-actions" data-node-id="actions" data-node-label="Thunk-actions" tabindex="0" role="button" aria-label="Focus Thunk-actions, mtrxControl · authControl, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="backend" data-node-sublabel="mtrxControl · authControl" data-node-tag="redux-thunk" data-node-context="Клиентское SPA в браузере">
-          <title>Thunk-actions · mtrxControl · authControl · Клиентское SPA в браузере · redux-thunk</title>
-          <rect x="793" y="350" width="170" height="66" rx="6" class="c-mask"/>
-          <rect x="793" y="350" width="170" height="66" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(799 356) scale(0.6875)">
+        <g id="node-cont" data-node-id="cont" data-node-label="MtrxPadContainer.jsx" tabindex="0" role="button" aria-label="Focus MtrxPadContainer.jsx, watchRoomMessages · 30 с, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="watchRoomMessages · 30 с" data-node-context="Sequence participant">
+          <title>MtrxPadContainer.jsx · watchRoomMessages · 30 с · Sequence participant</title>
+          <rect x="1479.7142857142858" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="1479.7142857142858" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(1485.7142857142858 78) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text data-detail-anchor x="1574.7142857142858" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">MtrxPadContainer.jsx</text>
+          <text data-detail="context" x="1574.7142857142858" y="111" class="t-muted" font-size="7" text-anchor="middle">watchRoomMessages · 30 с</text>
+        </g>
+
+        <g id="node-act" data-node-id="act" data-node-label="mtrxControlActions.js" tabindex="0" role="button" aria-label="Focus mtrxControlActions.js, thunk-actions, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="thunk-actions" data-node-context="Sequence participant">
+          <title>mtrxControlActions.js · thunk-actions · Sequence participant</title>
+          <rect x="1952.2857142857142" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="1952.2857142857142" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1958.2857142857142 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="878" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Thunk-actions</text>
-        <text data-detail="context" x="878" y="397" class="t-muted" font-size="9" text-anchor="middle">mtrxControl · authControl</text>
-        <text data-detail="fine" x="878" y="408" class="t-backend" font-size="7" text-anchor="middle">redux-thunk</text>
+          <text data-detail-anchor x="2047.2857142857142" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">mtrxControlActions.js</text>
+          <text data-detail="context" x="2047.2857142857142" y="111" class="t-muted" font-size="7" text-anchor="middle">thunk-actions</text>
         </g>
 
-        <g id="node-store" data-node-id="store" data-node-label="Redux store" tabindex="0" role="button" aria-label="Focus Redux store, roomIds · roomsMeta, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="database" data-node-sublabel="roomIds · roomsMeta" data-node-context="Клиентское SPA в браузере">
-          <title>Redux store · roomIds · roomsMeta · Клиентское SPA в браузере</title>
-          <rect x="517" y="160" width="180" height="66" rx="6" class="c-mask"/>
-          <rect x="517" y="160" width="180" height="66" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(523 166) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-detail-anchor x="607" y="191" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Redux store</text>
-        <text data-detail="context" x="607" y="207" class="t-muted" font-size="9" text-anchor="middle">roomIds · roomsMeta</text>
-        </g>
-
-        <g id="node-services" data-node-id="services" data-node-label="Сервисы Matrix" tabindex="0" role="button" aria-label="Focus Сервисы Matrix, matrixClient · matrixRooms, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="backend" data-node-sublabel="matrixClient · matrixRooms" data-node-context="Клиентское SPA в браузере">
-          <title>Сервисы Matrix · matrixClient · matrixRooms · Клиентское SPA в браузере</title>
-          <rect x="1059" y="350" width="195" height="66" rx="6" class="c-mask"/>
-          <rect x="1059" y="350" width="195" height="66" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1065 356) scale(0.6875)">
+        <g id="node-rooms" data-node-id="rooms" data-node-label="matrixRooms.js" tabindex="0" role="button" aria-label="Focus matrixRooms.js, доменный API, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="доменный API" data-node-context="Sequence participant">
+          <title>matrixRooms.js · доменный API · Sequence participant</title>
+          <rect x="2424.8571428571427" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="2424.8571428571427" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(2430.8571428571427 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1156.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Сервисы Matrix</text>
-        <text data-detail="context" x="1156.5" y="397" class="t-muted" font-size="9" text-anchor="middle">matrixClient · matrixRooms</text>
+          <text data-detail-anchor x="2519.8571428571427" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">matrixRooms.js</text>
+          <text data-detail="context" x="2519.8571428571427" y="111" class="t-muted" font-size="7" text-anchor="middle">доменный API</text>
         </g>
 
-        <g id="node-sdk" data-node-id="sdk" data-node-label="matrix-js-sdk" tabindex="0" role="button" aria-label="Focus matrix-js-sdk, sync · crypto · timeline, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="external" data-node-sublabel="sync · crypto · timeline" data-node-tag="ленивый чанк" data-node-context="Клиентское SPA в браузере">
-          <title>matrix-js-sdk · sync · crypto · timeline · Клиентское SPA в браузере · ленивый чанк</title>
-          <rect x="1350" y="350" width="165" height="66" rx="6" class="c-mask"/>
-          <rect x="1350" y="350" width="165" height="66" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1356 356) scale(0.6875)">
+        <g id="node-sdk" data-node-id="sdk" data-node-label="matrix-js-sdk" tabindex="0" role="button" aria-label="Focus matrix-js-sdk, Room · Timeline · crypto, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="Room · Timeline · crypto" data-node-context="Sequence participant">
+          <title>matrix-js-sdk · Room · Timeline · crypto · Sequence participant</title>
+          <rect x="2897.4285714285716" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="2897.4285714285716" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(2903.4285714285716 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-detail-anchor x="1432.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">matrix-js-sdk</text>
-        <text data-detail="context" x="1432.5" y="397" class="t-muted" font-size="9" text-anchor="middle">sync · crypto · timeline</text>
-        <text data-detail="fine" x="1432.5" y="408" class="t-external" font-size="7" text-anchor="middle">ленивый чанк</text>
+          <text data-detail-anchor x="2992.4285714285716" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">matrix-js-sdk</text>
+          <text data-detail="context" x="2992.4285714285716" y="111" class="t-muted" font-size="7" text-anchor="middle">Room · Timeline · crypto</text>
         </g>
 
-        <g id="node-homeserver" data-node-id="homeserver" data-node-label="Homeserver Matrix" tabindex="0" role="button" aria-label="Focus Homeserver Matrix, /_matrix/client/v3, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="/_matrix/client/v3" data-node-context="Architecture component">
-          <title>Homeserver Matrix · /_matrix/client/v3 · Architecture component</title>
-          <rect x="1611" y="350" width="175" height="66" rx="6" class="c-mask"/>
-          <rect x="1611" y="350" width="175" height="66" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1617 356) scale(0.6875)">
+        <g id="node-hs" data-node-id="hs" data-node-label="Homeserver Matrix" tabindex="0" role="button" aria-label="Focus Homeserver Matrix, /_matrix/client/v3, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="/_matrix/client/v3" data-node-context="Sequence participant">
+          <title>Homeserver Matrix · /_matrix/client/v3 · Sequence participant</title>
+          <rect x="3370" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="3370" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(3376 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-detail-anchor x="1698.5" y="381" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Homeserver Matrix</text>
-        <text data-detail="context" x="1698.5" y="397" class="t-muted" font-size="9" text-anchor="middle">/_matrix/client/v3</text>
-        </g>
-
-        <g id="node-storage" data-node-id="storage" data-node-label="localStorage" tabindex="0" role="button" aria-label="Focus localStorage, токены · deviceId · AD, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="database" data-node-sublabel="токены · deviceId · AD" data-node-context="Клиентское SPA в браузере">
-          <title>localStorage · токены · deviceId · AD · Клиентское SPA в браузере</title>
-          <rect x="1059" y="160" width="195" height="66" rx="6" class="c-mask"/>
-          <rect x="1059" y="160" width="195" height="66" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1065 166) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-detail-anchor x="1156.5" y="191" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">localStorage</text>
-        <text data-detail="context" x="1156.5" y="207" class="t-muted" font-size="9" text-anchor="middle">токены · deviceId · AD</text>
-        </g>
-
-        <g id="node-idb" data-node-id="idb" data-node-label="IndexedDB" tabindex="0" role="button" aria-label="Focus IndexedDB, sync store · Rust crypto, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="database" data-node-sublabel="sync store · Rust crypto" data-node-context="Клиентское SPA в браузере">
-          <title>IndexedDB · sync store · Rust crypto · Клиентское SPA в браузере</title>
-          <rect x="1350" y="160" width="165" height="66" rx="6" class="c-mask"/>
-          <rect x="1350" y="160" width="165" height="66" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1356 166) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-detail-anchor x="1432.5" y="191" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">IndexedDB</text>
-        <text data-detail="context" x="1432.5" y="207" class="t-muted" font-size="9" text-anchor="middle">sync store · Rust crypto</text>
-        </g>
-
-        <g id="node-bridge" data-node-id="bridge" data-node-label="Мост к сервисам" tabindex="0" role="button" aria-label="Focus Мост к сервисам, AuthPad · AuthContainer, Клиентское SPA в браузере" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="AuthPad · AuthContainer" data-node-tag="AUTHCTL_ ↔ MTRXCTL_" data-node-context="Клиентское SPA в браузере">
-          <title>Мост к сервисам · AuthPad · AuthContainer · Клиентское SPA в браузере · AUTHCTL_ ↔ MTRXCTL_</title>
-          <rect x="647" y="520" width="195" height="66" rx="6" class="c-mask"/>
-          <rect x="647" y="520" width="195" height="66" rx="6" class="c-frontend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(653 526) scale(0.6875)">
-            <rect x="2" y="3" width="12" height="10" rx="2"/>
-            <path d="M2 6.5h12"/>
-            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
-            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
-          </g>
-          <text data-detail-anchor x="744.5" y="551" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Мост к сервисам</text>
-        <text data-detail="context" x="744.5" y="567" class="t-muted" font-size="9" text-anchor="middle">AuthPad · AuthContainer</text>
-        <text data-detail="fine" x="744.5" y="578" class="t-frontend" font-size="7" text-anchor="middle">AUTHCTL_ ↔ MTRXCTL_</text>
-        </g>
-
-        <g id="node-adauth" data-node-id="adauth" data-node-label="Сервис авторизации AD" tabindex="0" role="button" aria-label="Focus Сервис авторизации AD, POST /user/ad по https, Architecture component" aria-pressed="false" data-node-kind="security" data-node-sublabel="POST /user/ad по https" data-node-context="Architecture component">
-          <title>Сервис авторизации AD · POST /user/ad по https · Architecture component</title>
-          <rect x="1611" y="520" width="195" height="66" rx="6" class="c-mask"/>
-          <rect x="1611" y="520" width="195" height="66" rx="6" class="c-security" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(1617 526) scale(0.6875)">
-            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
-            <path d="m5.8 8 1.5 1.5 3-3"/>
-          </g>
-          <text data-detail-anchor x="1708.5" y="551" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Сервис авторизации AD</text>
-        <text data-detail="context" x="1708.5" y="567" class="t-muted" font-size="9" text-anchor="middle">POST /user/ad по https</text>
-        </g>
-
-        <!-- Connection labels -->
-        <g data-detail="context" data-edge-from="users" data-edge-to="ui" data-edge-label="ввод и клики" data-edge-key="0" data-edge-id="users-to-ui">
-          <rect x="174.2" y="363" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="208" y="373" class="t-backend" font-size="8" text-anchor="middle">ввод и клики</text>
-        </g>
-        <g data-detail="context" data-edge-from="ui" data-edge-to="containers" data-edge-label="события UI" data-edge-key="1" data-edge-id="ui-to-containers">
-          <rect x="440" y="363" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="469" y="373" class="t-muted" font-size="8" text-anchor="middle">события UI</text>
-        </g>
-        <g data-detail="context" data-edge-from="containers" data-edge-to="actions" data-edge-label="вызов action" data-edge-key="2" data-edge-id="containers-to-actions">
-          <rect x="711.2" y="363" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="745" y="373" class="t-muted" font-size="8" text-anchor="middle">вызов action</text>
-        </g>
-        <g data-detail="context" data-edge-from="actions" data-edge-to="services" data-edge-label="доменный API" data-edge-key="3" data-edge-id="actions-to-services">
-          <rect x="977.2" y="363" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="1011" y="373" class="t-muted" font-size="8" text-anchor="middle">доменный API</text>
-        </g>
-        <g data-detail="context" data-edge-from="services" data-edge-to="sdk" data-edge-label="MatrixClient API" data-edge-key="4" data-edge-id="services-to-sdk">
-          <rect x="1258.6" y="363" width="86.8" height="14" rx="3" class="c-mask"/>
-          <text x="1302" y="373" class="t-muted" font-size="8" text-anchor="middle">MatrixClient API</text>
-        </g>
-        <g data-detail="context" data-edge-from="sdk" data-edge-to="homeserver" data-edge-label="/sync · /login" data-edge-key="5" data-edge-id="sdk-to-homeserver">
-          <rect x="1524.4" y="363" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="1563" y="373" class="t-backend" font-size="8" text-anchor="middle">/sync · /login</text>
-        </g>
-        <g data-detail="context" data-edge-from="actions" data-edge-to="store" data-edge-label="dispatch(action)" data-edge-key="6" data-edge-id="actions-to-store">
-          <rect x="744.1" y="173" width="86.8" height="14" rx="3" class="c-mask"/>
-          <text x="787.5" y="183" class="t-muted" font-size="8" text-anchor="middle">dispatch(action)</text>
-        </g>
-        <g data-detail="context" data-edge-from="store" data-edge-to="containers" data-edge-label="state" data-edge-key="7" data-edge-id="store-to-containers">
-          <rect x="590" y="278" width="34" height="14" rx="3" class="c-mask"/>
-          <text x="607" y="288" class="t-muted" font-size="8" text-anchor="middle">state</text>
-        </g>
-        <g data-detail="context" data-edge-from="services" data-edge-to="storage" data-edge-label="persistMatrixSession" data-edge-key="8" data-edge-id="services-to-storage">
-          <rect x="1103.5" y="330" width="106" height="14" rx="3" class="c-mask"/>
-          <text x="1156.5" y="340" class="t-muted" font-size="8" text-anchor="middle">persistMatrixSession</text>
-        </g>
-        <g data-detail="context" data-edge-from="sdk" data-edge-to="idb" data-edge-label="store · crypto" data-edge-key="9" data-edge-id="sdk-to-idb">
-          <rect x="1393.9" y="330" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="1432.5" y="340" class="t-muted" font-size="8" text-anchor="middle">store · crypto</text>
-        </g>
-        <g data-detail="context" data-edge-from="services" data-edge-to="adauth" data-edge-label="loginAd → POST /user/ad" data-edge-key="10" data-edge-id="services-to-adauth">
-          <rect x="1311.55" y="420" width="120.39999999999999" height="14" rx="3" class="c-mask"/>
-          <text x="1371.75" y="430" class="t-messagebus" font-size="8" text-anchor="middle">loginAd → POST /user/ad</text>
-        </g>
-        <g data-detail="context" data-edge-from="bridge" data-edge-to="actions" data-edge-label="handleRegister · handleRegClear" data-edge-key="11" data-edge-id="bridge-to-actions">
-          <rect x="731.85" y="448" width="158.79999999999998" height="14" rx="3" class="c-mask"/>
-          <text x="811.25" y="458" class="t-muted" font-size="8" text-anchor="middle">handleRegister · handleRegClear</text>
+          <text data-detail-anchor x="3465" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Homeserver Matrix</text>
+          <text data-detail="context" x="3465" y="111" class="t-muted" font-size="7" text-anchor="middle">/_matrix/client/v3</text>
         </g>
 
         <!-- Legend -->
-        <g data-legend data-legend-bridge>
-          <text x="40" y="638" class="t-primary" font-size="12" font-weight="650">Legend</text>
-          <g data-legend-semantic-kind="frontend" data-legend-kind="frontend" data-legend-label="UI и контейнеры" data-legend-x="40" data-legend-baseline="658" data-legend-width="118">
-            <rect x="40" y="649" width="16" height="10" rx="2.5" class="c-frontend" stroke-width="1"/>
-            <text x="62" y="658" class="t-muted" font-size="10" font-weight="500">UI и контейнеры</text>
+        <g data-legend>
+          <text x="40" y="1486" class="t-primary" font-size="12" font-weight="650">Legend</text>
+          <g data-legend-semantic-kind="emphasis" data-legend-x="40" data-legend-baseline="1506" data-legend-width="78">
+            <path d="M 40 1503 L 74 1503" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+            <text x="83" y="1506" class="t-muted" font-size="10" font-weight="500">request</text>
           </g>
-          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="Логика: actions и services" data-legend-x="180" data-legend-baseline="658" data-legend-width="172">
-            <rect x="180" y="649" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
-            <text x="202" y="658" class="t-muted" font-size="10" font-weight="500">Логика: actions и services</text>
+          <g data-legend-semantic-kind="return" data-legend-x="140" data-legend-baseline="1506" data-legend-width="73">
+            <path d="M 140 1503 L 174 1503" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+            <text x="183" y="1506" class="t-muted" font-size="10" font-weight="500">return</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Состояние и хранилища" data-legend-x="374" data-legend-baseline="658" data-legend-width="148">
-            <rect x="374" y="649" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
-            <text x="396" y="658" class="t-muted" font-size="10" font-weight="500">Состояние и хранилища</text>
-          </g>
-          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Внешняя авторизация" data-legend-x="544" data-legend-baseline="658" data-legend-width="138">
-            <rect x="544" y="649" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
-            <text x="566" y="658" class="t-muted" font-size="10" font-weight="500">Внешняя авторизация</text>
-          </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="Внешние системы и SDK" data-legend-x="704" data-legend-baseline="658" data-legend-width="148">
-            <rect x="704" y="649" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="726" y="658" class="t-muted" font-size="10" font-weight="500">Внешние системы и SDK</text>
+          <g data-legend-semantic-kind="default" data-legend-x="235" data-legend-baseline="1506" data-legend-width="118">
+            <path d="M 235 1503 L 269 1503" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+            <text x="278" y="1506" class="t-muted" font-size="10" font-weight="500">default message</text>
           </g>
         </g>
       </svg>
@@ -5339,42 +5551,39 @@
       <div class="card">
         <div class="card-header">
           <div class="card-dot cyan"></div>
-          <h3>Слои приложения</h3>
+          <h3>Список комнат</h3>
         </div>
         <ul>
-          <li>&bull; components/ — Material UI: чат, Dialog</li>
-          <li>&bull; containers/ — useSelector + bindActions</li>
-          <li>&bull; actions/ — thunk: валидация и вызов API</li>
-          <li>&bull; services/ — логика matrix-js-sdk, узкий API</li>
-          <li>&bull; store/ — configureStore + preloadedState</li>
+          <li>&bull; watchRoomList: INITIALIZE / PUT / DELETE</li>
+          <li>&bull; Индекс: roomIds, roomsMeta, selectedRoomId</li>
+          <li>&bull; Приглашения — первыми, пространства — в конце</li>
+          <li>&bull; Непрочитанное: unread / highlight</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot emerald"></div>
-          <h3>Авторизация и сессия</h3>
+          <h3>Комната и сообщения</h3>
         </div>
         <ul>
-          <li>&bull; AuthLinks: вход в Matrix или AD</li>
-          <li>&bull; AD → mtrx_login в форму MtrxReg</li>
-          <li>&bull; loginMatrix() + refresh_token</li>
-          <li>&bull; startClient → /sync; watchMatrixSession</li>
-          <li>&bull; Тумблер: автовход AD или сброс</li>
+          <li>&bull; Клик → markRoomRead (m.read receipt)</li>
+          <li>&bull; watchRoomMessages — снимок таймлайна</li>
+          <li>&bull; Room.timeline / Event.decrypted → обновление</li>
+          <li>&bull; MtrxComposer: Enter — отправка</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot violet"></div>
-          <h3>Комнаты, чат и хранилища</h3>
+          <h3>Приглашение и мутации</h3>
         </div>
         <ul>
-          <li>&bull; Индекс комнат: INITIALIZE / PUT / DELETE</li>
-          <li>&bull; Приглашение, новый чат, выход — matrixRooms</li>
-          <li>&bull; Непрочитанное: unread / highlight → бейджи</li>
-          <li>&bull; m.space — комната, но не чат</li>
-          <li>&bull; Сообщения и таймлайн — истина SDK</li>
+          <li>&bull; MtrxInvite: joinRoom / leaveRoom</li>
+          <li>&bull; createRoom: private_chat + invite</li>
+          <li>&bull; Проверка логина: getProfileInfo</li>
+          <li>&bull; Мутации — оптимистично, до /sync</li>
         </ul>
       </div>
     </div>

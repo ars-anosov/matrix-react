@@ -1,0 +1,510 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "matrix-react: комнаты и чат",
+    "quality_profile": "showcase",
+    "viewBox": [
+      3600,
+      1560
+    ],
+    "column_fit": "spread",
+    "views": [
+      {
+        "id": "room-list",
+        "label": "Список комнат",
+        "focus": [
+          "pad",
+          "cont",
+          "act",
+          "rooms",
+          "sdk"
+        ],
+        "note": "watchRoomList отдаёт дельты INITIALIZE / PUT / DELETE; в индекс идут membership, тип комнаты и счётчики."
+      },
+      {
+        "id": "messages",
+        "label": "Комната и сообщения",
+        "focus": [
+          "user",
+          "pad",
+          "cont",
+          "room",
+          "rooms",
+          "sdk"
+        ],
+        "note": "Клик по комнате шлёт m.read receipt; watchRoomMessages отдаёт снимок таймлайна и обновляет его на событиях SDK."
+      },
+      {
+        "id": "invite-create",
+        "label": "Приглашение и новый чат",
+        "focus": [
+          "user",
+          "pad",
+          "room",
+          "act",
+          "rooms",
+          "hs"
+        ],
+        "note": "Принять/Отклонить — joinRoom / leaveRoom; новый чат — createRoom с preset private_chat и приглашением."
+      },
+      {
+        "id": "send-leave",
+        "label": "Сообщение и выход",
+        "focus": [
+          "user",
+          "room",
+          "act",
+          "rooms",
+          "sdk",
+          "hs"
+        ],
+        "note": "MtrxComposer шлёт текст через sendRoomMessage; выход подтверждается и уходит в leaveRoom."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Пользователь",
+      "sublabel": "браузер"
+    },
+    {
+      "id": "pad",
+      "type": "frontend",
+      "label": "MtrxPad.jsx",
+      "sublabel": "список · новый чат"
+    },
+    {
+      "id": "room",
+      "type": "frontend",
+      "label": "MtrxRoom.jsx",
+      "sublabel": "комната · таймлайн"
+    },
+    {
+      "id": "cont",
+      "type": "frontend",
+      "label": "MtrxPadContainer.jsx",
+      "sublabel": "watchRoomMessages · 30 с"
+    },
+    {
+      "id": "act",
+      "type": "backend",
+      "label": "mtrxControlActions.js",
+      "sublabel": "thunk-actions"
+    },
+    {
+      "id": "rooms",
+      "type": "backend",
+      "label": "matrixRooms.js",
+      "sublabel": "доменный API"
+    },
+    {
+      "id": "sdk",
+      "type": "external",
+      "label": "matrix-js-sdk",
+      "sublabel": "Room · Timeline · crypto"
+    },
+    {
+      "id": "hs",
+      "type": "external",
+      "label": "Homeserver Matrix",
+      "sublabel": "/_matrix/client/v3"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 350,
+      "label": "Список комнат (дельта)"
+    },
+    {
+      "from": 355,
+      "to": 693,
+      "label": "Комната и сообщения"
+    },
+    {
+      "from": 698,
+      "to": 1073,
+      "label": "Приглашение и новый чат"
+    },
+    {
+      "from": 1078,
+      "to": 1460,
+      "label": "Сообщение и выход"
+    }
+  ],
+  "messages": [
+    {
+      "id": "start-watch",
+      "from": "cont",
+      "to": "act",
+      "y": 182,
+      "label": "handleStartRoomWatch()"
+    },
+    {
+      "id": "watch-list",
+      "from": "act",
+      "to": "rooms",
+      "y": 220,
+      "label": "watchRoomList(onChange)"
+    },
+    {
+      "id": "subscribe-sdk",
+      "from": "rooms",
+      "to": "sdk",
+      "y": 258,
+      "label": "Room · Room.myMembership · Room.receipt · deleteRoom"
+    },
+    {
+      "id": "initialize",
+      "from": "rooms",
+      "to": "act",
+      "y": 296,
+      "label": "INITIALIZE: roomId · membership · isSpace",
+      "variant": "return"
+    },
+    {
+      "id": "index-fill",
+      "from": "act",
+      "to": "pad",
+      "y": 334,
+      "label": "roomIds + roomsMeta (unread · highlight)",
+      "variant": "return"
+    },
+    {
+      "id": "pick-room",
+      "from": "user",
+      "to": "pad",
+      "y": 372,
+      "label": "выбор комнаты",
+      "variant": "emphasis"
+    },
+    {
+      "id": "select-room",
+      "from": "pad",
+      "to": "act",
+      "y": 410,
+      "label": "handleSelectRoom(roomId)"
+    },
+    {
+      "id": "read-receipt",
+      "from": "act",
+      "to": "rooms",
+      "y": 448,
+      "label": "markRoomRead → POST /receipt/m.read"
+    },
+    {
+      "id": "watch-messages",
+      "from": "cont",
+      "to": "rooms",
+      "y": 486,
+      "label": "watchRoomMessages(roomId, setMessages)"
+    },
+    {
+      "id": "read-timeline",
+      "from": "rooms",
+      "to": "sdk",
+      "y": 524,
+      "label": "Room.getLiveTimeline()"
+    },
+    {
+      "id": "messages-snapshot",
+      "from": "sdk",
+      "to": "rooms",
+      "y": 562,
+      "label": "снимок: sender · body · formattedBody",
+      "variant": "return"
+    },
+    {
+      "id": "messages-render",
+      "from": "rooms",
+      "to": "room",
+      "y": 600,
+      "label": "сообщения активной комнаты",
+      "variant": "return"
+    },
+    {
+      "id": "timeline-event",
+      "from": "sdk",
+      "to": "rooms",
+      "y": 638,
+      "label": "Room.timeline · Event.decrypted",
+      "variant": "return"
+    },
+    {
+      "id": "messages-update",
+      "from": "rooms",
+      "to": "room",
+      "y": 676,
+      "label": "обновлённый снимок",
+      "variant": "return"
+    },
+    {
+      "id": "invite-action",
+      "from": "user",
+      "to": "room",
+      "y": 714,
+      "label": "«Принять» / «Отклонить»",
+      "variant": "emphasis"
+    },
+    {
+      "id": "invite-handler",
+      "from": "room",
+      "to": "act",
+      "y": 752,
+      "label": "handleJoinRoom / handleLeaveRoom"
+    },
+    {
+      "id": "join-leave",
+      "from": "act",
+      "to": "rooms",
+      "y": 790,
+      "label": "joinRoom() / leaveRoom()"
+    },
+    {
+      "id": "join-request",
+      "from": "rooms",
+      "to": "hs",
+      "y": 828,
+      "label": "POST /join/{roomId} · /leave/{roomId}"
+    },
+    {
+      "id": "membership-put",
+      "from": "act",
+      "to": "pad",
+      "y": 866,
+      "label": "PUT membership=join / DELETE",
+      "variant": "return"
+    },
+    {
+      "id": "new-chat-login",
+      "from": "user",
+      "to": "pad",
+      "y": 904,
+      "label": "логин и «Создать чат»",
+      "variant": "emphasis"
+    },
+    {
+      "id": "create-handler",
+      "from": "pad",
+      "to": "act",
+      "y": 942,
+      "label": "handleCreateRoom({ name, invitees })"
+    },
+    {
+      "id": "create-room",
+      "from": "act",
+      "to": "rooms",
+      "y": 980,
+      "label": "createRoom({ name, invitees })"
+    },
+    {
+      "id": "create-request",
+      "from": "rooms",
+      "to": "hs",
+      "y": 1018,
+      "label": "GET /profile/{userId} → POST /createRoom"
+    },
+    {
+      "id": "create-put",
+      "from": "act",
+      "to": "pad",
+      "y": 1056,
+      "label": "PUT + roomsMeta + выбор комнаты",
+      "variant": "return"
+    },
+    {
+      "id": "message-send",
+      "from": "user",
+      "to": "room",
+      "y": 1094,
+      "label": "текст + Enter (MtrxComposer)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "send-handler",
+      "from": "room",
+      "to": "act",
+      "y": 1132,
+      "label": "handleSendMessage(roomId, body)"
+    },
+    {
+      "id": "send-service",
+      "from": "act",
+      "to": "rooms",
+      "y": 1170,
+      "label": "sendRoomMessage() → sendTextMessage"
+    },
+    {
+      "id": "send-event",
+      "from": "rooms",
+      "to": "sdk",
+      "y": 1208,
+      "label": "sendEvent (E2EE внутри SDK)"
+    },
+    {
+      "id": "send-request",
+      "from": "sdk",
+      "to": "hs",
+      "y": 1246,
+      "label": "PUT /send/m.room.message/{txnId}"
+    },
+    {
+      "id": "leave-dialog",
+      "from": "user",
+      "to": "room",
+      "y": 1284,
+      "label": "«Покинуть комнату» + подтверждение",
+      "variant": "emphasis"
+    },
+    {
+      "id": "leave-handler",
+      "from": "room",
+      "to": "act",
+      "y": 1322,
+      "label": "handleLeaveRoom(roomId)"
+    },
+    {
+      "id": "leave-service",
+      "from": "act",
+      "to": "rooms",
+      "y": 1360,
+      "label": "leaveRoom()"
+    },
+    {
+      "id": "leave-request",
+      "from": "rooms",
+      "to": "hs",
+      "y": 1398,
+      "label": "POST /leave/{roomId}"
+    },
+    {
+      "id": "leave-delete",
+      "from": "act",
+      "to": "pad",
+      "y": 1436,
+      "label": "DELETE → комната уходит из списка",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "cont",
+      "from": 170,
+      "to": 500,
+      "type": "frontend"
+    },
+    {
+      "participant": "act",
+      "from": 178,
+      "to": 1445,
+      "type": "backend"
+    },
+    {
+      "participant": "rooms",
+      "from": 214,
+      "to": 1445,
+      "type": "backend"
+    },
+    {
+      "participant": "pad",
+      "from": 320,
+      "to": 430,
+      "type": "frontend"
+    },
+    {
+      "participant": "pad",
+      "from": 900,
+      "to": 1070,
+      "type": "frontend"
+    },
+    {
+      "participant": "sdk",
+      "from": 250,
+      "to": 350,
+      "type": "external"
+    },
+    {
+      "participant": "sdk",
+      "from": 520,
+      "to": 690,
+      "type": "external"
+    },
+    {
+      "participant": "sdk",
+      "from": 1200,
+      "to": 1260,
+      "type": "external"
+    },
+    {
+      "participant": "room",
+      "from": 590,
+      "to": 690,
+      "type": "frontend"
+    },
+    {
+      "participant": "room",
+      "from": 1080,
+      "to": 1440,
+      "type": "frontend"
+    },
+    {
+      "participant": "hs",
+      "from": 820,
+      "to": 840,
+      "type": "external"
+    },
+    {
+      "participant": "hs",
+      "from": 1010,
+      "to": 1030,
+      "type": "external"
+    },
+    {
+      "participant": "hs",
+      "from": 1240,
+      "to": 1260,
+      "type": "external"
+    },
+    {
+      "participant": "hs",
+      "from": 1390,
+      "to": 1410,
+      "type": "external"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Список комнат",
+      "items": [
+        "watchRoomList: INITIALIZE / PUT / DELETE",
+        "Индекс: roomIds, roomsMeta, selectedRoomId",
+        "Приглашения — первыми, пространства — в конце",
+        "Непрочитанное: unread / highlight"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Комната и сообщения",
+      "items": [
+        "Клик → markRoomRead (m.read receipt)",
+        "watchRoomMessages — снимок таймлайна",
+        "Room.timeline / Event.decrypted → обновление",
+        "MtrxComposer: Enter — отправка"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Приглашение и мутации",
+      "items": [
+        "MtrxInvite: joinRoom / leaveRoom",
+        "createRoom: private_chat + invite",
+        "Проверка логина: getProfileInfo",
+        "Мутации — оптимистично, до /sync"
+      ]
+    }
+  ]
+}
