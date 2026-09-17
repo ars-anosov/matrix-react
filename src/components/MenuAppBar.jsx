@@ -9,41 +9,47 @@ import {
   IconButton,
   List,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
+  ListSubheader,
   Popover,
   Stack,
   Toolbar,
   Typography,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import Copyright from "../Copyright";
+import { HEADER_BACKGROUND } from "../constants/ui.js";
 import AuthAdInfo from "./AuthAdInfo";
 import AuthIco from "./AuthIco";
 import MtrxIco from "./MtrxIco";
 import MtrxInfo from "./MtrxInfo";
 
 const MENU_ITEMS_MTRX = [
-  { key: "displayReg", primary: "Matrix Вход", secondary: "MtrxReg.jsx" },
+  { key: "displayControl", primary: "Matrix Кругляш", secondary: "MtrxIco.jsx" },
+  { key: "displayReg", primary: "Matrix Авторизация", secondary: "MtrxReg.jsx" },
   { key: "displayPad", primary: "Matrix Мессенджер", secondary: "MtrxPad.jsx" },
-  {
-    key: "displayControl",
-    primary: "Matrix Кругляш",
-    secondary: "MtrxIco.jsx",
-  },
 ];
 
 const MENU_ITEMS_AUTH = [
-  { key: "displayAd", primary: "AD Авторизация", secondary: "AuthAd.jsx" },
   { key: "displayControl", primary: "AD Кругляш", secondary: "AuthIco.jsx" },
-  {
-    key: "displayAuthPad",
-    primary: "Мост к сервисам",
-    secondary: "AuthPad.jsx",
-  },
+  { key: "displayAd", primary: "AD Авторизация", secondary: "AuthAd.jsx" },
+  { key: "displayAuthPad", primary: "Мост к сервисам", secondary: "AuthPad.jsx" },
 ];
+
+// Отступы строки меню. Горизонталь равна padding подзаголовков List, чтобы
+// названия пунктов и заголовки секций стояли на одной вертикали.
+// Радиус, вертикальные поля строки и цвет берутся из theme.MuiListItemButton.
+const MENU_ROW_SX = { px: 1.5, py: 0.75, my: 0.25 };
+
+const LIST_SUBHEADER_PROPS = {
+  component: "div",
+  disableSticky: true,
+  sx: { px: 1.5 },
+};
+
+// Кликабельная группа «подпись + индикатор статуса» в шапке.
+const STATUS_STACK_SX = { cursor: "pointer", alignItems: "center" };
 
 function MenuAppBar(props) {
   const { mtrxControlRdcr, mtrxControlActions, authControlRdcr, authControlActions } = props;
@@ -55,12 +61,6 @@ function MenuAppBar(props) {
       if (import.meta.env.DEV) console.log("MenuAppBar UNMOUNT");
     };
   }, []);
-
-  const theme = useTheme();
-
-  const rawToolbarHeight = theme?.mixins?.toolbar?.maxHeight;
-  const toolbarHeight =
-    typeof rawToolbarHeight === "number" ? rawToolbarHeight : rawToolbarHeight ? parseInt(String(rawToolbarHeight).replace("px", ""), 10) : 64;
 
   const [anchorEl_mtrxControl, setAnchorEl_mtrxControl] = useState(null);
   const [anchorEl_adControl, setAnchorEl_adControl] = useState(null);
@@ -79,7 +79,7 @@ function MenuAppBar(props) {
   return (
     // Без flexGrow: корень App — flex-колонка, и выросшая обёртка уводила бы футер вниз
     <Box>
-      <AppBar position="static">
+      <AppBar position="static" color="inherit" elevation={0}>
         <Toolbar>
           <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={handleOpenMenu}>
             <MenuIcon />
@@ -96,52 +96,77 @@ function MenuAppBar(props) {
               },
             }}
           >
-            <Stack direction="row" spacing={2} sx={{ p: 1, height: toolbarHeight }}>
-              <Box component="img" src="img/Vite.png" sx={{ height: "100%", width: "auto" }} alt="Vite" />
-              <Box component="img" src="img/React.png" sx={{ height: "100%", width: "auto" }} alt="React" />
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{
+                px: 1.5,
+                py: 1.5,
+                alignItems: "center",
+                bgcolor: HEADER_BACKGROUND,
+                borderBottom: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                <Box component="img" src="img/Vite.png" sx={{ height: 18, width: "auto" }} alt="Vite" />
+                <Box component="img" src="img/React.png" sx={{ height: 18, width: "auto" }} alt="React" />
+              </Stack>
+              {/* Две распорки, а не ml:"auto": у Stack со spacing селектор
+                  `& > :not(style) + :not(style)` задаёт margin-left и перебивает auto. */}
               <Box sx={{ flexGrow: 1 }} />
-              <IconButton onClick={handleCloseMenu}>
-                <ChevronLeftIcon color="primary" sx={{ height: "100%", width: "auto" }} />
+              <Typography variant="subtitle1" color="primary" noWrap>
+                Компоненты
+              </Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <IconButton size="small" onClick={handleCloseMenu} sx={{ color: "text.secondary" }}>
+                <ChevronLeftIcon />
               </IconButton>
             </Stack>
 
-            <Divider />
+            <Box sx={{ flex: 1, overflowY: "auto", py: 1 }}>
+              <List disablePadding sx={{ px: 1 }} subheader={<ListSubheader {...LIST_SUBHEADER_PROPS}>Компоненты Matrix</ListSubheader>}>
+                {MENU_ITEMS_MTRX.map((item) => {
+                  const isChecked = !!mtrxControlRdcr[item.key];
+                  const labelId = `checkbox-list-label-${item.key}`;
+                  return (
+                    <ListItemButton key={item.key} onClick={() => toggleDisplayMtrx(item.key)} sx={MENU_ROW_SX}>
+                      <ListItemText
+                        id={labelId}
+                        primary={item.primary}
+                        secondary={item.secondary}
+                        slotProps={{ primary: { noWrap: true }, secondary: { noWrap: true } }}
+                      />
+                      <Checkbox edge="end" size="small" checked={isChecked} tabIndex={-1} disableRipple slotProps={{ input: { "aria-labelledby": labelId } }} />
+                    </ListItemButton>
+                  );
+                })}
+              </List>
 
-            <List>
-              {MENU_ITEMS_MTRX.map((item) => {
-                const isChecked = !!mtrxControlRdcr[item.key];
-                const labelId = `checkbox-list-label-${item.key}`;
-                return (
-                  <ListItemButton key={item.key} onClick={() => toggleDisplayMtrx(item.key)} sx={{ alignItems: "flex-start" }}>
-                    <ListItemIcon>
-                      <Checkbox edge="start" checked={isChecked} tabIndex={-1} disableRipple slotProps={{ input: { "aria-labelledby": labelId } }} />
-                    </ListItemIcon>
-                    <ListItemText id={labelId} primary={item.primary} secondary={item.secondary} />
-                  </ListItemButton>
-                );
-              })}
-            </List>
+              <Divider sx={{ my: 1.5 }} />
 
-            <Divider />
-
-            <List>
-              {MENU_ITEMS_AUTH.map((item) => {
-                const isChecked = !!authControlRdcr[item.key];
-                const labelId = `checkbox-list-label-${item.key}`;
-                return (
-                  <ListItemButton key={item.key} onClick={() => toggleDisplayAuth(item.key)} sx={{ alignItems: "flex-start" }}>
-                    <ListItemIcon>
-                      <Checkbox edge="start" checked={isChecked} tabIndex={-1} disableRipple slotProps={{ input: { "aria-labelledby": labelId } }} />
-                    </ListItemIcon>
-                    <ListItemText id={labelId} primary={item.primary} secondary={item.secondary} />
-                  </ListItemButton>
-                );
-              })}
-            </List>
+              <List disablePadding sx={{ px: 1 }} subheader={<ListSubheader {...LIST_SUBHEADER_PROPS}>Компоненты AD</ListSubheader>}>
+                {MENU_ITEMS_AUTH.map((item) => {
+                  const isChecked = !!authControlRdcr[item.key];
+                  const labelId = `checkbox-list-label-${item.key}`;
+                  return (
+                    <ListItemButton key={item.key} onClick={() => toggleDisplayAuth(item.key)} sx={MENU_ROW_SX}>
+                      <ListItemText
+                        id={labelId}
+                        primary={item.primary}
+                        secondary={item.secondary}
+                        slotProps={{ primary: { noWrap: true }, secondary: { noWrap: true } }}
+                      />
+                      <Checkbox edge="end" size="small" checked={isChecked} tabIndex={-1} disableRipple slotProps={{ input: { "aria-labelledby": labelId } }} />
+                    </ListItemButton>
+                  );
+                })}
+              </List>
+            </Box>
 
             <Box
               sx={{
-                mt: "auto", // Выталкивает блок в самый низ контейнера
+                mt: "auto",
                 p: 2,
                 textAlign: "center",
               }}
@@ -158,7 +183,7 @@ function MenuAppBar(props) {
           <Box sx={{ flexGrow: 1 }} />
 
           {mtrxControlRdcr.displayControl && (
-            <Stack direction="row" spacing={1} sx={{ cursor: "pointer", alignItems: "center" }} onClick={(e) => setAnchorEl_mtrxControl(e.currentTarget)}>
+            <Stack direction="row" spacing={1} sx={STATUS_STACK_SX} onClick={(e) => setAnchorEl_mtrxControl(e.currentTarget)}>
               <Typography variant="caption" sx={{ pl: 1 }}>
                 {mtrxControlRdcr?.responseData?.display_name || mtrxControlRdcr?.responseData?.user_id || ""}
               </Typography>
@@ -167,7 +192,7 @@ function MenuAppBar(props) {
           )}
 
           {authControlRdcr.displayControl && (
-            <Stack direction="row" spacing={1} sx={{ cursor: "pointer", alignItems: "center" }} onClick={(e) => setAnchorEl_adControl(e.currentTarget)}>
+            <Stack direction="row" spacing={1} sx={STATUS_STACK_SX} onClick={(e) => setAnchorEl_adControl(e.currentTarget)}>
               <Typography variant="caption" sx={{ pl: 1 }}>
                 {authControlRdcr?.responseData?.ad_login}
               </Typography>

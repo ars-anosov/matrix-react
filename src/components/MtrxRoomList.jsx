@@ -43,28 +43,34 @@ function MtrxRoomList({ rooms, selectedRoomId = "", onSelect, fullHeight = false
           selected={room.roomId === selectedRoomId}
           onClick={() => onSelect(room)}
           sx={{
-            minHeight: 56,
-            px: 1,
-            py: 0.5,
+            minHeight: 52,
+            px: 1.25,
+            py: 0.75,
+            my: 0.25,
             borderRadius: 2,
+            transition: "all 150ms ease",
             "&.Mui-selected": {
               bgcolor: "action.selected",
+              "& .MuiListItemText-primary": {
+                color: "primary.main",
+              },
             },
             "&.Mui-selected:hover": {
               bgcolor: "action.selected",
             },
           }}
         >
-          <ListItemAvatar sx={{ minWidth: 48 }}>
+          <ListItemAvatar sx={{ minWidth: 46 }}>
             <Avatar
               src={room.avatarUrl || undefined}
               alt=""
               sx={{
-                width: 40,
-                height: 40,
-                bgcolor: "transparent",
+                width: 38,
+                height: 38,
+                bgcolor: "action.selected",
                 color: "text.primary",
                 fontSize: 15,
+                fontWeight: 600,
               }}
             >
               {getRoomInitial(room.name)}

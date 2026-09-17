@@ -1,5 +1,5 @@
 import { ForumOutlined as IconForum } from "@mui/icons-material";
-import { Avatar, Box, Divider, List, ListItem, Paper, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Divider, List, ListItem, Stack, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { Fragment, useEffect, useRef } from "react";
 
@@ -31,7 +31,15 @@ const ALLOWED_FORMATTED_TAGS = new Set([
   "UL",
 ]);
 
-const AVATAR_COLORS = ["primary.main", "secondary.main", "info.main", "success.main", "warning.dark", "error.main"];
+const AVATAR_COLORS = [
+  "#2563eb", // blue
+  "#0d9488", // teal
+  "#7c3aed", // violet
+  "#db2777", // pink
+  "#d97706", // amber
+  "#ea580c", // orange
+  "#059669", // emerald
+];
 
 function formatMessageTime(timestamp) {
   if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
@@ -140,14 +148,11 @@ function MtrxRoom({ room, fullHeight = false }) {
   }, [roomId, messages.length]);
 
   return (
-    <Paper
-      variant="outlined"
+    <Box
       sx={{
         height: fullHeight ? "100%" : undefined,
         minHeight: fullHeight ? 0 : 220,
         overflow: "hidden",
-        borderRadius: 3,
-        borderColor: "divider",
         bgcolor: "background.paper",
         display: fullHeight ? "flex" : undefined,
         flexDirection: fullHeight ? "column" : undefined,
@@ -170,8 +175,8 @@ function MtrxRoom({ room, fullHeight = false }) {
           sx={{
             width: 42,
             height: 42,
-            bgcolor: "transparent",
-            color: "text.primary",
+            bgcolor: "action.selected",
+            color: "primary.main",
             fontSize: 16,
             fontWeight: 700,
           }}
@@ -254,7 +259,7 @@ function MtrxRoom({ room, fullHeight = false }) {
                     gap: 1.25,
                     px: 0.5,
                     py: isContinuation ? 0.35 : 0.75,
-                    borderRadius: 1.5,
+                    borderRadius: 2,
                     transition: "background-color 120ms ease",
                     "&:hover": {
                       bgcolor: "action.hover",
@@ -338,7 +343,7 @@ function MtrxRoom({ room, fullHeight = false }) {
                         "& code": {
                           px: 0.5,
                           py: 0.15,
-                          borderRadius: 0.75,
+                          borderRadius: 1,
                           bgcolor: "action.selected",
                           fontFamily: "monospace",
                           fontSize: "0.9em",
@@ -347,7 +352,7 @@ function MtrxRoom({ room, fullHeight = false }) {
                           m: 0,
                           p: 1,
                           overflowX: "auto",
-                          borderRadius: 1,
+                          borderRadius: 2,
                           bgcolor: "action.selected",
                           fontFamily: "monospace",
                         },
@@ -363,7 +368,7 @@ function MtrxRoom({ room, fullHeight = false }) {
           })}
         </List>
       )}
-    </Paper>
+    </Box>
   );
 }
 

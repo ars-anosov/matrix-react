@@ -45,6 +45,8 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
         <IconClose color="action" />
       </IconButton>
 
+      {/* Шапка — тот же дизайн, что у AuthPad.jsx: серая полоса HEADER_BACKGROUND
+          с одним заголовком, сразу под ней Divider */}
       <Stack
         direction="row"
         sx={{
@@ -61,13 +63,15 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
           <Typography variant="h6" color="primary" noWrap>
             Matrix мессенджер
           </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>
-            {rooms.length > 0 ? getRoomCountLabel(rooms.length) : "Нет доступных комнат"}
-          </Typography>
         </Box>
       </Stack>
 
       <Divider sx={{ flexShrink: 0 }} />
+
+      {/* Счётчик комнат — под серой шапкой, на белом фоне панели */}
+      <Typography variant="caption" color="text.secondary" noWrap sx={{ display: "block", px: { xs: 1.5, sm: 2 }, py: 0.75, flexShrink: 0 }}>
+        {rooms.length > 0 ? getRoomCountLabel(rooms.length) : "Нет доступных комнат"}
+      </Typography>
 
       <Box
         sx={{
@@ -76,14 +80,12 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
           minHeight: 0,
           gridTemplateColumns: {
             xs: "1fr",
-            sm: "minmax(190px, 0.32fr) minmax(0, 1fr)",
+            sm: "minmax(200px, 0.35fr) minmax(0, 1fr)",
           },
           gridTemplateRows: {
             xs: "minmax(150px, 0.38fr) minmax(0, 1fr)",
             sm: "minmax(0, 1fr)",
           },
-          gap: { xs: 1, sm: 1.5 },
-          p: { xs: 1, sm: 1.5 },
           overflow: "hidden",
         }}
       >
@@ -92,11 +94,11 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
             minWidth: 0,
             minHeight: 0,
             overflow: "hidden",
-            border: 1,
+            borderRight: { sm: 1 },
+            borderBottom: { xs: 1, sm: 0 },
             borderColor: "divider",
-            borderRadius: 2,
             bgcolor: "background.default",
-            p: 0.75,
+            p: 1,
             scrollbarWidth: "thin",
           }}
         >
@@ -107,8 +109,7 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
           {selectedRoom ? (
             <MtrxRoom room={selectedRoom} fullHeight />
           ) : (
-            <Paper
-              variant="outlined"
+            <Box
               sx={{
                 height: "100%",
                 minHeight: 220,
@@ -118,15 +119,17 @@ function MtrxPad({ rooms, selectedRoomId, selectedRoom, onSelectRoom, onClose })
                 justifyContent: "center",
                 gap: 1,
                 p: 3,
-                borderRadius: 3,
                 color: "text.secondary",
                 textAlign: "center",
+                bgcolor: "background.paper",
               }}
             >
-              <IconForum sx={{ fontSize: 40, opacity: 0.55 }} />
-              <Typography variant="body1">Выберите комнату, чтобы открыть чат</Typography>
+              <IconForum sx={{ fontSize: 40, opacity: 0.4 }} />
+              <Typography variant="body1" fontWeight={500}>
+                Выберите комнату, чтобы открыть чат
+              </Typography>
               <Typography variant="caption">Список комнат находится слева</Typography>
-            </Paper>
+            </Box>
           )}
         </Box>
       </Box>
