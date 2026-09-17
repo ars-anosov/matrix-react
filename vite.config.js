@@ -47,5 +47,9 @@ export default defineConfig({
       usePolling: true, // Включает опрос для отслеживания изменений в контейнерах/WSL
     },
   },
+  preview: {
+    port: 4173, // npm run serve: порт закреплён, иначе Vite молча возьмёт следующий свободный
+    strictPort: true,
+  },
   plugins: [react(), mockApiPlugin()],
 });

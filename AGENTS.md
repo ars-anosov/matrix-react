@@ -40,15 +40,14 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
   остальные скриншоты и contact sheet — временные (перечислены в `.gitignore`).
 - **Диаграммы в ответе** — Mermaid-блоком, а не ASCII-артом; образец — `docs/STATE.md`.
 - **Проверка UI** — `npm run dev` (порт 3000): человеку открывать `win_open_url`
-  (`http://localhost:3000`), агенту — Linux-Chromium в WSL обёрткой `.dsh/bin/browser`
-  (Playwright CLI); пошаговый порядок — навык `ui-verify`. Настройки Playwright лежат в
-  репозитории: `.playwright/cli.config.json` — chromium, viewport 1280×800, уровень `warning`,
-  вывод в `.playwright/cache/output`. Рантайм-состояние демона — в игнорируемом
-  `.playwright/cache/`. Обёртка обязательна: она уводит `HOME` и `XDG_CACHE_HOME` внутрь
-  проекта, иначе песочница DSH не даёт Chrome записать профиль. Браузеры — в
-  `~/.cache/ms-playwright`; весь сценарий проверки выполняется одной цепочкой команд в одном
-  вызове `bash` (демон CLI не переживает вызов), режим только headless. MCP-сервер браузера
-  на Windows в профиле отключён.
+  (`http://localhost:3000`), агенту — обёртка `.dsh/bin/browser`; пошаговый порядок — навык
+  `ui-verify`. Настройки Playwright лежат в репозитории: `.playwright/cli.config.json` —
+  chromium, viewport 1280×800, уровень `warning`, вывод в `.playwright/cache/output`. Файлы
+  с авто-именами (`page-*`, `console-*`) там копятся: обёртка удаляет их старше суток, свежие
+  за прогон убирает шаг 7 навыка `ui-verify`; рантайм демона — в игнорируемом
+  `.playwright/cache/`. Общие правила браузера агента (обёртка обязательна, весь сценарий —
+  одной цепочкой команд в одном вызове `bash`, только headless, браузеры в
+  `~/.cache/ms-playwright`) — в user-global `~/.dsh/AGENTS.md`.
 
 ## Структура
 
@@ -72,7 +71,19 @@ docs/             # документация и GitHub Pages (ars-anosov.github.
 dist/             # результат npm run build — вручную не править
 .github/          # CI (workflows/ci.yml: npm ci + build) и адаптер copilot-instructions.md
 .dsh/             # навыки агента (skills/ui-verify) и обёртка bin/browser
-.playwright/      # конфиг Playwright CLI (cli.config.json); cache/ — рантайм, в git не хранится
+.playwright/      # конфиг Playwright CLI (cli.config.json); cache/ — рантайм и вывод проверок
+                  # (авто-имена page-*/console-* чистят обёртка и навык ui-verify), в git не хранится
+.devcontainer/    # devcontainer: образ javascript-node 24, forwardPorts 3000 и 4173
+.vscode/          # редактор: Biome-форматтер и formatOnSave, рекомендации расширений,
+                  # sftp-профиль dist (ars-dev.ru, /var/www/html/matrix-react/)
+.zed/             # Zed: Biome как LSP и форматтер для JS/JSON, исключения node_modules и dist
+.cursor/          # адаптер правил для Cursor (rules/project.mdc)
+.editorconfig     # LF, финальный перевод строки, 2 пробела (в Markdown пробелы не обрезаются)
+jsconfig.json     # настройки JS-проекта для редактора: ES2022, JSX react-jsx, Bundler
+biome.json        # линтер и форматтер; includes исключает dist, node_modules, docs/archify
+README.md         # описание проекта и быстрый старт (Node.js 24), скриншоты — в img/
+LICENSE           # MIT
+deploy.sh         # выкладка dist по rsync --delete (DEPLOY_USER / DEPLOY_HOST / DEPLOY_PATH)
 ```
 
 ## Архитектура Matrix

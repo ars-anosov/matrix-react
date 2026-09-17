@@ -9,6 +9,11 @@
 # Демон живёт только внутри одного вызова bash: весь сценарий проверки собирать в одну цепочку
 # команд. Настройки — .playwright/cli.config.json, порядок проверки — навык ui-verify.
 #
+# Ретеншн. open/snapshot/screenshot/console пишут в output/ файлы с авто-именами
+# (page-<ISO>.yml|png, console-<ISO>.log) и сами их не удаляют — за день проверок набегают сотни
+# файлов. Перед запуском такие файлы старше суток удаляются; именованные (--filename=...) не
+# трогаем, а свежие авто-имена текущего прогона убирает шаг 7 навыка ui-verify.
+#
 # Использование: .dsh/bin/browser open http://localhost:3000
 set -euo pipefail
 
@@ -25,5 +30,9 @@ DEPS="$CACHE/deps/root/usr/lib/x86_64-linux-gnu"
 if [ -d "$DEPS" ]; then
   export LD_LIBRARY_PATH="$DEPS${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 fi
+
+# Только авто-имена и только старше суток: свежий скриншот прогона не задевается.
+find "$CACHE/output" -maxdepth 1 -type f \
+  \( -name 'page-*' -o -name 'console-*' \) -mtime +0 -delete 2>/dev/null || true
 
 exec playwright-cli "$@"

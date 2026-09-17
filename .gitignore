@@ -2,9 +2,6 @@
 node_modules/
 dist/
 
-# Локальные артефакты запуска dev-сервера
-server.pid
-
 # Playwright CLI: рантайм-состояние демона, профиль браузера и вывод проверок.
 # Конфиг .playwright/cli.config.json, наоборот, коммитится — это часть настройки.
 .playwright/cache/

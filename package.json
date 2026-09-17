@@ -3,6 +3,9 @@
   "version": "1.0.6",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",

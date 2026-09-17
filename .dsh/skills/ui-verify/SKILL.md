@@ -18,6 +18,15 @@ whenToUse: Правка в src/components, src/containers, src/reducers, theme.j
 `.playwright/cache/output`), браузеры — в общем кэше `~/.cache/ms-playwright` (только чтение).
 Вызывать `playwright-cli` напрямую не нужно.
 
+`open`, `snapshot`, `screenshot` и `console` складывают в `.playwright/cache/output/` файлы с
+авто-именами (`page-<ISO>.yml|png`, `console-<ISO>.log`) и сами их не удаляют — за день проверок
+там набираются сотни файлов. Отключить это настройкой нельзя: `outputMode: "stdout"` в
+`cli.config.json` не мешает `open`/`snapshot` писать `page-*.yml`, поэтому работают только
+ретеншн обёртки (авто-имена старше суток) и уборка из шага 7. Два одновременных прогона внутри
+проекта делят сессию `default` — разводить их переменной `PLAYWRIGHT_CLI_SESSION=<имя>`.
+Запасной путь библиотек Chromium — `.playwright/cache/deps/root/usr/lib/x86_64-linux-gnu`:
+обёртка подхватывает его через `LD_LIBRARY_PATH`, если системные пакеты не поставлены.
+
 Если браузер падает с `error while loading shared libraries`, не хватает системных библиотек
 Chromium:
 
@@ -83,7 +92,13 @@ having a XServer running» (у песочницы приватный `/tmp`, X-�
    правки — скриншот из `.playwright/cache/output/` (показать через `read_image`) плюс ссылка
    для человека через `win_open_url`.
 
-7. Убрать за собой: `.dsh/bin/browser close` и остановить job dev-сервера.
+7. Убрать за собой: `.dsh/bin/browser close`, остановить job dev-сервера и удалить из
+   `.playwright/cache/output/` авто-имена текущего прогона (`page-*.yml`, `page-*.png`,
+   `console-*.log`) — обёртка чистит только то, что старше суток. Скриншот для отчёта снимать
+   сразу с именем и путём от корня репозитория:
+   `.dsh/bin/browser screenshot --filename=.playwright/cache/output/ui-check-<тема>.png` — тогда
+   его удалять не нужно. Голое имя без каталога CLI кладёт в текущий каталог, и файл всплывает
+   в `git status` как untracked.
 
 ## Признаки проблемы
 
