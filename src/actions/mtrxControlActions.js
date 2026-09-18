@@ -391,10 +391,11 @@ const handleCreateRoom =
   (formData = {}) =>
   async (dispatch) => {
     try {
-      const { roomId, name } = await matrixRooms.createRoom(formData);
+      const { roomId, name, peerId = "" } = await matrixRooms.createRoom(formData);
 
-      // Комната придёт в /sync позже: показываем её сразу с введённым названием,
-      // иначе до следующего sync в списке висел бы только roomId
+      // Комната придёт в /sync позже: показываем её сразу с готовым именем
+      // (название комнаты или имя собеседника), иначе до следующего sync
+      // в списке висел бы только roomId
       dispatch({
         type: MTRXCTL_ROOM_LIST_PUT,
         payload: { roomId, membership: "join", isSpace: false },
@@ -403,7 +404,7 @@ const handleCreateRoom =
         type: MTRXCTL_ROOM_META_STORE,
         payload: {
           roomId,
-          meta: { roomId, name, avatarUrl: "", subtitle: "", membership: "join", isSpace: false, children: [] },
+          meta: { roomId, name, avatarUrl: "", subtitle: "", peerId, membership: "join", isSpace: false, children: [] },
         },
       });
       dispatch(handleSelectRoom(roomId));

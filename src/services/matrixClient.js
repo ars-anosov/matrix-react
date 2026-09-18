@@ -1,4 +1,5 @@
 import { CryptoEvent } from "matrix-js-sdk/lib/crypto-api/CryptoEvent.js";
+import { TokenRefreshLogoutError } from "matrix-js-sdk/lib/http-api/errors.js";
 import { MTRX_ACCESS_TOKEN_KEY, MTRX_DEVICE_ID_KEY, MTRX_HS_URL_KEY, MTRX_LOGIN_KEY, MTRX_REFRESH_TOKEN_KEY, MTRX_USER_ID_KEY } from "../constants/storage";
 import { clearMatrixClient, getMatrixClient, setMatrixClient } from "./matrixClientStore.js";
 import { clearMediaUrlCache } from "./matrixMedia.js";
@@ -80,11 +81,15 @@ async function createMatrixClientFromSession({ baseUrl, accessToken, userId, dev
       });
 
       if (response.status === 401) {
-        console.warn("[tokenRefreshFunction] Рефреш-токен протух (401). Чистим хранилища…");
-        deleteMatrixLocalStores();
-        await deleteMatrixIndexedDbStores(storeKey);
-        getMatrixClient()?.emit?.("Session.logged_out");
-        throw new Error("REFRESH_TOKEN_EXPIRED: Store cleared");
+        // Рефреш-токен отозван сервером (одноразовый токен, повторный логин в то же
+        // устройство): сессия потеряна, восстанавливать нечего.
+        // Бросаем именно TokenRefreshLogoutError: SDK по нему переводит клиент
+        // в Logout — прекращает retry-шторм и сам эмитит Session.logged_out на
+        // СВОЁМ клиенте. Обычная ошибка здесь означала бы Failure: SDK ретраил бы
+        // 401 бесконечно, а emit через getMatrixClient() мог попасть в уже новый
+        // клиент и выбросить пользователя сразу после успешного входа.
+        console.warn("[tokenRefreshFunction] Рефреш-токен протух (401). Сессия потеряна.");
+        throw new TokenRefreshLogoutError(new Error("REFRESH_TOKEN_EXPIRED"));
       }
 
       if (!response.ok) {

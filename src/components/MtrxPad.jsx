@@ -84,7 +84,7 @@ function MtrxPad({
   // Закрытое уведомление не показываем, пока логин не изменился
   const showExistingRoom = hasExistingRoom && dismissedExistingLogin !== login;
 
-  // Создание чата: логин берётся из Redux, название комнаты будет равно логину
+  // Создание личного чата: логин берётся из Redux, имя чату даст профиль собеседника
   const handleCreate = async (event) => {
     event.preventDefault();
     if (!canCreate) return;

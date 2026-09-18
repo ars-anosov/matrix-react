@@ -92,8 +92,8 @@ const MtrxPadContainer = () => {
       onNewRoomLoginChange={(value) => actions.handleChangeStore("newRoomLogin", value)}
       onSelectRoom={(roomId) => actions.handleSelectRoom(roomId)}
       onClose={() => actions.handleChangeStore("displayPad", false)}
-      // Название комнаты равно логину — логика продукта остаётся в контейнере
-      onCreateRoom={(login) => actions.handleCreateRoom({ name: login, invitees: [login] })}
+      // Один логин — личный чат: названия у него нет, имя даёт профиль собеседника
+      onCreateRoom={(login) => actions.handleCreateRoom({ invitees: [login] })}
       onSendMessage={(body) => actions.handleSendMessage(selectedRoomId, body)}
       onSendFile={(file, options) => actions.handleSendFile(selectedRoomId, file, options)}
       onDownloadFile={(message) => actions.handleDownloadFile(message.media, message.filename)}

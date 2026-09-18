@@ -9,6 +9,9 @@ const avatarUrlCache = new Map();
 // RoomEvent.UnreadNotifications: строку держим здесь, чтобы сервис не тянул SDK
 const ROOM_UNREAD_EVENT = "Room.UnreadNotifications";
 
+// Account data со списком личных комнат: { "@user:server": ["!room:server"] }
+const DIRECT_EVENT = "m.direct";
+
 function clearRoomAvatarCache() {
   for (const url of avatarUrlCache.values()) {
     if (typeof url === "string" && url.startsWith("blob:")) {
@@ -41,10 +44,16 @@ function getTimelineRoomName(room) {
  * Имя комнаты: явное событие `m.room.name` важнее вычисленного SDK, иначе
  * `Room.name` у комнаты без имени вернул бы сгенерированное «Empty room».
  *
+ * У личной комнаты приоритет обратный: `m.room.name` — состояние комнаты,
+ * одно на двоих, поэтому у собеседника в списке оказывался бы чужой логин.
+ * Имя собеседника каждый клиент считает сам, поэтому для `direct` берём его.
+ *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#name
  */
-function getRoomDisplayName(room) {
+function getRoomDisplayName(room, peer = null, direct = false) {
   if (!room) return "Без названия";
+
+  if (direct && peer?.userId) return peer.name || peer.userId;
 
   const nameEvent = room.currentState?.getStateEvents?.("m.room.name", "");
   const stateName = nameEvent?.getContent?.()?.name;
@@ -383,6 +392,55 @@ function getRoomPeer(room, myUserId) {
   return null;
 }
 
+// Пишем личную комнату в account data `m.direct` — по этой метке и наш клиент,
+// и другие (Element, Cinny) отличают личный чат от комнаты на двоих.
+// Ошибку не пробрасываем: комната уже создана, а признак `direct` определится
+// и по одному собеседнику.
+//
+// @see https://spec.matrix.org/latest/client-server-api/#direct-messaging
+async function markDirectChat(client, userId, roomId) {
+  if (!userId || !roomId) return;
+
+  try {
+    const current = client.getAccountData?.(DIRECT_EVENT)?.getContent?.() || {};
+    const rooms = Array.isArray(current[userId]) ? current[userId] : [];
+    if (rooms.includes(roomId)) return;
+
+    await client.setAccountData(DIRECT_EVENT, { ...current, [userId]: [...rooms, roomId] });
+  } catch (error) {
+    console.warn("[matrixRooms] не удалось записать m.direct", roomId, error);
+  }
+}
+
+// Комната 1-на-1 — личная, если это подтверждает метка `m.direct`, флаг
+// `is_direct` из приглашения или имя комнаты, совпавшее с собеседником:
+// прежняя версия клиента писала в `m.room.name` логин приглашённого.
+function isDirectRoom(client, room, peer) {
+  if (!room || !peer?.userId) return false;
+
+  const direct = client.getAccountData?.(DIRECT_EVENT)?.getContent?.();
+  if (direct && Object.values(direct).some((rooms) => Array.isArray(rooms) && rooms.includes(room.roomId))) {
+    return true;
+  }
+
+  // Сервер ставит `is_direct` в `m.room.member` приглашённого
+  if (peer.getDMInviter?.()) return true;
+
+  const nameEvent = room.currentState?.getStateEvents?.("m.room.name", "");
+  const roomName = nameEvent?.getContent?.()?.name;
+  const value = typeof roomName === "string" ? roomName.trim() : "";
+  // 1-на-1 без имени — это личный чат; с именем — только если имя и есть собеседник
+  if (!value) return true;
+
+  const localpart = String(peer.userId).replace(/^@/, "").split(":")[0].toLowerCase();
+  const peerName = String(peer.name || "")
+    .trim()
+    .toLowerCase();
+  const candidate = value.replace(/^@/, "").split(":")[0].toLowerCase();
+
+  return candidate === localpart || candidate === peerName;
+}
+
 // Статус собеседника берём напрямую (presence в sync-фильтр не запрошен):
 // `presence` UI использует для цвета плашки, `text` — для её подписи.
 async function getPeerStatus(client, peer) {
@@ -439,11 +497,13 @@ async function getRoomMeta(roomId) {
   const space = isSpace(room);
   // Собеседник личной комнаты: нужен и для подписи-статуса, и для поиска чата по логину
   const peer = space ? null : getRoomPeer(room, client?.getUserId?.());
+  // Личная комната: имя в списке даёт собеседник, а не общее `m.room.name`
+  const direct = space ? false : isDirectRoom(client, room, peer);
   const peerStatus = peer ? await getPeerStatus(client, peer) : null;
 
   return {
     roomId,
-    name: getRoomDisplayName(room),
+    name: getRoomDisplayName(room, peer, direct),
     avatarUrl: await resolveRoomAvatarUrl(client, room),
     subtitle: space ? "Пространство" : await getRoomSubtitle(client, room, peerStatus),
     membership: getRoomMembership(room),
@@ -723,18 +783,21 @@ function normalizeInvitees(invitees, myUserId) {
 }
 
 /**
- * Проверяет, что пользователь известен серверу: `GET /profile/{userId}`.
- * Неизвестный логин сервер отдаёт как 404 `M_NOT_FOUND` — тогда комнату
- * создавать нельзя.
+ * Проверяет, что пользователь известен серверу: `GET /profile/{userId}`,
+ * и возвращает его display name (пустую строку, если имени нет или профиль
+ * недоступен). Неизвестный логин сервер отдаёт как 404 `M_NOT_FOUND` —
+ * тогда комнату создавать нельзя.
  *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#getprofileinfo
  * @see https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3profileuserid
  */
 async function assertUserExists(client, userId) {
-  if (typeof client.getProfileInfo !== "function") return;
+  if (typeof client.getProfileInfo !== "function") return "";
 
   try {
-    await client.getProfileInfo(userId);
+    const profile = await client.getProfileInfo(userId);
+    // Display name нужен вызывающему как отображаемое имя личного чата
+    return typeof profile?.displayname === "string" ? profile.displayname.trim() : "";
   } catch (error) {
     if (error?.errcode === "M_NOT_FOUND" || error?.httpStatus === 404) {
       throw new Error(`Пользователь ${userId} не найден на сервере.`, { cause: error });
@@ -749,9 +812,14 @@ async function assertUserExists(client, userId) {
  * в неё перечисленных пользователей. Пользователей предварительно проверяем
  * на сервере: с несуществующим логином комната не создаётся.
  *
+ * Один приглашаемый — личный чат: `m.room.name` у него не ставим, иначе у
+ * собеседника в списке висел бы логин инициатора; имя собеседника клиент
+ * считает сам, а `is_direct` + `m.direct` помечают комнату как личную.
+ *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#createroom
  * @see https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3createroom
  * @see https://spec.matrix.org/latest/client-server-api/#mroomcreate
+ * @see https://spec.matrix.org/latest/client-server-api/#direct-messaging
  */
 async function createRoom({ name, invitees } = {}) {
   const client = getMatrixClient();
@@ -759,22 +827,35 @@ async function createRoom({ name, invitees } = {}) {
     throw new Error("Клиент Matrix не инициализирован.");
   }
 
-  const roomName = typeof name === "string" ? name.trim() : "";
-  if (!roomName) throw new Error("Введите название комнаты.");
-
   const invited = normalizeInvitees(invitees, client.getUserId?.());
+  const direct = invited.length === 1;
+
+  // Название нужно только комнате: у личного чата его заменяет имя собеседника
+  const roomName = typeof name === "string" ? name.trim() : "";
+  if (!direct && !roomName) throw new Error("Введите название комнаты.");
+
+  const displayNames = new Map();
   for (const userId of invited) {
-    await assertUserExists(client, userId);
+    displayNames.set(userId, await assertUserExists(client, userId));
   }
 
   // Preset.PrivateChat === "private_chat"
   const { room_id: roomId } = await client.createRoom({
-    name: roomName,
+    ...(direct ? {} : { name: roomName }),
     preset: "private_chat",
+    is_direct: direct,
     invite: invited,
   });
 
-  return { roomId, name: roomName };
+  const peerId = direct ? invited[0] : "";
+  if (direct) await markDirectChat(client, peerId, roomId);
+
+  return {
+    roomId,
+    // Для личного чата — имя собеседника: под ним комната живёт в сторе до /sync
+    name: direct ? displayNames.get(peerId) || peerId : roomName,
+    peerId,
+  };
 }
 
 /**

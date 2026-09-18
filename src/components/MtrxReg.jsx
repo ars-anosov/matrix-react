@@ -42,6 +42,9 @@ function MtrxReg(props) {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!login.trim() || !password.trim()) return;
+    // Enter в поле отправляет форму мимо disabled-кнопки: повторный вход во время
+    // запроса логинил бы в то же устройство и отзывал токены первой сессии
+    if (isLoading || isSuccess) return;
     mtrxControlActions.handleRegister({ login, password, uriMatrix });
   };
 
