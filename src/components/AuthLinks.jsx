@@ -1,4 +1,4 @@
-import { AdminPanelSettings, Hub as IconHub } from "@mui/icons-material";
+import { Hub as IconHub } from "@mui/icons-material";
 import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
@@ -14,7 +14,7 @@ const iconButtonSx = {
   "&:hover": { borderColor: "primary.main", backgroundColor: "action.hover" },
 };
 
-function AuthLinks({ onOpenAd, onOpenMtrx }) {
+function AuthLinks({ onOpenMtrx }) {
   return (
     // flexGrow занимает свободное место окна, поэтому блок стоит по центру между
     // AppBar и футером (auto-отступ футера забирает остаток, только когда блока нет)
@@ -39,7 +39,6 @@ function AuthLinks({ onOpenAd, onOpenMtrx }) {
 }
 
 AuthLinks.propTypes = {
-  onOpenAd: PropTypes.func.isRequired,
   onOpenMtrx: PropTypes.func.isRequired,
 };
 
