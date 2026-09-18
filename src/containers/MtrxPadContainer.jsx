@@ -56,6 +56,8 @@ const MtrxPadContainer = () => {
         subtitle: roomsMeta[roomId]?.subtitle || "",
         membership: roomsMeta[roomId]?.membership || "",
         isSpace: Boolean(roomsMeta[roomId]?.isSpace),
+        // presence собеседника: по нему список красит строку online-комнаты
+        presence: roomsMeta[roomId]?.presence || "",
         peerId: roomsMeta[roomId]?.peerId || "",
         unread: roomsMeta[roomId]?.unread || 0,
         highlight: roomsMeta[roomId]?.highlight || 0,
@@ -74,6 +76,8 @@ const MtrxPadContainer = () => {
       subtitle: meta?.subtitle || "",
       membership: meta?.membership || "",
       isSpace: Boolean(meta?.isSpace),
+      // presence собеседника: по нему шапка комнаты красит плашку статуса
+      presence: meta?.presence || "",
       children: meta?.children || [],
       messages,
     };
@@ -91,6 +95,8 @@ const MtrxPadContainer = () => {
       // Название комнаты равно логину — логика продукта остаётся в контейнере
       onCreateRoom={(login) => actions.handleCreateRoom({ name: login, invitees: [login] })}
       onSendMessage={(body) => actions.handleSendMessage(selectedRoomId, body)}
+      onSendFile={(file, options) => actions.handleSendFile(selectedRoomId, file, options)}
+      onDownloadFile={(message) => actions.handleDownloadFile(message.media, message.filename)}
       onAcceptInvite={() => actions.handleJoinRoom(selectedRoomId)}
       onDeclineInvite={() => actions.handleLeaveRoom(selectedRoomId)}
       onLeaveRoom={() => actions.handleLeaveRoom(selectedRoomId)}

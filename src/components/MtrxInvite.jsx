@@ -3,6 +3,8 @@ import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material"
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { PAPER_BACKGROUND } from "../theme.js";
+
 // Приглашение в комнату: превью вместо таймлайна, принять или отклонить.
 function MtrxInvite({ roomName, onAccept, onDecline }) {
   const [pending, setPending] = useState("");
@@ -35,7 +37,9 @@ function MtrxInvite({ roomName, onAccept, onDecline }) {
         px: 3,
         py: 4,
         textAlign: "center",
-        bgcolor: "background.default",
+        // Фон панели приглашения — как у контейнера комнаты (PAPER_BACKGROUND),
+        // иначе серый background.default выделял её из карточки чата
+        bgcolor: PAPER_BACKGROUND,
         overflowY: "auto",
       }}
     >

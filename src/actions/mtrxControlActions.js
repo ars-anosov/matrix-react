@@ -368,6 +368,25 @@ const handleSendMessage = (roomId, body) => async () => {
   }
 };
 
+// Вложение: текст из поля ввода уезжает подписью (caption) к файлу
+const handleSendFile =
+  (roomId, file, { caption = "", onProgress } = {}) =>
+  async () => {
+    try {
+      return await matrixRooms.sendRoomFile(roomId, file, { caption, onProgress });
+    } catch (error) {
+      throw new Error(getMatrixErrorMessage(error, "Не удалось отправить файл."), { cause: error });
+    }
+  };
+
+const handleDownloadFile = (media, filename) => async () => {
+  try {
+    return await matrixRooms.downloadRoomFile(media, filename);
+  } catch (error) {
+    throw new Error(getMatrixErrorMessage(error, "Не удалось скачать файл."), { cause: error });
+  }
+};
+
 const handleCreateRoom =
   (formData = {}) =>
   async (dispatch) => {
@@ -402,6 +421,7 @@ export {
   handleClearDeviceVerification,
   handleConfirmDeviceVerification,
   handleCreateRoom,
+  handleDownloadFile,
   handleHydrateStoredMatrixData,
   handleJoinRoom,
   handleLeaveRoom,
@@ -412,6 +432,7 @@ export {
   handleRequestDeviceVerification,
   handleRestoreSession,
   handleSelectRoom,
+  handleSendFile,
   handleSendMessage,
   handleStartDeviceVerification,
   handleStartRoomWatch,

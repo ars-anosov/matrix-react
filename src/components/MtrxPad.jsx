@@ -1,9 +1,9 @@
 import { AddCommentOutlined as IconAddRoom, Close as IconClose, ForumOutlined as IconForum } from "@mui/icons-material";
-import { Alert, alpha, Box, Divider, IconButton, InputAdornment, Paper, Stack, TextField, Typography, useTheme } from "@mui/material";
+import { Alert, Box, Divider, IconButton, Paper, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { HEADER_BACKGROUND, PAPER_BACKGROUND } from "../theme.js";
+import { HEADER_BACKGROUND, PAPER_BACKGROUND, roundIconButtonSx } from "../theme.js";
 import MtrxRoom from "./MtrxRoom";
 import MtrxRoomList, { filterRoomsByQuery, isSameLogin } from "./MtrxRoomList";
 
@@ -61,21 +61,28 @@ function MtrxPad({
   onClose,
   onCreateRoom,
   onSendMessage,
+  onSendFile,
+  onDownloadFile,
   onAcceptInvite,
   onDeclineInvite,
   onLeaveRoom,
 }) {
   const theme = useTheme();
-  // Кругляш кнопки создания — как у индикатора MtrxIco: тон в тон, с рамкой
+  // Кругляш создания — primary, как у индикатора MtrxIco; стиль общий для
+  // иконочных кнопок проекта (roundIconButtonSx)
   const createRoomColor = theme.palette.primary.main;
   const [isCreating, setIsCreating] = useState(false);
   const [createErrText, setCreateErrText] = useState("");
+  // Логин, для которого уведомление «чат уже есть» закрыли крестиком
+  const [dismissedExistingLogin, setDismissedExistingLogin] = useState("");
 
   const login = newRoomLogin.trim();
   // Введённый логин фильтрует список комнат и блокирует повторное создание чата
   const visibleRooms = filterRoomsByQuery(rooms, newRoomLogin);
   const hasExistingRoom = hasRoomForLogin(rooms, login);
   const canCreate = !isCreating && login.length > 0 && !hasExistingRoom;
+  // Закрытое уведомление не показываем, пока логин не изменился
+  const showExistingRoom = hasExistingRoom && dismissedExistingLogin !== login;
 
   // Создание чата: логин берётся из Redux, название комнаты будет равно логину
   const handleCreate = async (event) => {
@@ -145,74 +152,61 @@ function MtrxPad({
 
       <Divider sx={{ flexShrink: 0 }} />
 
-      {/* Новый чат: поле логина и кнопка создания — один контрол (кнопка внутри
-          поля), вместе занимают половину ширины строки. Значение поля живёт в Redux,
-          поэтому его может заполнить любой компонент */}
-      <Box component="form" noValidate onSubmit={handleCreate} sx={{ px: { xs: 1.5, sm: 2 }, py: 0.5, mt: 1, flexShrink: 0 }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <TextField
-            size="small"
-            placeholder="Логин"
-            value={newRoomLogin}
-            disabled={isCreating}
-            onChange={(event) => onNewRoomLoginChange(event.target.value)}
-            slotProps={{
-              htmlInput: { "aria-label": "Логин" },
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end" sx={{ mr: -0.5 }}>
-                    <IconButton
-                      type="submit"
-                      size="small"
-                      aria-label="Создать чат"
-                      disabled={!canCreate}
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        color: createRoomColor,
-                        backgroundColor: alpha(createRoomColor, 0.12),
-                        border: `1px solid ${alpha(createRoomColor, 0.28)}`,
-                        transition: theme.transitions.create(["background-color", "border-color", "transform"], {
-                          duration: theme.transitions.duration.short,
-                        }),
-                        "&:hover": {
-                          backgroundColor: alpha(createRoomColor, 0.2),
-                          borderColor: alpha(createRoomColor, 0.45),
-                          transform: "translateY(-1px)",
-                        },
-                        "&.Mui-disabled": {
-                          color: alpha(createRoomColor, 0.4),
-                          backgroundColor: alpha(createRoomColor, 0.06),
-                          borderColor: alpha(createRoomColor, 0.16),
-                        },
-                        "& .MuiSvgIcon-root": {
-                          fontSize: "0.9rem",
-                        },
-                      }}
-                    >
-                      <IconAddRoom fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-            sx={{ width: "50%", flexShrink: 0 }}
-          />
+      {/* Новый чат: поле логина и кругляш создания справа от него. Вместе они
+          занимают 40% ширины панели, поэтому отступы строки живут на её
+          элементах: padding формы сузил бы базу процента.
+          Значение поля живёт в Redux, поэтому его может заполнить любой компонент */}
+      <Box component="form" noValidate onSubmit={handleCreate} sx={{ py: 0.5, mt: 1, flexShrink: 0 }}>
+        {/* useFlexGap: Stack со spacing обнуляет margin'ы детей (& > :not(style)),
+            а строке нужны собственные отступы — их даёт gap */}
+        <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center" }}>
+          <Stack direction="row" spacing={1} sx={{ width: "40%", ml: { xs: 1.5, sm: 2 }, flexShrink: 0, alignItems: "center" }}>
+            <TextField
+              size="small"
+              placeholder="Логин"
+              value={newRoomLogin}
+              disabled={isCreating}
+              onChange={(event) => onNewRoomLoginChange(event.target.value)}
+              slotProps={{ htmlInput: { "aria-label": "Логин" } }}
+              sx={{ flex: 1, minWidth: 0 }}
+            />
+
+            {/* Подсказку показываем и у отключённой кнопки: disabled-элемент не
+                получает события мыши, поэтому обёртка в span (Tooltip → Disabled children) */}
+            <Tooltip title="Создать комнату">
+              <Box component="span" sx={{ display: "inline-flex", flexShrink: 0 }}>
+                <IconButton type="submit" aria-label="Создать комнату" disabled={!canCreate} sx={roundIconButtonSx(theme, createRoomColor)}>
+                  <IconAddRoom />
+                </IconButton>
+              </Box>
+            </Tooltip>
+          </Stack>
 
           <Box sx={{ flex: 1, minWidth: 0 }} />
 
-          <Typography variant="caption" color="text.secondary" noWrap sx={{ flexShrink: 0, display: { xs: "none", sm: "block" } }}>
+          <Typography variant="caption" color="text.secondary" noWrap sx={{ flexShrink: 0, mr: { xs: 1.5, sm: 2 }, display: { xs: "none", sm: "block" } }}>
             {getRoomListLabel(visibleRooms)}
           </Typography>
         </Stack>
 
-        {hasExistingRoom ? (
-          <Alert severity="info" sx={{ mt: 1, borderRadius: 2 }}>
+        {showExistingRoom ? (
+          <Alert
+            severity="info"
+            onClose={() => setDismissedExistingLogin(login)}
+            slotProps={{ closeButton: { "aria-label": "Закрыть уведомление" } }}
+            sx={{ mt: 1, mx: { xs: 1.5, sm: 2 }, borderRadius: 2 }}
+          >
             Чат с логином {login} уже есть
           </Alert>
         ) : (
           createErrText && (
-            <Alert severity="error" sx={{ mt: 1, borderRadius: 2 }}>
+            <Alert
+              severity="error"
+              // Уведомление об ошибке создания можно закрыть; снимется при новой попытке
+              onClose={() => setCreateErrText("")}
+              slotProps={{ closeButton: { "aria-label": "Закрыть уведомление" } }}
+              sx={{ mt: 1, mx: { xs: 1.5, sm: 2 }, borderRadius: 2 }}
+            >
               {createErrText}
             </Alert>
           )
@@ -258,6 +252,8 @@ function MtrxPad({
               fullHeight
               onSelectRoom={onSelectRoom}
               onSendMessage={onSendMessage}
+              onSendFile={onSendFile}
+              onDownloadFile={onDownloadFile}
               onAcceptInvite={onAcceptInvite}
               onDeclineInvite={onDeclineInvite}
               onLeaveRoom={onLeaveRoom}
@@ -300,6 +296,8 @@ MtrxPad.propTypes = {
       subtitle: PropTypes.string,
       membership: PropTypes.oneOf(["join", "invite", ""]),
       isSpace: PropTypes.bool,
+      // presence собеседника: цвет точки статуса на аватаре в списке
+      presence: PropTypes.oneOf(["online", "unavailable", "offline", ""]),
       peerId: PropTypes.string,
       unread: PropTypes.number,
       highlight: PropTypes.number,
@@ -313,6 +311,8 @@ MtrxPad.propTypes = {
   onClose: PropTypes.func.isRequired,
   onCreateRoom: PropTypes.func.isRequired,
   onSendMessage: PropTypes.func.isRequired,
+  onSendFile: PropTypes.func.isRequired,
+  onDownloadFile: PropTypes.func.isRequired,
   onAcceptInvite: PropTypes.func.isRequired,
   onDeclineInvite: PropTypes.func.isRequired,
   onLeaveRoom: PropTypes.func.isRequired,

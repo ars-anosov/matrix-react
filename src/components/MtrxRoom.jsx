@@ -1,9 +1,10 @@
 import { ForumOutlined as IconForum, LogoutOutlined as IconLeave } from "@mui/icons-material";
-import { Avatar, Box, Divider, IconButton, List, ListItem, Stack, Tooltip, Typography } from "@mui/material";
+import { Avatar, alpha, Box, Divider, IconButton, List, ListItem, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 import { Fragment, useEffect, useRef, useState } from "react";
 
-import { HEADER_BACKGROUND, PAPER_BACKGROUND } from "../theme.js";
+import { HEADER_BACKGROUND, PAPER_BACKGROUND, presenceColor, roundIconButtonSx } from "../theme.js";
+import MtrxAttachment from "./MtrxAttachment";
 import MtrxComposer from "./MtrxComposer";
 import MtrxInvite from "./MtrxInvite";
 import MtrxLeaveRoom from "./MtrxLeaveRoom";
@@ -139,7 +140,8 @@ function renderMessageBody(message) {
   return Array.from(document.body.childNodes).map((node, index) => renderFormattedNode(node, `formatted-${message.eventId}-${index}`));
 }
 
-function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onAcceptInvite, onDeclineInvite, onLeaveRoom }) {
+function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSendFile, onDownloadFile, onAcceptInvite, onDeclineInvite, onLeaveRoom }) {
+  const theme = useTheme();
   const messages = room.messages || [];
   const messageListRef = useRef(null);
   const roomId = room.roomId;
@@ -148,6 +150,8 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onAcc
   const isJoined = room.membership === "join";
   // Чат — только присоединённая обычная комната: в пространстве сообщений нет
   const isChat = isJoined && !isSpace;
+  // Цвет плашки статуса собеседника (у комнат без собеседника не рисуется)
+  const presenceTone = presenceColor(theme, room.presence);
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
 
   useEffect(() => {
@@ -170,11 +174,12 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onAcc
     >
       <Stack
         direction="row"
-        spacing={1.5}
+        spacing={1}
         sx={{
           alignItems: "center",
-          px: 2,
-          py: 1.5,
+          // Шапка чуть выше компактной: хватает на аватар 32px и плашку статуса
+          px: 1.5,
+          py: 0.75,
           // Шапка чата — скруглённая карточка с отступом, а не полоса во всю ширину
           mx: 1,
           mt: 1,
@@ -187,23 +192,51 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onAcc
           src={room.avatarUrl || undefined}
           alt=""
           sx={{
-            width: 36,
-            height: 36,
+            width: 48,
+            height: 48,
             bgcolor: "action.selected",
             color: "primary.main",
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 700,
           }}
         >
           {getInitials(room.name)}
         </Avatar>
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="subtitle1" component="h2" noWrap fontWeight={700}>
+          <Typography variant="subtitle1" component="h2" noWrap fontWeight={700} sx={{ fontSize: 15, lineHeight: 1.25 }}>
             {room.name}
           </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap title={room.roomId} sx={{ display: "block" }}>
-            {room.subtitle || room.roomId}
-          </Typography>
+          {room.presence ? (
+            // Статус собеседника — плашка с рамкой и фоном по presence
+            <Box
+              component="span"
+              title={room.roomId}
+              sx={{
+                display: "inline-block",
+                maxWidth: "100%",
+                mt: 0.25,
+                px: 0.75,
+                py: 0.2,
+                borderRadius: 999,
+                border: `1px solid ${alpha(presenceTone, 0.28)}`,
+                backgroundColor: alpha(presenceTone, 0.12),
+                color: presenceTone,
+                fontSize: 11,
+                fontWeight: 600,
+                lineHeight: 1.4,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                verticalAlign: "top",
+              }}
+            >
+              {room.subtitle}
+            </Box>
+          ) : (
+            <Typography variant="caption" color="text.secondary" noWrap title={room.roomId} sx={{ display: "block", lineHeight: 1.3 }}>
+              {room.subtitle || room.roomId}
+            </Typography>
+          )}
         </Box>
         {!isSpace && messages.length > 0 && (
           <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, display: { xs: "none", sm: "block" } }}>
@@ -212,8 +245,12 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onAcc
         )}
         {isJoined && (
           <Tooltip title="Покинуть комнату">
-            <IconButton aria-label="Покинуть комнату" onClick={() => setIsLeaveOpen(true)} size="small" sx={{ flexShrink: 0 }}>
-              <IconLeave fontSize="small" />
+            <IconButton
+              aria-label="Покинуть комнату"
+              onClick={() => setIsLeaveOpen(true)}
+              sx={{ flexShrink: 0, ...roundIconButtonSx(theme, theme.palette.text.secondary) }}
+            >
+              <IconLeave />
             </IconButton>
           </Tooltip>
         )}
@@ -350,56 +387,59 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onAcc
                             {formatMessageTime(message.timestamp)}
                           </Typography>
                         )}
-                        <Box
-                          component="div"
-                          sx={{
-                            mt: isContinuation ? 0 : 0.15,
-                            whiteSpace: "pre-wrap",
-                            overflowWrap: "anywhere",
-                            color: "text.primary",
-                            fontSize: 14,
-                            lineHeight: 1.4,
-                            "& p": { my: 0 },
-                            "& p + p": { mt: 1 },
-                            "& a": { color: "primary.main" },
-                            "& blockquote": {
-                              m: 0,
-                              pl: 1.5,
-                              borderLeft: 3,
-                              borderColor: "divider",
-                              color: "text.secondary",
-                            },
-                            "& code": {
-                              px: 0.5,
-                              py: 0.15,
-                              borderRadius: 1,
-                              border: 1,
-                              borderColor: "divider",
-                              // Код в сообщении — мельче основного текста и серый
-                              color: "text.secondary",
-                              fontFamily: "monospace",
-                              fontSize: "0.8em",
-                            },
-                            "& pre": {
-                              m: 0,
-                              p: 1,
-                              overflowX: "auto",
-                              borderRadius: 2,
-                              border: 1,
-                              borderColor: "divider",
-                              // Блок кода — та же стилистика, что у <code>
-                              color: "text.secondary",
-                              fontFamily: "monospace",
-                              fontSize: "0.8em",
-                            },
-                            // <code> внутри <pre> уже уменьшен самим <pre>, а
-                            // рамку и отступы рисует блок — иначе рамка двойная
-                            "& pre code": { px: 0, py: 0, border: 0, fontSize: "1em" },
-                            "& ul, & ol": { mt: 0.5, mb: 0, pl: 2.5 },
-                          }}
-                        >
-                          {renderMessageBody(message)}
-                        </Box>
+                        {message.media && <MtrxAttachment message={message} onDownload={onDownloadFile} />}
+                        {(!message.media || message.body.trim() || message.formattedBody) && (
+                          <Box
+                            component="div"
+                            sx={{
+                              mt: isContinuation ? 0 : 0.15,
+                              whiteSpace: "pre-wrap",
+                              overflowWrap: "anywhere",
+                              color: "text.primary",
+                              fontSize: 14,
+                              lineHeight: 1.4,
+                              "& p": { my: 0 },
+                              "& p + p": { mt: 1 },
+                              "& a": { color: "primary.main" },
+                              "& blockquote": {
+                                m: 0,
+                                pl: 1.5,
+                                borderLeft: 3,
+                                borderColor: "divider",
+                                color: "text.secondary",
+                              },
+                              "& code": {
+                                px: 0.5,
+                                py: 0.15,
+                                borderRadius: 1,
+                                border: 1,
+                                borderColor: "divider",
+                                // Код в сообщении — мельче основного текста и серый
+                                color: "text.secondary",
+                                fontFamily: "monospace",
+                                fontSize: "0.8em",
+                              },
+                              "& pre": {
+                                m: 0,
+                                p: 1,
+                                overflowX: "auto",
+                                borderRadius: 2,
+                                border: 1,
+                                borderColor: "divider",
+                                // Блок кода — та же стилистика, что у <code>
+                                color: "text.secondary",
+                                fontFamily: "monospace",
+                                fontSize: "0.8em",
+                              },
+                              // <code> внутри <pre> уже уменьшен самим <pre>, а
+                              // рамку и отступы рисует блок — иначе рамка двойная
+                              "& pre code": { px: 0, py: 0, border: 0, fontSize: "1em" },
+                              "& ul, & ol": { mt: 0.5, mb: 0, pl: 2.5 },
+                            }}
+                          >
+                            {renderMessageBody(message)}
+                          </Box>
+                        )}
                       </Box>
                     </ListItem>
                   </Fragment>
@@ -407,7 +447,7 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onAcc
               })}
             </List>
           )}
-          {isChat && <MtrxComposer onSend={onSendMessage} />}
+          {isChat && <MtrxComposer onSend={onSendMessage} onSendFile={onSendFile} />}
         </>
       )}
 
@@ -424,6 +464,8 @@ MtrxRoom.propTypes = {
     subtitle: PropTypes.string,
     membership: PropTypes.oneOf(["join", "invite", ""]),
     isSpace: PropTypes.bool,
+    // presence собеседника: online / unavailable / offline
+    presence: PropTypes.oneOf(["online", "unavailable", "offline", ""]),
     children: PropTypes.arrayOf(
       PropTypes.shape({
         roomId: PropTypes.string.isRequired,
@@ -437,6 +479,13 @@ MtrxRoom.propTypes = {
         avatarUrl: PropTypes.string,
         body: PropTypes.string.isRequired,
         formattedBody: PropTypes.string,
+        msgType: PropTypes.string,
+        filename: PropTypes.string,
+        mediaPreviewUrl: PropTypes.string,
+        media: PropTypes.shape({
+          url: PropTypes.string.isRequired,
+          size: PropTypes.number,
+        }),
         timestamp: PropTypes.number.isRequired,
       }),
     ),
@@ -444,6 +493,8 @@ MtrxRoom.propTypes = {
   fullHeight: PropTypes.bool,
   onSelectRoom: PropTypes.func.isRequired,
   onSendMessage: PropTypes.func.isRequired,
+  onSendFile: PropTypes.func.isRequired,
+  onDownloadFile: PropTypes.func.isRequired,
   onAcceptInvite: PropTypes.func.isRequired,
   onDeclineInvite: PropTypes.func.isRequired,
   onLeaveRoom: PropTypes.func.isRequired,

@@ -1,5 +1,6 @@
 import { ROOM_MESSAGES_LIMIT } from "../constants/ui.js";
 import { getMatrixClient } from "./matrixClientStore.js";
+import { downloadMediaFile, resolveImagePreviewUrl, uploadRoomMedia } from "./matrixMedia.js";
 
 // Кэш резолвнутых аватарок (mxc → objectURL), чтобы не фетчить повторно
 // и не плодить blob-URL без revoke.
@@ -147,6 +148,68 @@ async function resolveMemberAvatarUrl(client, room, senderId) {
   return resolveMxcAvatarUrl(client, mxcUrl, room?.roomId);
 }
 
+// Сообщения с вложениями: картинки, видео, аудио и файлы
+const MEDIA_MSG_TYPES = new Set(["m.image", "m.video", "m.audio", "m.file"]);
+
+// Контент события: у расшифрованного события SDK отдаёт clear-контент обоими путями
+function getEventMessageContent(event) {
+  if (event?.getType?.() === "m.room.message") return event.getContent?.() || {};
+
+  return event?.getClearContent?.() || {};
+}
+
+function buildMediaInfo(source) {
+  const info = source && typeof source === "object" ? source : {};
+
+  return {
+    mimetype: typeof info.mimetype === "string" ? info.mimetype : "",
+    size: Number(info.size) || 0,
+    width: Number(info.w) || 0,
+    height: Number(info.h) || 0,
+  };
+}
+
+/**
+ * Дескриптор вложения для UI — только сериализуемые данные из `content`
+ * (`url` либо зашифрованный `file`), без SDK-объектов.
+ *
+ * @see https://spec.matrix.org/latest/client-server-api/#mroommessage-msgtypes
+ */
+function buildMediaDescriptor(content) {
+  const file = content?.file && typeof content.file === "object" ? content.file : null;
+  const url = typeof content?.url === "string" ? content.url : "";
+  const mxcUrl = url || (typeof file?.url === "string" ? file.url : "");
+  if (!mxcUrl) return null;
+
+  const info = buildMediaInfo(content.info);
+  const infoSource = content.info && typeof content.info === "object" ? content.info : {};
+  const thumbnailFile = infoSource.thumbnail_file && typeof infoSource.thumbnail_file === "object" ? infoSource.thumbnail_file : null;
+  const thumbnailUrl =
+    typeof infoSource.thumbnail_url === "string" ? infoSource.thumbnail_url : typeof thumbnailFile?.url === "string" ? thumbnailFile.url : "";
+  const thumbnailInfo = buildMediaInfo(infoSource.thumbnail_info);
+
+  return {
+    url: mxcUrl,
+    // `url` и `file` взаимоисключающие: `file` означает шифрованное вложение
+    file: url ? null : file,
+    ...info,
+    thumbnail: thumbnailUrl ? { url: thumbnailUrl, file: thumbnailFile, ...thumbnailInfo, mimetype: thumbnailInfo.mimetype || info.mimetype } : null,
+  };
+}
+
+/**
+ * Подпись к медиа (spec v1.10): если `filename` отличается от `body`, то `body`
+ * — это подпись, иначе `body` — имя файла.
+ *
+ * @see https://spec.matrix.org/latest/client-server-api/#media-captions
+ */
+function getMediaCaption(content) {
+  const filename = typeof content?.filename === "string" ? content.filename : "";
+  const body = typeof content?.body === "string" ? content.body : "";
+
+  return filename && filename !== body ? body : "";
+}
+
 function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
   const events = room?.getLiveTimeline?.()?.getEvents?.() || [];
 
@@ -156,11 +219,14 @@ function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
       return event?.isEncrypted?.() && event.getClearContent?.();
     })
     .map((event, index) => {
-      const content = event.getType?.() === "m.room.message" ? event.getContent?.() || {} : event.getClearContent?.() || {};
+      const content = getEventMessageContent(event);
       const body = typeof content.body === "string" ? content.body : "";
+      const msgType = typeof content.msgtype === "string" ? content.msgtype : "";
+      const media = MEDIA_MSG_TYPES.has(msgType) ? buildMediaDescriptor(content) : null;
+      const caption = media ? getMediaCaption(content) : "";
       const formattedBody = content.format === "org.matrix.custom.html" && typeof content.formatted_body === "string" ? content.formatted_body : "";
 
-      if (!body.trim() && !formattedBody.trim()) return null;
+      if (!media && !body.trim() && !formattedBody.trim()) return null;
 
       const senderId = event.getSender?.() || "";
       const member = room.getMember?.(senderId);
@@ -171,8 +237,12 @@ function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
         eventId: event.getId?.() || `${senderId}-${timestamp}-${index}`,
         senderId,
         sender,
-        body,
-        formattedBody,
+        // У медиа в body лежит подпись, а имя файла отдаём отдельным полем
+        body: media ? caption : body,
+        formattedBody: media && !caption ? "" : formattedBody,
+        msgType: media ? msgType : "m.text",
+        filename: media ? (typeof content.filename === "string" && content.filename.trim() ? content.filename.trim() : body) : "",
+        media,
         timestamp,
       };
     })
@@ -258,9 +328,17 @@ function getRoomList() {
  * что адресованы пользователю (упоминание). Значения строк совпадают с
  * `NotificationCountType` из matrix-js-sdk.
  *
+ * Приглашение — событие, требующее действия, а не сообщение: таймлайна в такой
+ * комнате нет, и счётчик SDK для неё всегда нулевой. Поэтому приглашение
+ * показываем как одно непрочитанное — строка списка и суммарный бейдж получают
+ * тот же красный счётчик, что и у непрочитанного сообщения.
+ *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html#getunreadnotificationcount
  */
 function getRoomUnreadCounts(room) {
+  // Приглашение важнее счётчика SDK: до вступления сообщений в комнате нет
+  if (getRoomMembership(room) === "invite") return { unread: 1, highlight: 0 };
+
   if (typeof room?.getUnreadNotificationCount !== "function") return { unread: 0, highlight: 0 };
 
   return {
@@ -305,20 +383,21 @@ function getRoomPeer(room, myUserId) {
   return null;
 }
 
-// Статус собеседника берём напрямую (presence в sync-фильтр не запрошен).
-async function getPeerStatusText(client, peer) {
-  if (typeof client?.getPresence !== "function" || !peer?.userId) {
-    return peer?.name || peer?.userId || "";
-  }
+// Статус собеседника берём напрямую (presence в sync-фильтр не запрошен):
+// `presence` UI использует для цвета плашки, `text` — для её подписи.
+async function getPeerStatus(client, peer) {
+  const fallback = { presence: "", text: peer?.name || peer?.userId || "" };
+  if (typeof client?.getPresence !== "function" || !peer?.userId) return fallback;
 
   try {
     const status = await client.getPresence(peer.userId);
     const statusMsg = typeof status?.status_msg === "string" ? status.status_msg.trim() : "";
-    if (statusMsg) return statusMsg;
+    const presence = typeof status?.presence === "string" ? status.presence : "";
 
-    return PRESENCE_LABELS[status?.presence] || peer.name || peer.userId || "";
+    // Свой статус-текст важнее служебной подписи, но presence отдаём в любом случае
+    return { presence, text: statusMsg || PRESENCE_LABELS[presence] || fallback.text };
   } catch {
-    return peer.name || peer.userId || "";
+    return fallback;
   }
 }
 
@@ -332,7 +411,7 @@ function getInviterName(room, myUserId) {
   return member?.name || member?.rawDisplayName || senderId;
 }
 
-async function getRoomSubtitle(client, room) {
+async function getRoomSubtitle(client, room, peerStatus) {
   const myUserId = client?.getUserId?.();
 
   if (getRoomMembership(room) === "invite") {
@@ -340,16 +419,15 @@ async function getRoomSubtitle(client, room) {
     return inviter ? `Приглашение от ${inviter}` : "Приглашение в комнату";
   }
 
-  const peer = getRoomPeer(room, myUserId);
-  if (peer) return getPeerStatusText(client, peer);
+  if (peerStatus) return peerStatus.text;
 
   const count = room?.getJoinedMemberCount?.() || 0;
   return count > 0 ? getMembersLabel(count) : "";
 }
 
 /**
- * Сериализуемый снимок метаданных комнаты для UI (имя, аватар, подпись,
- * membership, тип пространства и его дочерние комнаты).
+ * Сериализуемый снимок метаданных комнаты для UI (имя, аватар, подпись и
+ * presence собеседника, membership, тип пространства и его дочерние комнаты).
  *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.Room.html
  */
@@ -359,16 +437,21 @@ async function getRoomMeta(roomId) {
   if (!room) return null;
 
   const space = isSpace(room);
+  // Собеседник личной комнаты: нужен и для подписи-статуса, и для поиска чата по логину
+  const peer = space ? null : getRoomPeer(room, client?.getUserId?.());
+  const peerStatus = peer ? await getPeerStatus(client, peer) : null;
 
   return {
     roomId,
     name: getRoomDisplayName(room),
     avatarUrl: await resolveRoomAvatarUrl(client, room),
-    subtitle: space ? "Пространство" : await getRoomSubtitle(client, room),
+    subtitle: space ? "Пространство" : await getRoomSubtitle(client, room, peerStatus),
     membership: getRoomMembership(room),
     isSpace: space,
+    // presence собеседника: UI красит по нему плашку статуса в шапке
+    presence: peerStatus?.presence || "",
     // Собеседник личной комнаты: по нему UI понимает, что чат с этим логином уже есть
-    peerId: space ? "" : (getRoomPeer(room, client?.getUserId?.())?.userId ?? ""),
+    peerId: peer?.userId ?? "",
     ...getRoomUnreadCounts(room),
     children: space ? getSpaceChildren(room) : [],
   };
@@ -390,10 +473,14 @@ async function getRoomMessages(roomId, limit = ROOM_MESSAGES_LIMIT) {
   const senderAvatarEntries = await Promise.all(senderIds.map(async (senderId) => [senderId, await resolveMemberAvatarUrl(client, room, senderId)]));
   const senderAvatarUrls = new Map(senderAvatarEntries);
 
-  return messages.map((message) => ({
-    ...message,
-    avatarUrl: senderAvatarUrls.get(message.senderId) || "",
-  }));
+  return Promise.all(
+    messages.map(async (message) => ({
+      ...message,
+      avatarUrl: senderAvatarUrls.get(message.senderId) || "",
+      // Превью собираем только для картинок: остальные типы рисуются карточкой
+      mediaPreviewUrl: message.media && message.msgType === "m.image" ? await resolveImagePreviewUrl(message.media) : "",
+    })),
+  );
 }
 
 /**
@@ -541,6 +628,24 @@ async function sendRoomMessage(roomId, body) {
 
   const { event_id: eventId } = await client.sendTextMessage(roomId, text);
   return { roomId, eventId };
+}
+
+/**
+ * Отправляет файл в комнату: загрузка в content repository плюс `m.room.message`
+ * с msgtype по типу файла. В шифрованной комнате файл шифруется (см. matrixMedia).
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#uploadcontent
+ * @see https://spec.matrix.org/latest/client-server-api/#content-repository
+ */
+async function sendRoomFile(roomId, file, { caption = "", onProgress } = {}) {
+  return uploadRoomMedia(roomId, file, { caption, onProgress });
+}
+
+/**
+ * Скачивает вложение сообщения в файл пользователя (при необходимости расшифровывает).
+ */
+async function downloadRoomFile(media, filename) {
+  return downloadMediaFile(media, filename);
 }
 
 /**
@@ -710,12 +815,14 @@ function watchRoomMessages(roomId, onChange) {
 export {
   clearRoomAvatarCache,
   createRoom,
+  downloadRoomFile,
   getRoomList,
   getRoomMessages,
   getRoomMeta,
   joinRoom,
   leaveRoom,
   markRoomRead,
+  sendRoomFile,
   sendRoomMessage,
   watchRoomList,
   watchRoomMessages,

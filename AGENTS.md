@@ -48,12 +48,14 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
 ```
 src/
 ├── components/   # UI: MtrxReg, MtrxPad, MtrxRoom(List), MtrxSpace, MtrxComposer,
-│                 #     MtrxInvite, MtrxLeaveRoom, MtrxDeviceVerification, MtrxIco,
-│                 #     MtrxInfo, AuthLinks, AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar
+│                 #     MtrxAttachment (вложения в таймлайне), MtrxInvite, MtrxLeaveRoom,
+│                 #     MtrxDeviceVerification, MtrxIco, MtrxInfo, AuthLinks,
+│                 #     AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar;
+│                 #     utils/fileFormat.js — формат размера файла
 ├── containers/   # связка со store: MtrxContainer, MtrxPadContainer, AuthContainer, MenuAppContainer
 ├── actions/      # thunk-actions; utils/ — kyError.js, matrixError.js
 ├── reducers/     # *Rdcr, rootReducer.js, authTimeoutMiddleware.js
-├── services/     # matrixClient, matrixSdk, matrixRooms, matrixClientStore, adAuth
+├── services/     # matrixClient, matrixSdk, matrixRooms, matrixMedia, matrixClientStore, adAuth
 ├── store/        # configureStore, preloadedState.js (сид из сервисов)
 ├── constants/    # redux.js (action types), storage.js (ключи localStorage), ui.js (UI-лимиты)
 └── main.jsx, App.jsx, Copyright.jsx, theme.js
@@ -96,6 +98,13 @@ deploy.sh         # выкладка dist на прод по rsync --delete
   проверка приглашаемых через `getProfileInfo` и `invite`), `joinRoom` / `leaveRoom`,
   `sendRoomMessage`, `markRoomRead`. Результат мутации индекс обновляет оптимистично, не
   дожидаясь `/sync`; полный снимок метаданных догоняет через `getRoomMeta`.
+- Вложения — тоже доменный API: `matrixRooms.sendRoomFile` / `downloadRoomFile`, а сам content
+  repository (upload, скачивание с авторизацией, шифрование файла) живёт в `matrixMedia.js`.
+  Сообщения с `m.image` / `m.video` / `m.audio` / `m.file` разбирает `buildRoomMessages`: UI
+  получает дескриптор вложения (mxc, mimetype, размер, ключи `content.file`) и готовый objectURL
+  превью, поэтому компоненты не работают с mxc и не вызывают Matrix API. В шифрованной комнате
+  файл шифруется AES-256-CTR до загрузки, а ключ и хэш уезжают в `content.file` события; при
+  скачивании хэш проверяется, blob-URL'ы медиа живут в кэше и чистятся при logout.
 - Непрочитанное считает SDK (`getUnreadNotificationCount`: `total` → `unread`, `highlight` →
   упоминания), числа лежат в `roomsMeta` и рисуются бейджами (`MtrxRoomList`, суммарно `MtrxIco`).
   Пространство (`m.space`) — комната, но не чат: идёт в конец списка, таймлайна и composer у него

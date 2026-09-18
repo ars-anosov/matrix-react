@@ -1,7 +1,7 @@
-import { Avatar, Box, List, ListItemAvatar, ListItemButton, ListItemText, Typography } from "@mui/material";
+import { Avatar, Badge, Box, List, ListItemAvatar, ListItemButton, ListItemText, Typography, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 
-import { PAPER_BACKGROUND } from "../theme.js";
+import { HEADER_BACKGROUND, PAPER_BACKGROUND, presenceColor } from "../theme.js";
 
 function getRoomInitial(name = "") {
   return name.trim().charAt(0).toUpperCase() || "#";
@@ -65,6 +65,7 @@ export function filterRoomsByQuery(rooms, query = "") {
 }
 
 function MtrxRoomList({ rooms, selectedRoomId = "", filter = "", onSelect, fullHeight = false }) {
+  const theme = useTheme();
   const visibleRooms = filterRoomsByQuery(rooms, filter);
 
   if (visibleRooms.length === 0) {
@@ -114,31 +115,56 @@ function MtrxRoomList({ rooms, selectedRoomId = "", filter = "", onSelect, fullH
             borderRadius: 2,
             transition: "all 150ms ease",
             "&.Mui-selected": {
-              bgcolor: "action.selected",
+              // Выбранная строка — фон «шапок» панели
+              bgcolor: HEADER_BACKGROUND,
               "& .MuiListItemText-primary": {
                 color: "primary.main",
               },
             },
             "&.Mui-selected:hover": {
-              bgcolor: "action.selected",
+              bgcolor: HEADER_BACKGROUND,
             },
           }}
         >
           <ListItemAvatar sx={{ minWidth: 36 }}>
-            <Avatar
-              src={room.avatarUrl || undefined}
-              alt=""
-              sx={{
-                width: 28,
-                height: 28,
-                bgcolor: "action.selected",
-                color: "text.primary",
-                fontSize: 12,
-                fontWeight: 600,
+            <Badge
+              overlap="circular"
+              variant="dot"
+              // Точка статуса: у комнат без собеседника её нет
+              invisible={!room.presence}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              slotProps={{
+                badge: {
+                  sx: {
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    // Цвет точки — по статусу собеседника, как у плашки в шапке
+                    backgroundColor: presenceColor(theme, room.presence),
+                    // Кольцо фоном отделяет точку от аватара
+                    border: "2px solid",
+                    borderColor: "background.paper",
+                  },
+                  // Точка декоративная: статус дублируется плашкой в шапке комнаты
+                  "aria-hidden": true,
+                },
               }}
             >
-              {getRoomInitial(room.name)}
-            </Avatar>
+              <Avatar
+                src={room.avatarUrl || undefined}
+                alt=""
+                sx={{
+                  width: 28,
+                  height: 28,
+                  bgcolor: "action.selected",
+                  color: "text.primary",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {getRoomInitial(room.name)}
+              </Avatar>
+            </Badge>
           </ListItemAvatar>
           <ListItemText
             primary={room.name}
@@ -164,7 +190,9 @@ function MtrxRoomList({ rooms, selectedRoomId = "", filter = "", onSelect, fullH
           {room.unread > 0 && (
             <Box
               component="span"
-              aria-label={`Непрочитанных сообщений: ${room.unread}`}
+              // Приглашение сервис отдаёт как одно непрочитанное, но сообщения
+              // в нём нет — подпись не должна обещать несуществующее
+              aria-label={room.membership === "invite" ? "Приглашение в комнату" : `Непрочитанных сообщений: ${room.unread}`}
               sx={{
                 flexShrink: 0,
                 ml: 1,
@@ -200,6 +228,8 @@ MtrxRoomList.propTypes = {
       avatarUrl: PropTypes.string,
       membership: PropTypes.oneOf(["join", "invite", ""]),
       isSpace: PropTypes.bool,
+      // presence собеседника: цвет точки статуса на аватаре
+      presence: PropTypes.oneOf(["online", "unavailable", "offline", ""]),
       unread: PropTypes.number,
       highlight: PropTypes.number,
     }),

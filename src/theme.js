@@ -1,4 +1,4 @@
-import { createTheme } from "@mui/material/styles";
+import { alpha, createTheme } from "@mui/material/styles";
 
 // Фон «шапок»: панель мессенджера и шапка комнаты.
 export const HEADER_BACKGROUND = "grey.100";
@@ -6,6 +6,49 @@ export const HEADER_BACKGROUND = "grey.100";
 // Фон контейнеров, внутри которых лежит шапка HEADER_BACKGROUND: панели
 // AuthPad/MtrxPad, комната и верхняя панель с меню. Сейчас белый.
 export const PAPER_BACKGROUND = "background.paper";
+
+// Кругляш проекта: иконка в тонированном круге с рамкой — так оформлены
+// индикаторы статуса (MtrxIco, AuthIco) и иконочные кнопки действий.
+// Цвет задаёт семантику: primary — создать, error — покинуть.
+export function roundIconButtonSx(theme, color, size = 32) {
+  return {
+    width: size,
+    height: size,
+    borderRadius: "50%",
+    color,
+    backgroundColor: alpha(color, 0.12),
+    border: `1px solid ${alpha(color, 0.28)}`,
+    transition: theme.transitions.create(["background-color", "border-color", "transform"], {
+      duration: theme.transitions.duration.short,
+    }),
+    "&:hover": {
+      backgroundColor: alpha(color, 0.2),
+      borderColor: alpha(color, 0.45),
+      transform: "translateY(-1px)",
+    },
+    "&.Mui-disabled": {
+      color: alpha(color, 0.4),
+      backgroundColor: alpha(color, 0.06),
+      borderColor: alpha(color, 0.16),
+    },
+    "& .MuiSvgIcon-root": {
+      fontSize: "1rem",
+    },
+  };
+}
+
+// Цвет статуса собеседника: плашка в шапке комнаты и точка в списке берут его
+// из одного места. Онлайн — зелёный, отошёл — янтарный, остальное — серый.
+export function presenceColor(theme, presence) {
+  switch (presence) {
+    case "online":
+      return theme.palette.success.main;
+    case "unavailable":
+      return theme.palette.warning.main;
+    default:
+      return theme.palette.text.secondary;
+  }
+}
 
 // Современная тема в стиле чистых интерфейсов Material You / Modern UI
 const theme = createTheme({

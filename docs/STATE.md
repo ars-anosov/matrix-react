@@ -16,7 +16,8 @@ flowchart LR
 
   subgraph SVC["src/services"]
     CL["matrixClient<br/>session / crypto / sync / токены<br/>(+ matrixClientStore, matrixSdk)"]
-    ROOMS["matrixRooms<br/>getRoomMeta / getRoomMessages / watchRoomList<br/>watchRoomMessages / create·join·leave<br/>sendRoomMessage / markRoomRead"]
+    ROOMS["matrixRooms<br/>getRoomMeta / getRoomMessages / watchRoomList<br/>watchRoomMessages / create·join·leave<br/>sendRoomMessage / markRoomRead<br/>sendRoomFile / downloadRoomFile"]
+    MEDIA["matrixMedia<br/>upload / download с авторизацией<br/>AES-256-CTR · кэш blob-URL"]
     ADSV["adAuth<br/>валидация https · POST · сессия AD"]
   end
 
@@ -34,6 +35,8 @@ flowchart LR
   CL <--> Store
   ADSV <--> Store
   ROOMS -->|"чтение Room / Timeline"| SDK
+  ROOMS -->|"upload / download вложения"| MEDIA
+  MEDIA -->|"uploadContent / fetch mxc"| SDK
   CL -->|"createClient / sync / crypto"| SDK
   ADSV -->|"POST login + password"| ADAPI
 ```
@@ -70,6 +73,7 @@ sequenceDiagram
   participant UI as React<br/>(MtrxContainer / MtrxPadContainer / AuthContainer / AuthAd)
   participant Redux as Redux<br/>(actions + индекс)
   participant Rooms as matrixRooms
+  participant Media as matrixMedia
   participant Client as matrixClient
   participant Ad as adAuth
   participant SDK as matrix-js-sdk
@@ -180,6 +184,15 @@ sequenceDiagram
   Redux-->>Redux: DELETE → комната уходит из списка
   UI->>Redux: handleSendMessage(roomId, body)
   Redux->>Rooms: sendRoomMessage() → sendTextMessage (E2EE — внутри SDK)
+  Note over UI,Store: Вложения (MtrxAttachment)
+  UI->>Redux: handleSendFile(roomId, file) — файл из MtrxComposer, текст = подпись
+  Redux->>Rooms: sendRoomFile() → uploadContent
+  Rooms->>Media: upload: шифрование AES-256-CTR, если комната encrypted
+  Media->>SDK: POST /upload → mxc:// (+ content.file: key · iv · sha256)
+  Rooms->>SDK: sendEvent(m.room.message: m.image / m.video / m.audio / m.file)
+  UI->>Redux: handleDownloadFile(media)
+  Redux->>Rooms: downloadRoomFile() → fetch с токеном + проверка хэша
+  Rooms-->>UI: blob → скачивание файла с исходным именем
   Note over UI,Rooms: Пространство m.space сообщений не пишет: MtrxSpace показывает m.space.child
 
   Note over UI,Store: Logout (MtrxReg) / invalidate
