@@ -24,8 +24,8 @@ export default function App() {
       }}
     >
       <MenuAppContainer />
-      <MtrxContainer />
       <AuthContainer />
+      <MtrxContainer />
       <Box sx={{ mt: "auto" }}>
         <Copyright showFull={true} />
       </Box>

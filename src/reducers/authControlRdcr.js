@@ -14,7 +14,7 @@ export const initialState = {
   // Мост к сервисам показываем после успешной AD-авторизации (AUTHCTL_SUBMIT_SUCCESS);
   // на старте вместо него — ссылки на обе формы авторизации (AuthLinks)
   displayAuthPad: false,
-  displayControl: true,
+  displayControl: false,
   uriAdAuth: "",
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,

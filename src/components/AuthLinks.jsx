@@ -28,11 +28,11 @@ function AuthLinks({ onOpenAd, onOpenMtrx }) {
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Получить атрибуты через AD">
+        {/* <Tooltip title="Получить атрибуты через AD">
           <IconButton aria-label="Получить атрибуты через AD" onClick={onOpenAd} sx={iconButtonSx}>
             <AdminPanelSettings />
           </IconButton>
-        </Tooltip>
+        </Tooltip> */}
       </Stack>
     </Stack>
   );
