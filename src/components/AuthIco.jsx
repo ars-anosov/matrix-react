@@ -70,7 +70,6 @@ function AdIco({ authControlRdcr }) {
         size="small"
         aria-label={label}
         sx={{
-          ml: 1,
           width: 42,
           height: 42,
           "--status-pulse": alpha(color, 0.45),

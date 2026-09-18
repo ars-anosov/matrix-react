@@ -83,7 +83,6 @@ function MtrxIco({ mtrxControlRdcr }) {
           size="small"
           aria-label={unreadLabel}
           sx={{
-            ml: 1,
             width: 42,
             height: 42,
             "--status-pulse": alpha(color, 0.45),

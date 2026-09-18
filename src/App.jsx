@@ -14,7 +14,7 @@ export default function App() {
         mt: 2,
         // Основное окно держит высоту экрана: на старте контент не схлопывается
         // до одних иконок входа (вычитаем внешний отступ mt: 2 сверху и снизу)
-        minHeight: "calc(100vh - 32px)",
+        minHeight: "calc(100dvh - 32px)",
         boxSizing: "border-box",
         border: "1px dashed grey",
         borderRadius: 5,
