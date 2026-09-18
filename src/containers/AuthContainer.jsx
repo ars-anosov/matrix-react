@@ -22,7 +22,7 @@ const AuthContainer = () => {
   const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch]);
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { responseData, displayAd, displayAuthPad, status: authStatus, errComponent: authErrComponent } = authControlRdcr;
+  const { responseData, displayAd, displayAuthPad, status: authStatus } = authControlRdcr;
   const { uriMatrix, status: mtrxStatus, authLost: mtrxAuthLost } = mtrxControlRdcr;
 
   // Реквизиты Matrix из ответа AD (см. README → AuthAd.jsx)
@@ -119,7 +119,7 @@ const AuthContainer = () => {
     <>
       {showAuthLinks && <AuthLinks onOpenAd={handleOpenAd} onOpenMtrx={handleOpenMtrx} />}
 
-      {(displayAd || authErrComponent === "AuthAd") && <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
+      {displayAd && <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
 
       {displayAuthPad && (
         <AuthPad authControlRdcr={authControlRdcr} mtrxControlRdcr={mtrxControlRdcr} onToggleMtrx={handleToggleMtrx} onClose={handleCloseAuthPad} />

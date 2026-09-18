@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { useRef, useState } from "react";
 
 import { ROOM_FILE_MAX_SIZE } from "../constants/ui.js";
-import { PAPER_BACKGROUND, roundIconButtonSx } from "../theme.js";
+import { PAPER_BACKGROUND } from "../theme.js";
 import { formatFileSize } from "./utils/fileFormat.js";
 
 // Поле ввода сообщения комнаты. Отправка — Enter, перенос строки — Shift+Enter.
@@ -18,14 +18,10 @@ function MtrxComposer({ onSend, onSendFile, placeholder = "Написать со
   const [errText, setErrText] = useState("");
   const fileInputRef = useRef(null);
 
-  // Скрепка — кругляш в стиле остальных действий панели. Поле ввода выше
-  // кругляша (40px против 32px), поэтому сдвигаем её на 4px вверх: при
-  // alignItems: flex-end центр иконки совпадёт с центром строки текста
-  const attachSx = { flexShrink: 0, mb: 0.5, ...roundIconButtonSx(theme, theme.palette.primary.main) };
-
-  // Отправка — без кругляша: иконка ровно по высоте поля (TextField size="small"
-  // — 40px), поэтому её центр совпадает со строкой ввода без ручных сдвигов
-  const sendSx = {
+  // Иконочные кнопки строки (скрепка и отправка) — без кругляша: квадрат со
+  // скруглением по высоте поля (TextField size="small" — 40px), поэтому центры
+  // иконок совпадают со строкой ввода без ручных сдвигов
+  const iconButtonSx = {
     flexShrink: 0,
     width: 40,
     height: 40,
@@ -148,7 +144,7 @@ function MtrxComposer({ onSend, onSendFile, placeholder = "Написать со
       <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "flex-end" }}>
         <Tooltip title="Прикрепить файл">
           <span>
-            <IconButton aria-label="Прикрепить файл" disabled={isSending} onClick={() => fileInputRef.current?.click()} sx={attachSx}>
+            <IconButton aria-label="Прикрепить файл" disabled={isSending} onClick={() => fileInputRef.current?.click()} sx={iconButtonSx}>
               <IconAttach />
             </IconButton>
           </span>
@@ -166,7 +162,7 @@ function MtrxComposer({ onSend, onSendFile, placeholder = "Написать со
             htmlInput: { "aria-label": "Текст сообщения" },
           }}
         />
-        <IconButton aria-label="Отправить сообщение" disabled={!canSend} onClick={handleSend} sx={sendSx}>
+        <IconButton aria-label="Отправить сообщение" disabled={!canSend} onClick={handleSend} sx={iconButtonSx}>
           <IconSend />
         </IconButton>
       </Stack>

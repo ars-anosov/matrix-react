@@ -34,11 +34,16 @@ function AdAuth(props) {
   const [password, setPassword] = useState("");
   const [uriAdAuth, setUriAdAuth] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  // Ошибку, закрытую крестиком алерта, прячем локально: Redux-статус ошибки
+  // остаётся (его показывает индикатор AuthIco), но текст больше не мозолит глаза
+  const [isErrDismissed, setIsErrDismissed] = useState(false);
 
   const isLoading = authControlRdcr.status === "loading";
   const isError = authControlRdcr.status === "error";
   const isSuccess = authControlRdcr.status === "success";
   const responseData = authControlRdcr.responseData;
+  const errText = authControlRdcr.errText || "";
+  const showError = isError && !isErrDismissed && Boolean(errText);
 
   // Синхронизируем URI из глобального стора при его изменении
   useEffect(() => {
@@ -47,6 +52,8 @@ function AdAuth(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    // Новая попытка входа показывает ошибку снова, даже если текст тот же
+    setIsErrDismissed(false);
     if (!login.trim() || !password) return;
     authControlActions.handleAdRegister({ login, password, uriAdAuth });
   };
@@ -192,9 +199,16 @@ function AdAuth(props) {
             />
           )}
 
-          <Collapse in={isError}>
-            <Alert severity="error" sx={{ borderRadius: 2 }}>
-              {authControlRdcr.errText}
+          <Collapse in={showError}>
+            {/* Алерт ошибки закрывается крестиком: отказ от входа не должен
+                требовать повторной отправки формы */}
+            <Alert
+              severity="error"
+              onClose={() => setIsErrDismissed(true)}
+              slotProps={{ closeButton: { "aria-label": "Закрыть уведомление об ошибке" } }}
+              sx={{ borderRadius: 2 }}
+            >
+              {errText}
             </Alert>
           </Collapse>
         </Stack>

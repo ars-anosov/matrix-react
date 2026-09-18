@@ -1,5 +1,11 @@
-import { AddCommentOutlined as IconAddRoom, Close as IconClose, ForumOutlined as IconForum } from "@mui/icons-material";
-import { Alert, Box, Divider, IconButton, Paper, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
+import {
+  AddCommentOutlined as IconAddRoom,
+  Close as IconClose,
+  ForumOutlined as IconForum,
+  HowToReg as IconHowToReg,
+  PersonOff as IconPersonOff,
+} from "@mui/icons-material";
+import { Alert, Box, Button, Divider, IconButton, Paper, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -31,6 +37,23 @@ function getSpaceCountLabel(count) {
   return `${count} пространств`;
 }
 
+// Состояние подключения Matrix для кнопки в подвале панели: статусы и иконки те
+// же, что у кнопок состояния в MtrxInfo (HowToReg — сессия есть, PersonOff — нет).
+// У подключённой сессии вместо слова «Подключено» — логин, под которым вошли
+function getConnectionConfig(status, sessionLogin) {
+  switch (status) {
+    case "loading":
+      return { label: "Подключение…", color: "warning", icon: <IconPersonOff /> };
+    case "success":
+      // Логин может не прийти (сессия из хранилища без сохранённого логина)
+      return { label: sessionLogin || "Подключено", color: "success", icon: <IconHowToReg /> };
+    case "error":
+      return { label: "Ошибка подключения", color: "error", icon: <IconPersonOff /> };
+    default:
+      return { label: "Не подключено", color: "inherit", icon: <IconPersonOff /> };
+  }
+}
+
 // Пространства не чаты: считаем их отдельно, чтобы счётчик не врал
 function getRoomListLabel(rooms) {
   const spaceCount = rooms.filter((room) => room.isSpace).length;
@@ -56,9 +79,12 @@ function MtrxPad({
   selectedRoomId,
   selectedRoom,
   newRoomLogin,
+  status,
+  sessionLogin,
   onNewRoomLoginChange,
   onSelectRoom,
   onClose,
+  onOpenReg,
   onCreateRoom,
   onSendMessage,
   onSendFile,
@@ -77,6 +103,8 @@ function MtrxPad({
   const [dismissedExistingLogin, setDismissedExistingLogin] = useState("");
 
   const login = newRoomLogin.trim();
+  // Подпись, цвет и иконка кнопки состояния подключения в подвале панели
+  const connection = getConnectionConfig(status, sessionLogin);
   // Введённый логин фильтрует список комнат и блокирует повторное создание чата
   const visibleRooms = filterRoomsByQuery(rooms, newRoomLogin);
   const hasExistingRoom = hasRoomForLogin(rooms, login);
@@ -234,9 +262,14 @@ function MtrxPad({
             minWidth: 0,
             minHeight: 0,
             overflow: "hidden",
-            borderRight: { sm: 1 },
-            borderBottom: { xs: 1, sm: 0 },
+            // Разделитель списка комнат и чата: цвет — из палитры (theme.palette.divider,
+            // как у MUI Divider). Только длинные свойства: шорткат border-right/border-bottom
+            // сбрасывал borderColor в currentColor, и линия рисовалась цветом текста.
             borderColor: "divider",
+            borderRightStyle: { sm: "solid" },
+            borderRightWidth: { sm: "1px" },
+            borderBottomStyle: { xs: "solid", sm: "none" },
+            borderBottomWidth: { xs: "1px", sm: 0 },
             bgcolor: PAPER_BACKGROUND,
             p: 1,
             scrollbarWidth: "thin",
@@ -283,6 +316,41 @@ function MtrxPad({
           )}
         </Box>
       </Box>
+
+      <Divider sx={{ flexShrink: 0 }} />
+
+      {/* Подвал панели: слева состояние подключения Matrix. Кнопка кликабельна —
+          открывает форму входа MtrxReg, где видно сессию и есть выход из неё */}
+      <Stack
+        direction="row"
+        sx={{
+          px: { xs: 1.5, sm: 2 },
+          py: 0.75,
+          alignItems: "center",
+          flexShrink: 0,
+          bgcolor: HEADER_BACKGROUND,
+        }}
+      >
+        <Tooltip title="Открыть форму входа Matrix">
+          {/* Стиль как у кнопок состояния в MtrxInfo: цветная иконка с подписью,
+              без подложки и рамки — остаётся только hover-подсветка MUI */}
+          <Button
+            size="small"
+            variant="text"
+            color={connection.color}
+            startIcon={connection.icon}
+            onClick={onOpenReg}
+            aria-label={`Matrix: ${connection.label}. Открыть форму входа`}
+            sx={{ maxWidth: "100%" }}
+          >
+            {/* Длинный логин (почта, полный mxid) не должен растягивать подвал:
+                многоточие работает только на flex-элементе с minWidth 0 */}
+            <Box component="span" sx={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {connection.label}
+            </Box>
+          </Button>
+        </Tooltip>
+      </Stack>
     </Paper>
   );
 }
@@ -306,9 +374,15 @@ MtrxPad.propTypes = {
   selectedRoomId: PropTypes.string,
   selectedRoom: PropTypes.object,
   newRoomLogin: PropTypes.string,
+  // Статус подключения Matrix: цвет и подпись кнопки в подвале панели
+  status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
+  // Логин активной Matrix-сессии: подпись кнопки вместо слова «Подключено»
+  sessionLogin: PropTypes.string,
   onNewRoomLoginChange: PropTypes.func.isRequired,
   onSelectRoom: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
+  // Клик по кнопке состояния — открыть форму входа Matrix (MtrxReg)
+  onOpenReg: PropTypes.func.isRequired,
   onCreateRoom: PropTypes.func.isRequired,
   onSendMessage: PropTypes.func.isRequired,
   onSendFile: PropTypes.func.isRequired,

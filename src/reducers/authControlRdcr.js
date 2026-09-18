@@ -1,11 +1,4 @@
-import {
-  AUTHCTL_CLEAR,
-  AUTHCTL_ERROR_ALERT,
-  AUTHCTL_STORE_VALUE,
-  AUTHCTL_SUBMIT_ERROR,
-  AUTHCTL_SUBMIT_REQUEST,
-  AUTHCTL_SUBMIT_SUCCESS,
-} from "../constants/redux";
+import { AUTHCTL_CLEAR, AUTHCTL_STORE_VALUE, AUTHCTL_SUBMIT_ERROR, AUTHCTL_SUBMIT_REQUEST, AUTHCTL_SUBMIT_SUCCESS } from "../constants/redux";
 
 // Только UI-дефолты: сохранённые значения (uriAdAuth) подставляет сид стора —
 // store/preloadedState.js → preloadedState в configureStore.
@@ -18,7 +11,6 @@ export const initialState = {
   uriAdAuth: "",
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,
-  errComponent: "",
   errText: "",
 };
 
@@ -30,7 +22,6 @@ export default function authControlRdcr(state = initialState, action) {
         status: "loading",
         displayAd: true,
         responseData: null,
-        errComponent: "",
         errText: "",
       };
 
@@ -41,7 +32,6 @@ export default function authControlRdcr(state = initialState, action) {
         displayAd: false,
         displayAuthPad: true,
         responseData: action.payload.responseData,
-        errComponent: "",
         errText: "",
       };
 
@@ -50,9 +40,10 @@ export default function authControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "error",
+        // Форму открывает только displayAd — других флагов, удерживающих окно,
+        // нет, поэтому ✕, Escape и клик по подложке её закрывают.
         displayAd: true,
         responseData: null,
-        errComponent: "AuthAd",
         errText,
       };
     }
@@ -63,7 +54,6 @@ export default function authControlRdcr(state = initialState, action) {
         status: "idle",
         displayAuthPad: false,
         responseData: null,
-        errComponent: "",
         errText: "",
       };
 
@@ -71,13 +61,6 @@ export default function authControlRdcr(state = initialState, action) {
       return {
         ...state,
         [action.payload.storeDataKey]: action.payload.storeDataValue,
-      };
-
-    case AUTHCTL_ERROR_ALERT:
-      return {
-        ...state,
-        errComponent: action.payload.errComponent,
-        errText: action.payload.errText,
       };
 
     default:

@@ -1,7 +1,6 @@
 import {
   MTRXCTL_CLEAR,
   MTRXCTL_DEVICE_VERIFICATION_STORE,
-  MTRXCTL_ERROR_ALERT,
   MTRXCTL_ROOM_LIST_DELETE,
   MTRXCTL_ROOM_LIST_INITIALIZE,
   MTRXCTL_ROOM_LIST_PUT,
@@ -41,7 +40,6 @@ const initialState = {
     errText: "",
   },
   // Error alert
-  errComponent: "",
   errText: "",
 };
 
@@ -63,7 +61,6 @@ export default function mtrxControlRdcr(state = initialState, action) {
         responseData: null,
         ...emptyRooms,
         deviceVerification: initialState.deviceVerification,
-        errComponent: "",
         errText: "",
       };
 
@@ -76,7 +73,6 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayPad: true,
         responseData: action.payload.responseData,
         ...emptyRooms,
-        errComponent: "",
         errText: "",
       };
 
@@ -91,7 +87,6 @@ export default function mtrxControlRdcr(state = initialState, action) {
         displayPad: false,
         responseData: null,
         ...emptyRooms,
-        errComponent: "",
         errText,
       };
     }
@@ -110,7 +105,6 @@ export default function mtrxControlRdcr(state = initialState, action) {
         ...emptyRooms,
         newRoomLogin: "",
         deviceVerification: initialState.deviceVerification,
-        errComponent: "",
         errText: "",
       };
 
@@ -118,13 +112,6 @@ export default function mtrxControlRdcr(state = initialState, action) {
       return {
         ...state,
         [action.payload.storeDataKey]: action.payload.storeDataValue,
-      };
-
-    case MTRXCTL_ERROR_ALERT:
-      return {
-        ...state,
-        errComponent: action.payload.errComponent,
-        errText: action.payload.errText,
       };
 
     case MTRXCTL_STORE_MATRIX_DATA:

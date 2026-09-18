@@ -36,8 +36,12 @@ npm run deploy   # build + выкладка dist на прод по rsync (deplo
   `*.visual-check.2048x1320.light.png` (превью для README) и receipt `*.visual-check.json`,
   остальные скриншоты и contact sheet — временные (перечислены в `.gitignore`); образец
   Mermaid-схемы для ответа — `docs/STATE.md`.
-- **Проверка UI** — `npm run dev` (порт 3000): человеку — `win_open_url` на
-  `http://localhost:3000`, агенту — обёртка `.dsh/bin/browser` по навыку `ui-verify`. Настройки
+- **Проверка UI** — по необходимости, а не по ритуалу: браузер нужен, только когда правку нельзя
+  подтвердить статически (рантайм, вёрстка, стили от каскада и брейкпоинтов, ошибки в консоли);
+  для декларативных правок (тексты, пропсы, константы, разметка) достаточно `git diff`,
+  `npx biome check src/` и `npm run build`. Когда браузер всё же нужен — `npm run dev` (порт 3000):
+  человеку — `win_open_url` на `http://localhost:3000`, агенту — обёртка `.dsh/bin/browser` по
+  навыку `ui-verify` (там же уровни проверки и приёмы, снижающие число вызовов). Настройки
   Playwright лежат в репозитории: `.playwright/cli.config.json` — chromium, viewport 1280×800,
   уровень `warning`, вывод в `.playwright/cache/output`; авто-имена `page-*`/`console-*` копятся —
   старше суток их чистит обёртка, свежие за прогон убирает шаг 7 навыка `ui-verify`, рантайм
@@ -51,7 +55,8 @@ src/
 │                 #     MtrxAttachment (вложения в таймлайне), MtrxInvite, MtrxLeaveRoom,
 │                 #     MtrxDeviceVerification, MtrxIco, MtrxInfo, AuthLinks,
 │                 #     AuthAd/AuthAdInfo/AuthIco/AuthPad, MenuAppBar;
-│                 #     utils/fileFormat.js — формат размера файла
+│                 #     utils/fileFormat.js — формат размера файла,
+│                 #     utils/messageSound.js — звук нового сообщения
 ├── containers/   # связка со store: MtrxContainer, MtrxPadContainer, AuthContainer, MenuAppContainer
 ├── actions/      # thunk-actions; utils/ — kyError.js, matrixError.js
 ├── reducers/     # *Rdcr, rootReducer.js, authTimeoutMiddleware.js
@@ -109,6 +114,9 @@ deploy.sh         # выкладка dist на прод по rsync --delete
   упоминания), числа лежат в `roomsMeta` и рисуются бейджами (`MtrxRoomList`, суммарно `MtrxIco`).
   Пространство (`m.space`) — комната, но не чат: идёт в конец списка, таймлайна и composer у него
   нет, внутри `MtrxSpace` — дочерние комнаты из `m.space.child`.
+- Звук нового сообщения: сервис (`watchMessageNotifications`) отдаёт факт живого сообщения
+  собеседника, а решает играть контейнер — ему видны фокус окна и видимость комнаты
+  (`displayPad` + `selectedRoomId`); файл — в `public/sounds/message.ogg`.
 - Статус собеседника в личной комнате приходит не в sync-фильтре: `MtrxPadContainer` раз в
   `ROOM_STATUS_REFRESH_MS` перечитывает `getRoomMeta` (`getPresence` внутри сервиса).
 - Компоненты React не импортируют `matrix-js-sdk`, не читают Matrix session storage и не вызывают
@@ -164,7 +172,8 @@ TypeScript-архитектуру Cinny не переносить без явн�
 
 1. Действовать как senior FullStack-разработчик.
 2. Держать минимальный необходимый diff, не расширять объём правок без запроса.
-3. Для критичных изменений указывать риски и шаги проверки.
+3. Для критичных изменений указывать риски и минимально достаточный шаг проверки: доказательство
+   выбирать по утверждению, а не по привычке (уровни — в `~/.dsh/AGENTS.md`).
 4. Не добавлять TypeScript, тесты, CI, зависимости и инфраструктуру без явного запроса.
 5. `dist` вручную не редактировать — только через `npm run build`.
 6. Формат — по Biome: отступ 2 пробела, только пробелы, без табов; с автоформатом не спорить.

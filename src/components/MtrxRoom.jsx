@@ -3,7 +3,7 @@ import { Avatar, alpha, Box, Divider, IconButton, List, ListItem, Stack, Tooltip
 import PropTypes from "prop-types";
 import { Fragment, useEffect, useRef, useState } from "react";
 
-import { HEADER_BACKGROUND, PAPER_BACKGROUND, presenceColor, roundIconButtonSx } from "../theme.js";
+import { HEADER_BACKGROUND, PAPER_BACKGROUND, presenceColor } from "../theme.js";
 import MtrxAttachment from "./MtrxAttachment";
 import MtrxComposer from "./MtrxComposer";
 import MtrxInvite from "./MtrxInvite";
@@ -245,11 +245,9 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSen
         )}
         {isJoined && (
           <Tooltip title="Покинуть комнату">
-            <IconButton
-              aria-label="Покинуть комнату"
-              onClick={() => setIsLeaveOpen(true)}
-              sx={{ flexShrink: 0, ...roundIconButtonSx(theme, theme.palette.text.secondary) }}
-            >
+            {/* Без кругляша: цветная иконка без подложки и рамки — как у кнопок
+                состояния в MtrxInfo */}
+            <IconButton aria-label="Покинуть комнату" onClick={() => setIsLeaveOpen(true)} sx={{ flexShrink: 0, color: "text.secondary" }}>
               <IconLeave />
             </IconButton>
           </Tooltip>

@@ -9,6 +9,13 @@ const avatarUrlCache = new Map();
 // RoomEvent.UnreadNotifications: строку держим здесь, чтобы сервис не тянул SDK
 const ROOM_UNREAD_EVENT = "Room.UnreadNotifications";
 
+// RoomEvent.Timeline: живое событие таймлайна (в data.liveEvent — не backfill)
+const ROOM_TIMELINE_EVENT = "Room.timeline";
+
+// Типы событий, о которых стоит уведомлять звуком. Как в Cinny, member-события
+// (вход/выход/приглашение) сюда не входят: это не сообщение.
+const NOTIFICATION_EVENT_TYPES = new Set(["m.room.message", "m.room.encrypted", "m.sticker"]);
+
 // Account data со списком личных комнат: { "@user:server": ["!room:server"] }
 const DIRECT_EVENT = "m.direct";
 
@@ -267,6 +274,17 @@ function getRoomMembership(room) {
 // В список комнат попадают только те, где пользователь участник или приглашён.
 function isListedMembership(membership) {
   return membership === "join" || membership === "invite";
+}
+
+// Живое сообщение собеседника: свои сообщения, правки (m.replace) и удалённые
+// события не озвучиваем — сервер и в непрочитанном их не считает.
+function isMessageNotificationEvent(event, myUserId) {
+  if (!NOTIFICATION_EVENT_TYPES.has(event?.getType?.())) return false;
+  if (event.getSender?.() === myUserId) return false;
+  if (event.isRedacted?.()) return false;
+  if (event.getRelation?.()?.rel_type === "m.replace") return false;
+
+  return true;
 }
 
 // Пространство — комната с типом `m.space` (MSC1772), а не чат.
@@ -893,6 +911,42 @@ function watchRoomMessages(roomId, onChange) {
   };
 }
 
+/**
+ * Подписка на живые сообщения-уведомления во всех комнатах: отдаём только факт
+ * «пришло сообщение от собеседника», а решение играть звук — за UI (ему видны
+ * фокус окна и выбранная комната). Так же устроено в Cinny:
+ * ClientNonUIFeatures → MessageNotifications.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#getsyncstate
+ * @see https://github.com/cinnyapp/cinny/blob/dev/src/app/pages/client/ClientNonUIFeatures.tsx
+ */
+function watchMessageNotifications(onNotification) {
+  const client = getMatrixClient();
+  if (!client?.on) return () => {};
+
+  const handleTimeline = (event, room, _toStartOfTimeline, _removed, data) => {
+    // Событие догона истории (пагинация) — не новое сообщение
+    if (!data?.liveEvent) return;
+    // Пока идёт первый sync или догон после разрыва, звук не играем
+    if (client.getSyncState?.() !== "SYNCING") return;
+    if (!room || isSpace(room) || getRoomMembership(room) !== "join") return;
+    if (!isMessageNotificationEvent(event, client.getUserId?.())) return;
+
+    onNotification?.({
+      roomId: room.roomId,
+      eventId: event.getId?.() || "",
+      senderId: event.getSender?.() || "",
+      timestamp: Number(event.getTs?.()) || 0,
+    });
+  };
+
+  client.on(ROOM_TIMELINE_EVENT, handleTimeline);
+
+  return () => {
+    client.removeListener(ROOM_TIMELINE_EVENT, handleTimeline);
+  };
+}
+
 export {
   clearRoomAvatarCache,
   createRoom,
@@ -905,6 +959,7 @@ export {
   markRoomRead,
   sendRoomFile,
   sendRoomMessage,
+  watchMessageNotifications,
   watchRoomList,
   watchRoomMessages,
 };

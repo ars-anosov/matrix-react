@@ -128,3 +128,9 @@ npx npm-check-updates
 # Лицензия
 
 MIT, см. [LICENSE](LICENSE).
+
+Звук нового сообщения `public/sounds/message.ogg` — из
+[Material sound resources](https://m2.material.io/design/sound/sound-resources.html)
+(© Google, [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)); файл взят из
+[Cinny](https://github.com/cinnyapp/cinny) (`public/sound/notification.ogg`), где он
+распространяется на тех же условиях.

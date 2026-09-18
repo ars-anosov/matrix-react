@@ -27,16 +27,9 @@ const MtrxPadContainer = () => {
   const dispatch = useDispatch();
   const actions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { roomIds, roomsMeta, selectedRoomId, newRoomLogin, status } = useSelector((state) => state.mtrxControlRdcr);
+  const { roomIds, roomsMeta, selectedRoomId, newRoomLogin, status, login: sessionLogin } = useSelector((state) => state.mtrxControlRdcr);
 
   const messages = useRoomMessages(selectedRoomId);
-
-  useEffect(() => {
-    if (status !== "success") return undefined;
-
-    actions.handleStartRoomWatch();
-    return () => actions.handleStopRoomWatch();
-  }, [status, actions]);
 
   useEffect(() => {
     if (!selectedRoomId || status !== "success") return undefined;
@@ -89,9 +82,13 @@ const MtrxPadContainer = () => {
       selectedRoomId={selectedRoomId}
       selectedRoom={selectedRoom}
       newRoomLogin={newRoomLogin}
+      status={status}
+      sessionLogin={sessionLogin}
       onNewRoomLoginChange={(value) => actions.handleChangeStore("newRoomLogin", value)}
       onSelectRoom={(roomId) => actions.handleSelectRoom(roomId)}
       onClose={() => actions.handleChangeStore("displayPad", false)}
+      // Кнопка состояния в подвале панели открывает форму входа Matrix
+      onOpenReg={() => actions.handleChangeStore("displayReg", true)}
       // Один логин — личный чат: названия у него нет, имя даёт профиль собеседника
       onCreateRoom={(login) => actions.handleCreateRoom({ invitees: [login] })}
       onSendMessage={(body) => actions.handleSendMessage(selectedRoomId, body)}
