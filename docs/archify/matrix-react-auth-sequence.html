@@ -4840,7 +4840,7 @@
       </div>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"start-screen","label":"Стартовый экран","focus":["user","authlinks","authad"],"note":"Пока ни AD-, ни Matrix-сессия не активны, AuthLinks показывает две иконки входа; обе формы — модальные диалоги."},{"id":"ad-session","label":"AD-сессия","focus":["user","authad","ad","bridge","authpad"],"note":"AuthAd отдаёт логин и пароль AD на внешний сервис и получает матричные реквизиты."},{"id":"matrix-login","label":"Автовход в Matrix","focus":["user","authpad","bridge","mtrx","hs"],"note":"Клик по тумблеру откл запускает handleRegister: успех — зелёный, ошибка — красный."},{"id":"session-reset","label":"Сброс сессии","focus":["user","authpad","bridge","mtrx","hs"],"note":"Клик по цветному тумблеру вызывает handleRegClear: logout и очистка хранилищ."}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"start-screen","label":"Стартовый экран","focus":["user","authlinks","authad"],"note":"Пока ни AD-, ни Matrix-сессия не активны, AuthLinks даёт вход Matrix; форма AD — пункт меню, обе формы модальные."},{"id":"ad-session","label":"AD-сессия","focus":["user","authad","ad","bridge","authpad"],"note":"AuthAd отдаёт логин и пароль AD на внешний сервис и получает матричные реквизиты."},{"id":"matrix-login","label":"Автовход в Matrix","focus":["user","authpad","bridge","mtrx","hs"],"note":"Клик по тумблеру откл запускает handleRegister: успех — зелёный, ошибка — красный."},{"id":"session-reset","label":"Сброс сессии","focus":["user","authpad","bridge","mtrx","hs"],"note":"Клик по цветному тумблеру вызывает handleRegClear: logout и очистка хранилищ."}]</script>
 
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
@@ -4954,11 +4954,11 @@
         </g>
         </g>
 
-        <g data-edge-from="authlinks" data-edge-to="authad" data-edge-label="открыть диалог AD (displayAd)" data-edge-key="1" data-edge-id="open-ad">
-          <path data-composition-edge-from="authlinks" data-composition-edge-to="authad" data-composition-edge-id="open-ad" data-composition-points="465.14285714285717,220;752.2857142857143,220" d="M 465.14285714285717 220 L 752.2857142857143 220" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="user" data-edge-to="authad" data-edge-label="пункт меню: AD Авторизация" data-edge-key="1" data-edge-id="open-ad">
+          <path data-composition-edge-from="user" data-composition-edge-to="authad" data-composition-edge-id="open-ad" data-composition-points="164,220;752.2857142857143,220" d="M 164 220 L 752.2857142857143 220" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="527.3142857142858" y="200" width="162.8" height="16" rx="3" class="c-mask"/>
-          <text x="608.7142857142858" y="210" class="t-backend" font-size="9" text-anchor="middle">открыть диалог AD (displayAd)</text>
+          <rect x="384.54285714285714" y="200" width="147.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="458.14285714285717" y="210" class="t-backend" font-size="9" text-anchor="middle">пункт меню: AD Авторизация</text>
         </g>
         </g>
 
@@ -4984,6 +4984,7 @@
           <rect x="836.2571428571429" y="358" width="147.20000000000002" height="16" rx="3" class="c-mask"/>
           <text x="909.8571428571429" y="368" class="t-muted" font-size="9" text-anchor="middle">mtrx_login · mtrx_password</text>
         </g>
+        <text data-detail="fine" x="778.2857142857143" y="396" class="t-dim" font-size="7">при ошибке — закрываемый Alert</text>
         </g>
 
         <g data-edge-from="authad" data-edge-to="bridge" data-edge-label="AUTHCTL_SUBMIT_SUCCESS" data-edge-key="5" data-edge-id="ad-success">
@@ -5139,8 +5140,8 @@
           <text data-detail="context" x="157" y="111" class="t-muted" font-size="7" text-anchor="middle">браузер</text>
         </g>
 
-        <g id="node-authlinks" data-node-id="authlinks" data-node-label="AuthLinks.jsx" tabindex="0" role="button" aria-label="Focus AuthLinks.jsx, стартовый экран, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="стартовый экран" data-node-context="Sequence participant">
-          <title>AuthLinks.jsx · стартовый экран · Sequence participant</title>
+        <g id="node-authlinks" data-node-id="authlinks" data-node-label="AuthLinks.jsx" tabindex="0" role="button" aria-label="Focus AuthLinks.jsx, стартовый экран: вход Matrix, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="стартовый экран: вход Matrix" data-node-context="Sequence participant">
+          <title>AuthLinks.jsx · стартовый экран: вход Matrix · Sequence participant</title>
           <rect x="363.14285714285717" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="363.14285714285717" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(369.14285714285717 78) scale(0.6875)">
@@ -5150,7 +5151,7 @@
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-detail-anchor x="458.14285714285717" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AuthLinks.jsx</text>
-          <text data-detail="context" x="458.14285714285717" y="111" class="t-muted" font-size="7" text-anchor="middle">стартовый экран</text>
+          <text data-detail="context" x="458.14285714285717" y="111" class="t-muted" font-size="7" text-anchor="middle">стартовый экран: вход Matrix</text>
         </g>
 
         <g id="node-authad" data-node-id="authad" data-node-label="AuthAd.jsx" tabindex="0" role="button" aria-label="Focus AuthAd.jsx, диалог AD, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="диалог AD" data-node-context="Sequence participant">
@@ -5443,7 +5444,9 @@
           <h3>Стартовый экран</h3>
         </div>
         <ul>
-          <li>&bull; AuthLinks: Hub и AdminPanelSettings</li>
+          <li>&bull; AuthLinks: вход Matrix (иконка Hub)</li>
+          <li>&bull; Форма AD — пункт меню MenuAppBar</li>
+          <li>&bull; Форма Matrix — и кнопка статуса в подвале</li>
           <li>&bull; Обе формы — модальные Dialog</li>
         </ul>
       </div>
@@ -5456,6 +5459,7 @@
         <ul>
           <li>&bull; AuthAd шлёт логин и пароль по https</li>
           <li>&bull; Ответ AD: mtrx_login / mtrx_password</li>
+          <li>&bull; Ошибка — закрываемый Alert</li>
           <li>&bull; AuthContainer: логин → MtrxReg, AuthPad</li>
         </ul>
       </div>

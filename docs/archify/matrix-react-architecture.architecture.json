@@ -6,7 +6,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react.git",
-      "revision": "2902532ece278458de813679acd2b26905068e34"
+      "revision": "566f9efb600d3ebf180e50023452e85b1d353715"
     },
     "legend": {
       "mode": "auto",
@@ -55,7 +55,7 @@
           "sdk",
           "homeserver"
         ],
-        "note": "AuthLinks предлагает две иконки входа: диалог AD (AuthAd) и диалог Matrix (MtrxReg); сохранённая сессия восстанавливается до /sync."
+        "note": "AuthLinks даёт вход Matrix; форма AD открывается пунктом меню. Сохранённая сессия восстанавливается до /sync."
       },
       {
         "id": "state-and-storage",
@@ -81,7 +81,7 @@
           "sdk",
           "homeserver"
         ],
-        "note": "Список комнат — дельтами в индекс; сообщения, приглашения, новый чат и выход идут через matrixRooms."
+        "note": "Список комнат — дельтами в индекс; сообщения, вложения, приглашения, новый чат и выход идут через matrixRooms."
       },
       {
         "id": "bridge-ad-matrix",
@@ -116,7 +116,7 @@
       "id": "ui",
       "type": "frontend",
       "label": "Компоненты React",
-      "sublabel": "AuthLinks · MtrxPad",
+      "sublabel": "AuthLinks · MtrxPad · MtrxRoom",
       "tag": "Material UI",
       "pos": [
         256,
@@ -130,16 +130,16 @@
         {
           "path": "src/components/AuthLinks.jsx",
           "line": 17,
-          "label": "стартовый экран"
+          "label": "стартовый экран: вход Matrix"
         },
         {
           "path": "src/components/MtrxPad.jsx",
-          "line": 54,
-          "label": "список комнат и новый чат"
+          "line": 77,
+          "label": "список комнат и кнопка статуса"
         },
         {
           "path": "src/components/MtrxRoom.jsx",
-          "line": 142,
+          "line": 143,
           "label": "комната: таймлайн и composer"
         }
       ]
@@ -165,7 +165,8 @@
         },
         {
           "path": "src/containers/MtrxContainer.jsx",
-          "line": 14
+          "line": 17,
+          "label": "watchRoomList + звук уведомлений"
         },
         {
           "path": "src/containers/MtrxPadContainer.jsx",
@@ -222,7 +223,7 @@
       "sources": [
         {
           "path": "src/reducers/mtrxControlRdcr.js",
-          "line": 17,
+          "line": 16,
           "label": "UI-индекс"
         },
         {
@@ -241,7 +242,7 @@
       "id": "services",
       "type": "backend",
       "label": "Сервисы Matrix",
-      "sublabel": "matrixClient · matrixRooms",
+      "sublabel": "matrixClient · matrixRooms · matrixMedia",
       "pos": [
         1059,
         350
@@ -253,18 +254,18 @@
       "sources": [
         {
           "path": "src/services/matrixClient.js",
-          "line": 625,
+          "line": 632,
           "label": "loginMatrix"
         },
         {
           "path": "src/services/matrixRooms.js",
-          "line": 405,
-          "label": "watchRoomList"
+          "line": 718,
+          "label": "sendRoomFile"
         },
         {
           "path": "src/services/matrixRooms.js",
-          "line": 532,
-          "label": "sendRoomMessage"
+          "line": 923,
+          "label": "watchMessageNotifications"
         }
       ]
     },
@@ -306,12 +307,12 @@
       "sources": [
         {
           "path": "src/services/matrixClient.js",
-          "line": 586,
+          "line": 593,
           "label": "startMatrixSync"
         },
         {
           "path": "src/services/matrixClient.js",
-          "line": 761,
+          "line": 768,
           "label": "logoutMatrix"
         }
       ]
@@ -335,7 +336,7 @@
         },
         {
           "path": "src/services/matrixClient.js",
-          "line": 545,
+          "line": 552,
           "label": "persistMatrixSession"
         }
       ]
@@ -356,12 +357,12 @@
       "sources": [
         {
           "path": "src/services/matrixClient.js",
-          "line": 63,
+          "line": 65,
           "label": "IndexedDBStore"
         },
         {
           "path": "src/services/matrixClient.js",
-          "line": 122,
+          "line": 128,
           "label": "initRustCrypto"
         }
       ]
@@ -393,7 +394,7 @@
         },
         {
           "path": "src/components/AuthPad.jsx",
-          "line": 24,
+          "line": 9,
           "label": "откл / зелёный / красный"
         }
       ]
@@ -551,7 +552,7 @@
       "dot": "emerald",
       "title": "Авторизация и сессия",
       "items": [
-        "AuthLinks: вход в Matrix или AD",
+        "AuthLinks: вход Matrix; форма AD — из меню",
         "AD → mtrx_login в форму MtrxReg",
         "loginMatrix() + refresh_token",
         "startClient → /sync; watchMatrixSession",
@@ -565,6 +566,7 @@
         "Индекс комнат: INITIALIZE / PUT / DELETE",
         "Приглашение, новый чат, выход — matrixRooms",
         "Непрочитанное: unread / highlight → бейджи",
+        "Вложения и звук: matrixMedia, watchMessageNotifications",
         "m.space — комната, но не чат",
         "Сообщения и таймлайн — истина SDK"
       ]

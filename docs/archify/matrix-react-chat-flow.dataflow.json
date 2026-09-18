@@ -86,7 +86,7 @@
       "id": "rooms",
       "type": "backend",
       "label": "matrixRooms",
-      "sublabel": "дельта и снимок",
+      "sublabel": "дельта · снимок",
       "stage": 2,
       "row": 0,
       "tag": "доменный API"
@@ -197,7 +197,7 @@
       "from": "rooms",
       "to": "sdk",
       "label": "запросы",
-      "classification": "POST /createRoom",
+      "classification": "POST /createRoom · upload",
       "variant": "default",
       "fromSide": "top",
       "toSide": "top",
@@ -220,7 +220,6 @@
       "dot": "cyan",
       "title": "Чтение",
       "items": [
-        "/sync → SDK → matrixRooms → индекс",
         "Дельта INITIALIZE / PUT / DELETE",
         "Снимок по требованию: getRoomMeta, watchRoomMessages",
         "unread / highlight лежат в roomsMeta"
@@ -230,10 +229,10 @@
       "dot": "emerald",
       "title": "Запись",
       "items": [
-        "UI → actions → matrixRooms → SDK",
         "createRoom: preset private_chat + invite",
         "joinRoom / leaveRoom, markRoomRead",
-        "sendRoomMessage → sendTextMessage (E2EE)"
+        "sendRoomMessage → sendTextMessage (E2EE)",
+        "Вложения: matrixMedia (E2EE)"
       ]
     },
     {

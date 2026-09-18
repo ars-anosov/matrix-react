@@ -18,7 +18,7 @@
           "authlinks",
           "authad"
         ],
-        "note": "Пока ни AD-, ни Matrix-сессия не активны, AuthLinks показывает две иконки входа; обе формы — модальные диалоги."
+        "note": "Пока ни AD-, ни Matrix-сессия не активны, AuthLinks даёт вход Matrix; форма AD — пункт меню, обе формы модальные."
       },
       {
         "id": "ad-session",
@@ -69,7 +69,7 @@
       "id": "authlinks",
       "type": "frontend",
       "label": "AuthLinks.jsx",
-      "sublabel": "стартовый экран"
+      "sublabel": "стартовый экран: вход Matrix"
     },
     {
       "id": "authad",
@@ -141,10 +141,10 @@
     },
     {
       "id": "open-ad",
-      "from": "authlinks",
+      "from": "user",
       "to": "authad",
       "y": 220,
-      "label": "открыть диалог AD (displayAd)"
+      "label": "пункт меню: AD Авторизация"
     },
     {
       "id": "ad-credentials",
@@ -168,7 +168,8 @@
       "to": "authad",
       "y": 378,
       "label": "mtrx_login · mtrx_password",
-      "variant": "return"
+      "variant": "return",
+      "note": "при ошибке — закрываемый Alert"
     },
     {
       "id": "ad-success",
@@ -344,7 +345,9 @@
       "dot": "cyan",
       "title": "Стартовый экран",
       "items": [
-        "AuthLinks: Hub и AdminPanelSettings",
+        "AuthLinks: вход Matrix (иконка Hub)",
+        "Форма AD — пункт меню MenuAppBar",
+        "Форма Matrix — и кнопка статуса в подвале",
         "Обе формы — модальные Dialog"
       ]
     },
@@ -354,6 +357,7 @@
       "items": [
         "AuthAd шлёт логин и пароль по https",
         "Ответ AD: mtrx_login / mtrx_password",
+        "Ошибка — закрываемый Alert",
         "AuthContainer: логин → MtrxReg, AuthPad"
       ]
     },

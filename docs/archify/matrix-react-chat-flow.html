@@ -4962,15 +4962,15 @@
         <text data-detail="fine" x="315" y="175" class="t-external" font-size="7" text-anchor="middle">источник истины</text>
         </g>
 
-        <g id="node-rooms" data-node-id="rooms" data-node-label="matrixRooms" tabindex="0" role="button" aria-label="Focus matrixRooms, дельта и снимок, 03 / matrixRooms" aria-pressed="false" data-node-kind="backend" data-node-sublabel="дельта и снимок" data-node-tag="доменный API" data-node-context="03 / matrixRooms">
-          <title>matrixRooms · дельта и снимок · 03 / matrixRooms · доменный API</title>
+        <g id="node-rooms" data-node-id="rooms" data-node-label="matrixRooms" tabindex="0" role="button" aria-label="Focus matrixRooms, дельта · снимок, 03 / matrixRooms" aria-pressed="false" data-node-kind="backend" data-node-sublabel="дельта · снимок" data-node-tag="доменный API" data-node-context="03 / matrixRooms">
+          <title>matrixRooms · дельта · снимок · 03 / matrixRooms · доменный API</title>
           <rect x="474" y="128" width="112" height="58" rx="6" class="c-mask"/>
           <rect x="474" y="128" width="112" height="58" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(480 134) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-detail-anchor x="530" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">matrixRooms</text>
-          <text data-detail="context" x="530" y="165" class="t-muted" font-size="7" text-anchor="middle">дельта и снимок</text>
+          <text data-detail="context" x="530" y="165" class="t-muted" font-size="7" text-anchor="middle">дельта · снимок</text>
         <text data-detail="fine" x="530" y="175" class="t-backend" font-size="7" text-anchor="middle">доменный API</text>
         </g>
 
@@ -5051,9 +5051,9 @@
         <text data-detail="fine" x="609.5" y="229.5" class="t-dim" font-size="7" text-anchor="middle">createRoom · join</text>
         </g>
         <g data-detail="context" data-edge-from="rooms" data-edge-to="sdk" data-edge-label="запросы" data-edge-key="7" data-edge-id="mutations">
-          <rect x="377.3" y="83" width="90.4" height="27" rx="4" class="c-mask"/>
+          <rect x="355.25" y="83" width="134.5" height="27" rx="4" class="c-mask"/>
           <text x="422.5" y="94" class="t-muted" font-size="8" text-anchor="middle">запросы</text>
-        <text data-detail="fine" x="422.5" y="105" class="t-dim" font-size="7" text-anchor="middle">POST /createRoom</text>
+        <text data-detail="fine" x="422.5" y="105" class="t-dim" font-size="7" text-anchor="middle">POST /createRoom · upload</text>
         </g>
         <g data-detail="context" data-edge-from="sdk" data-edge-to="hs" data-edge-label="HTTP" data-edge-key="8" data-edge-id="api">
           <rect x="157.4" y="83" width="100.2" height="27" rx="4" class="c-mask"/>
@@ -5274,7 +5274,6 @@
           <h3>Чтение</h3>
         </div>
         <ul>
-          <li>&bull; /sync → SDK → matrixRooms → индекс</li>
           <li>&bull; Дельта INITIALIZE / PUT / DELETE</li>
           <li>&bull; Снимок по требованию: getRoomMeta, watchRoomMessages</li>
           <li>&bull; unread / highlight лежат в roomsMeta</li>
@@ -5287,10 +5286,10 @@
           <h3>Запись</h3>
         </div>
         <ul>
-          <li>&bull; UI → actions → matrixRooms → SDK</li>
           <li>&bull; createRoom: preset private_chat + invite</li>
           <li>&bull; joinRoom / leaveRoom, markRoomRead</li>
           <li>&bull; sendRoomMessage → sendTextMessage (E2EE)</li>
+          <li>&bull; Вложения: matrixMedia (E2EE)</li>
         </ul>
       </div>
 

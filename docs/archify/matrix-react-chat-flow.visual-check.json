@@ -6,8 +6,8 @@
   "visualReview": "pending",
   "artifact": {
     "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-chat-flow.html",
-    "sha256": "fc23d2c4db55be6b0bdd702d184771dde75004ca368d1681240ce8ccf524168e",
-    "bytes": 638477
+    "sha256": "4bdc6d3af436a8a02a60f24c82f62443850b442340b1c6463a376d5162ed8074",
+    "bytes": 638414
   },
   "state": {
     "detail": "read",
