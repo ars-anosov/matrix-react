@@ -134,14 +134,14 @@ function MtrxPad({
     <Paper
       elevation={8}
       sx={{
-        minWidth: { xs: 320, sm: 640 },
+        minWidth: { xs: 320, sm: 480 },
         maxWidth: 900,
         width: "100%",
         height: {
-          xs: "min(680px, calc(100vh - 160px))",
-          sm: "min(720px, calc(100vh - 140px))",
+          xs: "max(320px, calc(100vh - 200px))",
+          sm: "max(640px, calc(100vh - 300px))",
         },
-        minHeight: { xs: 500, sm: 600 },
+        minHeight: { xs: 320, sm: 640 },
         mx: "auto",
         mt: 2,
         bgcolor: PAPER_BACKGROUND,

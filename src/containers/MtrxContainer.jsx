@@ -68,13 +68,13 @@ const MtrxContainer = () => {
         spacing={2}
         sx={{
           justifyContent: "center",
-          alignItems: "center",
+          alignItems: "start",
           width: "100%",
         }}
       >
         {/* Мессенджер */}
         {displayPad && (
-          <Grid size={{ xs: 12, md: "auto" }}>
+          <Grid size={{ xs: 12 }}>
             <MtrxPadContainer />
           </Grid>
         )}
