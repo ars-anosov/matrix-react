@@ -122,7 +122,13 @@ const AuthContainer = () => {
       {displayAd && <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
 
       {displayAuthPad && (
-        <AuthPad authControlRdcr={authControlRdcr} mtrxControlRdcr={mtrxControlRdcr} onToggleMtrx={handleToggleMtrx} onClose={handleCloseAuthPad} />
+        <AuthPad
+          authControlRdcr={authControlRdcr}
+          mtrxControlRdcr={mtrxControlRdcr}
+          onToggleMtrx={handleToggleMtrx}
+          onOpenAd={handleOpenAd}
+          onClose={handleCloseAuthPad}
+        />
       )}
     </>
   );
