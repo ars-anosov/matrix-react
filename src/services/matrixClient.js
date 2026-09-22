@@ -1,12 +1,19 @@
 import { CryptoEvent } from "matrix-js-sdk/lib/crypto-api/CryptoEvent.js";
 import { TokenRefreshLogoutError } from "matrix-js-sdk/lib/http-api/errors.js";
 import { MTRX_ACCESS_TOKEN_KEY, MTRX_DEVICE_ID_KEY, MTRX_HS_URL_KEY, MTRX_LOGIN_KEY, MTRX_REFRESH_TOKEN_KEY, MTRX_USER_ID_KEY } from "../constants/storage";
+import { VERIFICATION_ERR } from "../constants/verification";
 import { clearMatrixClient, getMatrixClient, setMatrixClient } from "./matrixClientStore.js";
 import { clearMediaUrlCache } from "./matrixMedia.js";
 import { clearRoomAvatarCache } from "./matrixRooms.js";
 import { loadMatrixSdk } from "./matrixSdk.js";
 
 const DEVICE_DISPLAY_NAME = "matrix-react";
+
+// Имя события sync у MatrixClient (ClientEvent.Sync): по нему ждём первый /sync
+const SYNC_EVENT = "sync";
+// Сколько ждём первый /sync перед чтением account data: ключ Secret Storage лежит
+// именно там, а getDefaultKeyId() до первого sync вынужден ходить в сеть
+const INITIAL_SYNC_WAIT_MS = 15000;
 
 let matrixSessionCleanup = null;
 let deviceVerificationCleanup = null;
@@ -332,14 +339,38 @@ function bindDeviceVerificationVerifier(verifier, onChange) {
 // Cross-signing секреты и подпись устройства приходят отдельными to-device
 // событиями уже после завершения SAS, поэтому verified становится true не в
 // момент phase 6, а с задержкой — по этим событиям статус обновляется заново.
+/**
+ * Текущее состояние проверки устройства для UI: фаза активного запроса SAS, если
+ * он есть, иначе результат кросс-подписи (доверено устройство или нет).
+ *
+ * Два источника пишут в одно поле `status`, поэтому сводим их здесь: фаза запроса
+ * важнее — иначе чтение кросс-подписи затирает пришедший запрос, и он пропадает
+ * из интерфейса.
+ */
+async function getDeviceVerificationState() {
+  const snapshot = getDeviceVerificationSnapshot();
+  const crossSigning = await getCurrentDeviceVerification();
+  const isRequestPhase = snapshot.status !== "idle";
+
+  return {
+    ...snapshot,
+    ...crossSigning,
+    ...(isRequestPhase ? { status: snapshot.status } : {}),
+  };
+}
+
+// Перечитывает статус проверки текущего устройства и отдаёт объединённый снапшот наружу.
+// Cross-signing секреты и подпись устройства приходят отдельными to-device
+// событиями уже после завершения SAS, поэтому verified становится true не в
+// момент phase 6, а с задержкой — по этим событиям статус обновляется заново.
 async function emitDeviceVerificationStatus(onChange) {
   try {
-    onChange?.({
-      ...getDeviceVerificationSnapshot(),
-      ...(await getCurrentDeviceVerification()),
-    });
+    const state = await getDeviceVerificationState();
+    onChange?.(state);
+    return state;
   } catch {
     // Устройство ещё не готово — статус обновится при следующем событии crypto.
+    return null;
   }
 }
 
@@ -372,8 +403,21 @@ function watchDeviceVerification(onChange) {
   crypto?.on?.(CryptoEvent.UserTrustStatusChanged, handleCryptoTrustChange);
   crypto?.on?.(CryptoEvent.DevicesUpdated, handleCryptoTrustChange);
 
+  // Первый /sync приносит подписи устройств и кросс-подписи, но список устройств
+  // машина крипто догоняет асинхронно: читаем статус на каждом sync, пока
+  // устройство не станет доверенным (дальше его обновляют crypto-события). Без
+  // этого индикатор E2EE висел бы серым до первого события или клика по нему
+  const handleSync = async () => {
+    if (!client.isInitialSyncComplete?.()) return;
+    const status = await emitDeviceVerificationStatus(onChange);
+    if (status?.verified) client.removeListener?.(SYNC_EVENT, handleSync);
+  };
+  client.on(SYNC_EVENT, handleSync);
+  handleSync();
+
   deviceVerificationCleanup = () => {
     client.removeListener?.("crypto.verificationRequestReceived", handleRequest);
+    client.removeListener?.(SYNC_EVENT, handleSync);
     crypto?.off?.(CryptoEvent.UserTrustStatusChanged, handleCryptoTrustChange);
     crypto?.off?.(CryptoEvent.DevicesUpdated, handleCryptoTrustChange);
     if (deviceVerificationCleanup === cleanup) deviceVerificationCleanup = null;
@@ -468,6 +512,47 @@ async function cancelCurrentDeviceVerification() {
   return getDeviceVerificationSnapshot();
 }
 
+// Ошибка с кодом: UI по нему выбирает подсказку и действие (constants/verification.js)
+function verificationError(code, message) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
+
+// Отказ UIA по паролю: показываем понятное сообщение вместо errcode сервера
+function mapAuthError(error) {
+  if (error?.httpStatus === 403 || error?.errcode === "M_FORBIDDEN") {
+    return verificationError(VERIFICATION_ERR.RESET_FAILED, "Неверный пароль аккаунта.");
+  }
+  return error;
+}
+
+// Ждём первый /sync: до него SDK читает account data из сети, после — из стора,
+// поэтому без ожидания результат зависит от того, когда пользователь нажал кнопку
+function waitForInitialSync(client) {
+  if (client?.isInitialSyncComplete?.()) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      client?.removeListener?.(SYNC_EVENT, handleSync);
+    };
+    const handleSync = () => {
+      if (!client?.isInitialSyncComplete?.()) return;
+      cleanup();
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(verificationError(VERIFICATION_ERR.SYNC_INCOMPLETE, "Matrix ещё не синхронизирован. Подождите пару секунд и повторите."));
+    }, INITIAL_SYNC_WAIT_MS);
+
+    client?.on?.(SYNC_EVENT, handleSync);
+    // Синхронизация могла успеть пройти между проверкой и подпиской
+    handleSync();
+  });
+}
+
 /**
  * Проверяет устройство через recovery key из Secret Storage и восстанавливает
  * cross-signing и key backup.
@@ -485,14 +570,50 @@ async function verifyCurrentDeviceWithRecoveryKey(encodedRecoveryKey) {
   }
 
   const { decodeRecoveryKey } = await import("matrix-js-sdk/lib/crypto-api/recovery-key.js");
-  const key = decodeRecoveryKey(encodedRecoveryKey.trim());
-  const keyId = await client.secretStorage?.getDefaultKeyId?.();
-  if (!keyId) {
-    throw new Error("В аккаунте не найден ключ Secret Storage.");
+
+  let key;
+  try {
+    key = decodeRecoveryKey(encodedRecoveryKey.trim());
+  } catch {
+    // decodeRecoveryKey проверяет только формат (base58, чётность, префикс, длину)
+    // и ничего не знает про аккаунт — про это отдельные коды ниже
+    throw verificationError(VERIFICATION_ERR.INVALID_KEY, "Это не похоже на recovery key Matrix: проверьте, что скопировали его целиком.");
+  }
+
+  await waitForInitialSync(client);
+
+  // getKey() без аргумента берёт ключ из account data аккаунта: так одним чтением
+  // получаем и id ключа, и его key info, по которой ключ можно проверить
+  const keyEntry = await client.secretStorage?.getKey?.();
+  if (!keyEntry) {
+    throw verificationError(VERIFICATION_ERR.NO_SECRET_STORAGE, "В аккаунте нет Secret Storage: recovery key здесь не с чем сверять.");
+  }
+
+  const [keyId, keyInfo] = keyEntry;
+  // Ключ может быть валидным по формату и при этом от другого аккаунта, поэтому
+  // сверяем его с key info из account data до bootstrap: иначе несовпадение
+  // всплывёт позже и непонятной ошибкой
+  const isSameKey = await client.secretStorage.checkKey(key, keyInfo);
+  if (!isSameKey) {
+    throw verificationError(VERIFICATION_ERR.KEY_MISMATCH, "Recovery key не подходит к этому аккаунту: проверьте, что он от того же аккаунта и homeserver.");
   }
 
   secretStorageKeyCache = { keyId, privateKey: key };
   try {
+    // Проверяем до bootstrap: без приватных ключей кросс-подписи SDK создаёт НОВУЮ
+    // идентичность (resetCrossSigning) — это сброс аккаунта, к тому же требующий
+    // UIA. Пользователь, вводя ключ, просил авторизовать устройство, а не сбросить
+    // кросс-подпись, поэтому в таком случае честно отказываем
+    const crossSigning = await crypto.getCrossSigningStatus?.();
+    const cached = crossSigning?.privateKeysCachedLocally;
+    const hasLocalPrivateKeys = Boolean(cached?.masterKey && cached?.selfSigningKey && cached?.userSigningKey);
+    if (crossSigning && !hasLocalPrivateKeys && !crossSigning.privateKeysInSecretStorage) {
+      throw verificationError(
+        VERIFICATION_ERR.CROSS_SIGNING_MISSING,
+        "Ключ подходит к аккаунту, но авторизовать им устройство нельзя: в аккаунте нет секретов кросс-подписи.",
+      );
+    }
+
     // Cinny использует тот же безопасный путь: импорт ключей из Secret Storage
     // и затем загрузка room keys из server-side backup.
     await crypto.bootstrapCrossSigning({});
@@ -513,6 +634,109 @@ async function verifyCurrentDeviceWithRecoveryKey(encodedRecoveryKey) {
   }
 
   return getCurrentDeviceVerification();
+}
+
+/**
+ * Создаёт в аккаунте Secret Storage и новый ключ восстановления — выход для
+ * аккаунта, у которого хранилища нет (введённый recovery key тогда сверять не с чем).
+ *
+ * Необратимо для старых секретов: то, что было зашифровано прежним ключом,
+ * новым ключом не открыть, поэтому вызывается только по явному подтверждению.
+ *
+ * @see https://spec.matrix.org/latest/client-server-api/#secret-storage
+ * @see https://matrix-org.github.io/matrix-js-sdk/interfaces/crypto-api.CryptoApi.html#bootstrapsecretstorage
+ */
+async function createNewSecretStorage() {
+  const client = getMatrixClient();
+  const crypto = client?.getCrypto?.();
+  if (!crypto || !client) throw new Error("Шифрование Matrix не инициализировано.");
+
+  await waitForInitialSync(client);
+
+  // Молчаливая замена уже существующего хранилища обесценила бы сохранённые секреты
+  const existingKey = await client.secretStorage?.getKey?.();
+  if (existingKey) {
+    throw verificationError(VERIFICATION_ERR.STORAGE_EXISTS, "В аккаунте уже есть Secret Storage: введите recovery key от него.");
+  }
+
+  const created = await crypto.createRecoveryKeyFromPassphrase();
+  await crypto.bootstrapSecretStorage({
+    setupNewSecretStorage: true,
+    // Колбэк обязан вернуть GeneratedSecretStorageKey: приватный ключ уходит в
+    // account data (через addKey), кодированный показываем пользователю
+    createSecretStorageKey: async () => created,
+  });
+
+  return {
+    recoveryKey: created.encodedPrivateKey,
+    verification: await getCurrentDeviceVerification(),
+  };
+}
+
+/**
+ * Сбрасывает шифрование аккаунта: новая кросс-подпись (это устройство
+ * подписывается своим ключом и становится доверенным), удаление прежних бэкапов
+ * и Secret Storage, затем новое хранилище и новый recovery key.
+ *
+ * Необратимо: прежние секреты и бэкапы недоступны, другие пользователи увидят
+ * новый мастер-ключ. Пароль нужен серверу для UIA при публикации ключей подписи.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/interfaces/crypto-api.CryptoApi.html#resetencryption
+ * @see https://spec.matrix.org/latest/client-server-api/#user-interactive-authentication-api
+ */
+async function resetOwnEncryption(password) {
+  const client = getMatrixClient();
+  const crypto = client?.getCrypto?.();
+  if (!crypto || !client) throw new Error("Шифрование Matrix не инициализировано.");
+  if (typeof password !== "string" || !password.trim()) throw new Error("Введите пароль аккаунта.");
+
+  await waitForInitialSync(client);
+
+  // Прежний ключ хранилища после сброса недействителен
+  secretStorageKeyCache = null;
+
+  // Загрузку ключей подписи сервер закрывает UIA: пробуем сразу с паролем (одноэтапный
+  // UIA принимает auth без session), а если сервер ответил запросом этапов — повторяем
+  // с его session. Так в консоли нет лишнего 401 от «пустой» попытки
+  const authUploadDeviceSigningKeys = async (makeRequest) => {
+    const identifier = { type: "m.id.user", user: client.getUserId() };
+    const makePasswordRequest = (session) => makeRequest({ type: "m.login.password", identifier, password, ...(session ? { session } : {}) });
+
+    let challenge = null;
+    try {
+      return await makePasswordRequest();
+    } catch (error) {
+      // Ответ похож на запрос UIA (flows/session) — повторяем с session, иначе это не про пароль
+      if (!error?.data?.flows && !error?.data?.session) throw mapAuthError(error);
+      challenge = error;
+    }
+
+    try {
+      return await makePasswordRequest(challenge.data.session);
+    } catch (error) {
+      throw mapAuthError(error);
+    }
+  };
+
+  try {
+    await crypto.resetEncryption(authUploadDeviceSigningKeys);
+  } catch (error) {
+    if (error?.code) throw error;
+    throw verificationError(VERIFICATION_ERR.RESET_FAILED, `Не удалось сбросить шифрование: ${error?.error || error?.message || "неизвестная ошибка"}`);
+  }
+
+  // resetEncryption удалил Secret Storage: создаём новое хранилище с новым ключом,
+  // bootstrapSecretStorage положит туда свежие кросс-подписи и ключ бэкапа
+  const created = await crypto.createRecoveryKeyFromPassphrase();
+  await crypto.bootstrapSecretStorage({
+    setupNewSecretStorage: true,
+    createSecretStorageKey: async () => created,
+  });
+
+  return {
+    recoveryKey: created.encodedPrivateKey,
+    verification: await getCurrentDeviceVerification(),
+  };
 }
 
 function clearCurrentDeviceVerification() {
@@ -813,14 +1037,17 @@ export {
   cancelCurrentDeviceVerification,
   clearCurrentDeviceVerification,
   confirmCurrentDeviceVerification,
+  createNewSecretStorage,
   getActiveMatrixSession,
   getCurrentDeviceVerification,
   getDeviceVerificationSnapshot,
+  getDeviceVerificationState,
   getStoredMatrixData,
   invalidateMatrixSession,
   loginMatrix,
   logoutMatrix,
   requestCurrentDeviceVerification,
+  resetOwnEncryption,
   restoreMatrixSession,
   startCurrentDeviceVerification,
   verifyCurrentDeviceWithRecoveryKey,

@@ -7,11 +7,13 @@ import {
 } from "@mui/icons-material";
 import { Alert, Box, Button, Divider, IconButton, Paper, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { HEADER_BACKGROUND, PAPER_BACKGROUND, roundIconButtonSx } from "../theme.js";
+import MtrxDeviceVerification from "./MtrxDeviceVerification";
 import MtrxRoom from "./MtrxRoom";
 import MtrxRoomList, { filterRoomsByQuery, isSameLogin } from "./MtrxRoomList";
+import { getE2eeConfig } from "./utils/e2eeStatus.js";
 
 function getRoomCountLabel(count) {
   const remainder = count % 10;
@@ -81,6 +83,8 @@ function MtrxPad({
   newRoomLogin,
   status,
   sessionLogin,
+  deviceVerification,
+  mtrxControlActions,
   onNewRoomLoginChange,
   onSelectRoom,
   onClose,
@@ -101,10 +105,26 @@ function MtrxPad({
   const [createErrText, setCreateErrText] = useState("");
   // Логин, для которого уведомление «чат уже есть» закрыли крестиком
   const [dismissedExistingLogin, setDismissedExistingLogin] = useState("");
+  // Авторизация устройства показывается карточкой поверх правой панели чата
+  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
 
   const login = newRoomLogin.trim();
   // Подпись, цвет и иконка кнопки состояния подключения в подвале панели
   const connection = getConnectionConfig(status, sessionLogin);
+  // Авторизация текущего устройства для E2EE — та же сверка, что была в MtrxInfo:
+  // «success» ставит только успешно прочитанный cross-signing-статус
+  const deviceVerified = deviceVerification?.status === "success" && deviceVerification.verified === true;
+  // Запрос проверки от другого устройства: показываем его в индикаторе и сразу
+  // открываем диалог, иначе запрос остаётся незамеченным
+  const isVerificationPending = deviceVerification?.status === "requested" && deviceVerification.initiatedByMe !== true;
+  // Подпись и цвет индикатора E2EE — напротив, справа в том же подвале
+  const e2ee = getE2eeConfig(status, deviceVerified, isVerificationPending);
+
+  useEffect(() => {
+    // Реагируем на появление запроса, а не на каждую перерисовку: закрытый
+    // пользователем диалог не должен открываться сам снова
+    if (isVerificationPending) setIsVerificationOpen(true);
+  }, [isVerificationPending]);
   // Введённый логин фильтрует список комнат и блокирует повторное создание чата
   const visibleRooms = filterRoomsByQuery(rooms, newRoomLogin);
   const hasExistingRoom = hasRoomForLogin(rooms, login);
@@ -128,6 +148,14 @@ function MtrxPad({
     } finally {
       setIsCreating(false);
     }
+  };
+
+  // Клик по индикатору E2EE открывает авторизацию устройства в правой панели
+  // чата. Перед показом перечитываем статус проверки: watch обновляет его по
+  // crypto-событиям, но к моменту клика снимок мог устареть (так делал MtrxInfo)
+  const handleOpenVerification = () => {
+    mtrxControlActions?.handleLoadDeviceVerification?.();
+    setIsVerificationOpen(true);
   };
 
   return (
@@ -278,7 +306,7 @@ function MtrxPad({
           <MtrxRoomList rooms={rooms} selectedRoomId={selectedRoomId} filter={newRoomLogin} onSelect={(room) => onSelectRoom(room.roomId)} fullHeight />
         </Box>
 
-        <Box sx={{ minWidth: 0, minHeight: 0, overflow: "hidden" }}>
+        <Box sx={{ minWidth: 0, minHeight: 0, overflow: "hidden", position: "relative" }}>
           {selectedRoom ? (
             <MtrxRoom
               room={selectedRoom}
@@ -314,13 +342,40 @@ function MtrxPad({
               <Typography variant="caption">Список комнат находится слева</Typography>
             </Box>
           )}
+
+          {/* Авторизация устройства ложится поверх правой панели чата, а не
+              подменяет её: переписка остаётся под карточкой, закрывается её же
+              крестиком (MtrxDeviceVerification → handleClose) */}
+          {isVerificationOpen && (
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 2,
+                overflowY: "auto",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-start",
+                bgcolor: "rgba(15, 23, 42, 0.32)",
+              }}
+            >
+              <MtrxDeviceVerification
+                open
+                verification={deviceVerification}
+                mtrxControlActions={mtrxControlActions}
+                onClose={() => setIsVerificationOpen(false)}
+              />
+            </Box>
+          )}
         </Box>
       </Box>
 
       <Divider sx={{ flexShrink: 0 }} />
 
-      {/* Подвал панели: слева состояние подключения Matrix. Кнопка кликабельна —
-          открывает форму входа MtrxReg, где видно сессию и есть выход из неё */}
+      {/* Подвал панели: слева состояние подключения Matrix, справа — кнопка E2EE
+          (авторизация устройства), она открывает карточку проверки поверх правой
+          панели чата. Левая кнопка кликабельна тоже — открывает форму входа
+          MtrxReg, где видно сессию и есть выход из неё */}
       <Stack
         direction="row"
         sx={{
@@ -350,6 +405,29 @@ function MtrxPad({
             </Box>
           </Button>
         </Tooltip>
+
+        <Box sx={{ flex: 1 }} />
+
+        {/* Короткий текст вместо иконки — тот же, что был у проверки устройства в
+            MtrxInfo; цвет читается одинаково: зелёный — авторизовано, серый —
+            не авторизовано или нет подключения. Клик открывает карточку
+            авторизации; без подключения проверять нечего — кнопка выключена */}
+        <Tooltip title={e2ee.label}>
+          {/* Tooltip → Disabled children: выключенная кнопка не получает события
+              мыши, поэтому обёртка в span (как у кругляша создания) */}
+          <Box component="span" sx={{ display: "inline-flex", flexShrink: 0 }}>
+            <Button
+              size="small"
+              variant="text"
+              disabled={status !== "success"}
+              onClick={handleOpenVerification}
+              aria-label={`E2EE: ${e2ee.label}. Открыть авторизацию устройства`}
+              sx={{ minWidth: 0, px: 1, fontSize: "0.875rem", color: e2ee.color, "&.Mui-disabled": { color: e2ee.color } }}
+            >
+              E2EE
+            </Button>
+          </Box>
+        </Tooltip>
       </Stack>
     </Paper>
   );
@@ -378,6 +456,19 @@ MtrxPad.propTypes = {
   status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
   // Логин активной Matrix-сессии: подпись кнопки вместо слова «Подключено»
   sessionLogin: PropTypes.string,
+  // Снимок проверки устройства из среза mtrxControlRdcr: цвет индикатора E2EE и
+  // данные карточки авторизации в правой панели чата
+  deviceVerification: PropTypes.shape({
+    status: PropTypes.string,
+    verified: PropTypes.bool,
+    initiatedByMe: PropTypes.bool,
+    errText: PropTypes.string,
+    sas: PropTypes.shape({
+      emoji: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
+    }),
+  }).isRequired,
+  // Экшены проверки устройства: их использует карточка MtrxDeviceVerification
+  mtrxControlActions: PropTypes.object.isRequired,
   onNewRoomLoginChange: PropTypes.func.isRequired,
   onSelectRoom: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,

@@ -12,6 +12,7 @@ import {
   MTRXCTL_SUBMIT_REQUEST,
   MTRXCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
+import { VERIFICATION_ERR } from "../constants/verification";
 import * as matrixClient from "../services/matrixClient";
 import * as matrixRooms from "../services/matrixRooms";
 import { getMatrixErrorMessage } from "./utils/matrixError";
@@ -167,8 +168,9 @@ const handleRestoreSession = () => (dispatch, getState) => {
 const handleLoadDeviceVerification = () => async (dispatch) => {
   try {
     watchDeviceVerificationAndDispatch(dispatch);
-    const verification = await matrixClient.getCurrentDeviceVerification();
-    dispatchDeviceVerification(dispatch, verification);
+    // getDeviceVerificationState, а не getCurrentDeviceVerification: второе вернуло
+    // бы только статус кросс-подписи и затёрло фазу пришедшего запроса SAS
+    dispatchDeviceVerification(dispatch, await matrixClient.getDeviceVerificationState());
   } catch (error) {
     dispatchDeviceVerification(dispatch, {
       status: "error",
@@ -229,7 +231,7 @@ const handleConfirmDeviceVerification = () => async (dispatch) => {
 };
 
 const handleVerifyDeviceWithRecoveryKey = (recoveryKey) => async (dispatch) => {
-  dispatchDeviceVerification(dispatch, { status: "loading", errText: "" });
+  dispatchDeviceVerification(dispatch, { status: "loading", errText: "", errCode: "", recoveryKey: "" });
   try {
     const verification = await matrixClient.verifyCurrentDeviceWithRecoveryKey(recoveryKey);
     dispatchDeviceVerification(dispatch, verification);
@@ -237,6 +239,53 @@ const handleVerifyDeviceWithRecoveryKey = (recoveryKey) => async (dispatch) => {
     dispatchDeviceVerification(dispatch, {
       status: "error",
       errText: getMatrixErrorMessage(error),
+      // Код причины — по нему MtrxDeviceVerification выбирает подсказку и действие
+      errCode: error?.code || "",
+    });
+  }
+};
+
+// Создание Secret Storage в аккаунте, где его нет: показываем пользователю новый
+// recovery key, статус проверки при этом не подменяем (его читает MtrxInfo/MtrxPad)
+const handleCreateSecretStorage = () => async (dispatch) => {
+  dispatchDeviceVerification(dispatch, { status: "loading", errText: "", errCode: "", recoveryKey: "" });
+  try {
+    const { recoveryKey, verification } = await matrixClient.createNewSecretStorage();
+    dispatchDeviceVerification(dispatch, {
+      ...verification,
+      status: verification.verified ? "success" : "idle",
+      recoveryKey,
+      errText: "",
+      errCode: "",
+    });
+  } catch (error) {
+    dispatchDeviceVerification(dispatch, {
+      status: "error",
+      errText: getMatrixErrorMessage(error),
+      errCode: error?.code || "",
+    });
+  }
+};
+
+// Сброс шифрования: новая кросс-подпись (устройство становится доверенным),
+// новый Secret Storage и новый recovery key. Пароль нужен серверу для UIA
+const handleResetEncryption = (password) => async (dispatch) => {
+  dispatchDeviceVerification(dispatch, { status: "loading", errText: "", errCode: "", recoveryKey: "" });
+  try {
+    const { recoveryKey, verification } = await matrixClient.resetOwnEncryption(password);
+    dispatchDeviceVerification(dispatch, {
+      ...verification,
+      status: verification.verified ? "success" : "idle",
+      recoveryKey,
+      errText: "",
+      errCode: "",
+    });
+  } catch (error) {
+    dispatchDeviceVerification(dispatch, {
+      status: "error",
+      errText: getMatrixErrorMessage(error),
+      // Без кода оставляем сброс доступным: ошибка сброса — не повод терять кнопку
+      errCode: error?.code || VERIFICATION_ERR.RESET_FAILED,
     });
   }
 };
@@ -422,6 +471,7 @@ export {
   handleClearDeviceVerification,
   handleConfirmDeviceVerification,
   handleCreateRoom,
+  handleCreateSecretStorage,
   handleDownloadFile,
   handleHydrateStoredMatrixData,
   handleJoinRoom,
@@ -431,6 +481,7 @@ export {
   handleRegClear,
   handleRegister,
   handleRequestDeviceVerification,
+  handleResetEncryption,
   handleRestoreSession,
   handleSelectRoom,
   handleSendFile,

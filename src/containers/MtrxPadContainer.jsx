@@ -27,7 +27,7 @@ const MtrxPadContainer = () => {
   const dispatch = useDispatch();
   const actions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { roomIds, roomsMeta, selectedRoomId, newRoomLogin, status, login: sessionLogin } = useSelector((state) => state.mtrxControlRdcr);
+  const { roomIds, roomsMeta, selectedRoomId, newRoomLogin, status, login: sessionLogin, deviceVerification } = useSelector((state) => state.mtrxControlRdcr);
 
   const messages = useRoomMessages(selectedRoomId);
 
@@ -84,6 +84,10 @@ const MtrxPadContainer = () => {
       newRoomLogin={newRoomLogin}
       status={status}
       sessionLogin={sessionLogin}
+      deviceVerification={deviceVerification}
+      // Снимок и экшены проверки устройства нужны карточке авторизации в правой
+      // панели чата (как MtrxInfo получал их в попапе меню)
+      mtrxControlActions={actions}
       onNewRoomLoginChange={(value) => actions.handleChangeStore("newRoomLogin", value)}
       onSelectRoom={(roomId) => actions.handleSelectRoom(roomId)}
       onClose={() => actions.handleChangeStore("displayPad", false)}

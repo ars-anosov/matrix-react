@@ -38,6 +38,11 @@ const initialState = {
     initiatedByMe: false,
     sas: null,
     errText: "",
+    // Код причины ошибки (constants/verification.js): по нему UI выбирает подсказку
+    errCode: "",
+    // Новый recovery key после создания Secret Storage: показывается до конца сессии,
+    // чтобы ключ не потерялся, если окно закрыли сразу после создания
+    recoveryKey: "",
   },
   // Error alert
   errText: "",

@@ -1,8 +1,8 @@
-import { HowToReg as IconHowToReg, PersonOff as IconPersonOff, VerifiedUser as IconVerifiedUser } from "@mui/icons-material";
+import { HowToReg as IconHowToReg, PersonOff as IconPersonOff } from "@mui/icons-material";
 import { IconButton, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
-import MtrxDeviceVerification from "./MtrxDeviceVerification";
+import { useEffect } from "react";
+import { getE2eeConfig } from "./utils/e2eeStatus.js";
 
 function MtrxInfo(props) {
   const { mtrxControlRdcr, mtrxControlActions, showFull = false } = props;
@@ -11,24 +11,27 @@ function MtrxInfo(props) {
     console.log("MtrxInfo render");
   }
 
-  const verification = mtrxControlRdcr?.deviceVerification || {};
-  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
-
   useEffect(() => {
     if (import.meta.env.DEV) console.log("MtrxInfo MOUNT");
-    mtrxControlActions?.handleLoadDeviceVerification?.();
     return () => {
       if (import.meta.env.DEV) console.log("MtrxInfo UNMOUNT");
     };
-  }, [mtrxControlActions]);
+  }, []);
 
   const toggleAuth = () => {
     mtrxControlActions?.handleChangeStore("displayReg", !mtrxControlRdcr?.displayReg);
   };
 
   const isAuthorized = mtrxControlRdcr?.status === "success";
-  const isDeviceVerified = verification.status === "success" && verification.verified === true;
   const authButtonColor = isAuthorized ? "success" : "error";
+  // Справочный статус E2EE: цвет и подпись считает общий помощник — тот же, что
+  // у кнопки в подвале MtrxPad. Здесь он не кликабельный: сама авторизация
+  // устройства живёт в карточке правой панели чата
+  const verification = mtrxControlRdcr?.deviceVerification;
+  const deviceVerified = verification?.status === "success" && verification.verified === true;
+  // Пришедший запрос SAS важнее статуса устройства — показываем его же подписью
+  const isVerificationPending = verification?.status === "requested" && verification.initiatedByMe !== true;
+  const e2ee = getE2eeConfig(mtrxControlRdcr?.status, deviceVerified, isVerificationPending);
 
   return (
     <Paper
@@ -70,20 +73,13 @@ device_id:\t${mtrxControlRdcr?.responseData?.device_id || ""}`}
           </IconButton>
         </Tooltip>
         {isAuthorized && (
-          <Tooltip title={isDeviceVerified ? "Устройство авторизовано" : "Устройство не авторизовано для E2EE"}>
-            <IconButton aria-label="Проверка устройства" color={isDeviceVerified ? "success" : "error"} onClick={() => setIsVerificationOpen(true)}>
-              <IconVerifiedUser />
-            </IconButton>
+          <Tooltip title={e2ee.label}>
+            <Typography variant="button" aria-label={e2ee.label} sx={{ color: e2ee.color, px: 0.5, whiteSpace: "nowrap" }}>
+              E2EE
+            </Typography>
           </Tooltip>
         )}
       </Stack>
-
-      <MtrxDeviceVerification
-        open={isVerificationOpen}
-        verification={verification}
-        mtrxControlActions={mtrxControlActions}
-        onClose={() => setIsVerificationOpen(false)}
-      />
     </Paper>
   );
 }
