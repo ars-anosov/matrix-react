@@ -5,9 +5,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-chat-flow.html",
-    "sha256": "4bdc6d3af436a8a02a60f24c82f62443850b442340b1c6463a376d5162ed8074",
-    "bytes": 638414
+    "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-chat-flow.html",
+    "sha256": "be7f203abd43c1c32faf3e5511cf4849b4bd86d5bfb78ee54742bf977e278e4d",
+    "bytes": 636361
   },
   "state": {
     "detail": "read",
@@ -15,7 +15,7 @@
   },
   "chrome": {
     "status": "available",
-    "executable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    "executable": "/home/ars/.cache/ms-playwright/chromium-1244/chrome-linux64/chrome"
   },
   "containment": {
     "status": "pass",

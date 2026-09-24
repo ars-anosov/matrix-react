@@ -62,30 +62,30 @@
           <a href="./archify/matrix-react-architecture.html">
             <div class="t">Диаграмма архитектуры (archify)</div>
             <div class="d">
-              Интерактивная схема: UI → Redux → services → matrix-js-sdk, комнаты и чат, мост AD → Matrix.
+              Слои UI, Redux actions, store и сервисов; источник истины — matrix-js-sdk.
             </div>
           </a>
         </li>
         <li>
           <a href="./archify/matrix-react-auth-sequence.html">
-            <div class="t">Sequence-диаграмма входа и сессии (archify)</div>
+            <div class="t">Мост AD → Matrix (archify)</div>
             <div class="d">
-              Стартовый экран AuthLinks → диалог AD → автовход данными AD → зелёный или красный тумблер AuthPad → сброс сессии.
+              AD-вход, передача реквизитов через AuthContainer, Matrix-вход и сброс сессии.
             </div>
           </a>
         </li>
         <li>
           <a href="./archify/matrix-react-chat-flow.html">
-            <div class="t">Dataflow-диаграмма чата (archify)</div>
+            <div class="t">Последовательность событий чата (archify)</div>
             <div class="d">
-              Данные и команды: /sync → SDK → matrixRooms → Redux-индекс → UI и обратно createRoom / joinRoom / sendRoomMessage.
+              Дельты списка — в Redux, сообщения — прямо в контейнер; отправка идёт через matrixRooms.
             </div>
           </a>
         </li>
         <li>
           <a href="https://github.com/ars-anosov/matrix-react/blob/main/docs/STATE.md">
             <div class="t">Mermaid-схемы (STATE.md)</div>
-            <div class="d">Слои и потоки данных.</div>
+            <div class="d">Четыре короткие схемы: слои, мост AD, Matrix-сессия и чат.</div>
           </a>
         </li>
       </ul>

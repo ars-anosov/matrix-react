@@ -5,9 +5,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "\\\\wsl.localhost\\Ubuntu\\home\\ars\\_git\\matrix-react\\docs\\archify\\matrix-react-architecture.html",
-    "sha256": "e40f06a8ba5165a4dd5b7810d4818b8e43be8f5210a5c0946e5020f1c3bc2f01",
-    "bytes": 654387
+    "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-architecture.html",
+    "sha256": "1a1145a902c483d5cde074016c181766ccffc3d07080586e38d9600ed883dae1",
+    "bytes": 631305
   },
   "state": {
     "detail": "read",
@@ -15,7 +15,7 @@
   },
   "chrome": {
     "status": "available",
-    "executable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    "executable": "/home/ars/.cache/ms-playwright/chromium-1244/chrome-linux64/chrome"
   },
   "containment": {
     "status": "pass",

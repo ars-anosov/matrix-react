@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Чат: индекс комнат, таймлайн и отправка",
+    "quality_profile": "showcase",
+    "viewBox": [1660, 920],
+    "column_fit": "spread"
+  },
+  "participants": [
+    { "id": "ui", "type": "frontend", "label": "Контейнер чата", "sublabel": "MtrxContainer · MtrxPadContainer" },
+    { "id": "actions", "type": "backend", "label": "mtrxControlActions", "sublabel": "команды и дельты" },
+    { "id": "rooms", "type": "backend", "label": "matrixRooms", "sublabel": "доменный API" },
+    { "id": "sdk", "type": "external", "label": "matrix-js-sdk", "sublabel": "Room · Timeline" },
+    { "id": "redux", "type": "database", "label": "Redux", "sublabel": "индекс комнат" }
+  ],
+  "segments": [
+    { "from": 160, "to": 420, "label": "Список комнат" },
+    { "from": 445, "to": 685, "label": "Выбранная комната" },
+    { "from": 705, "to": 840, "label": "Отправка" }
+  ],
+  "messages": [
+    { "id": "start-watch", "from": "ui", "to": "actions", "y": 196, "label": "handleStartRoomWatch" },
+    { "id": "subscribe-list", "from": "actions", "to": "rooms", "y": 242, "label": "watchRoomList" },
+    { "id": "sdk-list", "from": "sdk", "to": "rooms", "y": 292, "label": "Room · receipt", "variant": "dashed" },
+    { "id": "list-delta", "from": "rooms", "to": "actions", "y": 337, "label": "INITIALIZE / PUT / DELETE", "variant": "return" },
+    { "id": "index-update", "from": "actions", "to": "redux", "y": 383, "label": "roomIds · roomsMeta", "variant": "emphasis" },
+    { "id": "choose-room", "from": "ui", "to": "actions", "y": 475, "label": "handleSelectRoom" },
+    { "id": "selected-id", "from": "actions", "to": "redux", "y": 520, "label": "selectedRoomId" },
+    { "id": "watch-timeline", "from": "ui", "to": "rooms", "y": 565, "label": "watchRoomMessages", "variant": "emphasis" },
+    { "id": "timeline-event", "from": "sdk", "to": "rooms", "y": 610, "label": "Room.timeline", "variant": "dashed" },
+    { "id": "messages-to-ui", "from": "rooms", "to": "ui", "y": 655, "label": "снимок сообщений — мимо Redux", "variant": "return" },
+    { "id": "send-action", "from": "ui", "to": "actions", "y": 731, "label": "handleSendMessage" },
+    { "id": "send-room", "from": "actions", "to": "rooms", "y": 775, "label": "sendRoomMessage" },
+    { "id": "send-sdk", "from": "rooms", "to": "sdk", "y": 818, "label": "sendTextMessage", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Граница Redux", "items": ["Список комнат и выбор — лёгкий индекс", "Сообщения активной комнаты остаются в SDK"] },
+    { "dot": "emerald", "title": "Две подписки", "items": ["watchRoomList обновляет индекс дельтами", "watchRoomMessages отдаёт таймлайн контейнеру"] }
+  ]
+}
