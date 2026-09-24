@@ -27,7 +27,32 @@ npm run check   # линт + форматирование с записью
 
 В dev-режиме Vite поднимает мок-API.
 
+## Инструменты для диаграмм и UI-проверок в WSL (не нужны для запуска приложения)
 
+Команды выполнять в **WSL Ubuntu** под Node.js 24, не в Windows и не с `sudo`. Глобальные
+пакеты npm устанавливаются для текущей версии Node, выбранной `fnm`:
+
+```bash
+npm install -g @mermaid-js/mermaid-cli @playwright/cli
+playwright-cli install-browser chromium
+dsh plugin --profile web add @tt-a1i/archify-dsh@0.1.0
+```
+
+Проверить установку:
+
+```bash
+mmdc --version
+playwright-cli --version
+node "$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify/bin/archify.mjs" doctor
+```
+
+[Mermaid CLI](https://github.com/mermaid-js/mermaid-cli#installation) (`mmdc`) проверяет и
+рендерит Mermaid; его Puppeteer-браузер **отдельный** от Chromium Playwright.
+[Playwright CLI](https://github.com/microsoft/playwright-cli#installation) для UI-проверок
+запускать через `.dsh/bin/browser` по навыку `ui-verify`: обёртка задаёт профиль и кэш браузера.
+[Archify для DSH](https://github.com/tt-a1i/archify/blob/main/integrations/deepseek-harness/README.md#install)
+ставится **в профиль `web`**, а не через глобальный npm; для визуальной проверки ему нужен
+Linux-Chromium — порядок в навыке `archify-visual-check`.
 
 # Компоненты
 
