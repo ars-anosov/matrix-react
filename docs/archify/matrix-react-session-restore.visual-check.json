@@ -5,9 +5,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-chat-flow.html",
-    "sha256": "9aa0928f6f69bc0d1f737006a6277bc3cd8b15a9e94dc7c028bb7f3e26288f87",
-    "bytes": 636270
+    "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-session-restore.html",
+    "sha256": "95968331b4d490b4dee8fee75656edfe190ff5300f4aab5f95e20871af26f509",
+    "bytes": 640596
   },
   "state": {
     "detail": "read",
@@ -89,7 +89,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-chat-flow.visual-check.1440x900.light.png"
+        "file": "matrix-react-session-restore.visual-check.1440x900.light.png"
       },
       {
         "width": 1440,
@@ -103,7 +103,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-chat-flow.visual-check.1440x900.dark.png"
+        "file": "matrix-react-session-restore.visual-check.1440x900.dark.png"
       },
       {
         "width": 2048,
@@ -117,7 +117,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-chat-flow.visual-check.2048x1320.light.png"
+        "file": "matrix-react-session-restore.visual-check.2048x1320.light.png"
       },
       {
         "width": 2048,
@@ -131,13 +131,13 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-chat-flow.visual-check.2048x1320.dark.png"
+        "file": "matrix-react-session-restore.visual-check.2048x1320.dark.png"
       }
     ],
-    "contactSheet": "matrix-react-chat-flow.visual-check.html"
+    "contactSheet": "matrix-react-session-restore.visual-check.html"
   },
   "sidecars": {
-    "receipt": "matrix-react-chat-flow.visual-check.json",
-    "contactSheet": "matrix-react-chat-flow.visual-check.html"
+    "receipt": "matrix-react-session-restore.visual-check.json",
+    "contactSheet": "matrix-react-session-restore.visual-check.html"
   }
 }

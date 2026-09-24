@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Старт и авторизация",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1900,
+      860
+    ],
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "MtrxContainer",
+      "sublabel": "старт · форма входа · чат"
+    },
+    {
+      "id": "actions",
+      "type": "backend",
+      "label": "mtrxControlActions",
+      "sublabel": "hydrate · login"
+    },
+    {
+      "id": "client",
+      "type": "backend",
+      "label": "matrixClient",
+      "sublabel": "login · refresh · clear"
+    },
+    {
+      "id": "sdk",
+      "type": "external",
+      "label": "matrix-js-sdk",
+      "sublabel": "sync и token refresh"
+    },
+    {
+      "id": "hs",
+      "type": "external",
+      "label": "Homeserver",
+      "sublabel": "/login · /sync · /refresh"
+    },
+    {
+      "id": "ls",
+      "type": "database",
+      "label": "localStorage",
+      "sublabel": "адрес · логин · deviceId"
+    }
+  ],
+  "segments": [
+    {
+      "from": 160,
+      "to": 400,
+      "label": "Старт: сессия не восстанавливается"
+    },
+    {
+      "from": 410,
+      "to": 780,
+      "label": "Вход по логину и паролю"
+    }
+  ],
+  "messages": [
+    {
+      "id": "hydrate",
+      "from": "ui",
+      "to": "actions",
+      "y": 190,
+      "label": "handleHydrateStoredMatrixData"
+    },
+    {
+      "id": "read-stored",
+      "from": "actions",
+      "to": "client",
+      "y": 224,
+      "label": "getStoredMatrixData"
+    },
+    {
+      "id": "read-ls",
+      "from": "client",
+      "to": "ls",
+      "y": 258,
+      "label": "uriMatrix · mtrxLogin"
+    },
+    {
+      "id": "stored-data",
+      "from": "ls",
+      "to": "client",
+      "y": 292,
+      "label": "адрес · логин",
+      "variant": "return"
+    },
+    {
+      "id": "hydrated",
+      "from": "client",
+      "to": "actions",
+      "y": 326,
+      "label": "uriMatrix · login",
+      "variant": "return"
+    },
+    {
+      "id": "form-ready",
+      "from": "actions",
+      "to": "ui",
+      "y": 360,
+      "label": "форма входа предзаполнена, status idle",
+      "variant": "return"
+    },
+    {
+      "id": "register",
+      "from": "ui",
+      "to": "actions",
+      "y": 440,
+      "label": "handleRegister · логин · пароль",
+      "variant": "emphasis"
+    },
+    {
+      "id": "login",
+      "from": "actions",
+      "to": "client",
+      "y": 474,
+      "label": "loginMatrix",
+      "variant": "emphasis"
+    },
+    {
+      "id": "login-post",
+      "from": "client",
+      "to": "hs",
+      "y": 508,
+      "label": "POST /_matrix/client/v3/login"
+    },
+    {
+      "id": "login-ok",
+      "from": "hs",
+      "to": "client",
+      "y": 542,
+      "label": "access_token · device_id",
+      "variant": "return"
+    },
+    {
+      "id": "start-client",
+      "from": "client",
+      "to": "sdk",
+      "y": 576,
+      "label": "createClient + startClient",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sync",
+      "from": "sdk",
+      "to": "hs",
+      "y": 610,
+      "label": "GET /sync"
+    },
+    {
+      "id": "sync-ok",
+      "from": "hs",
+      "to": "sdk",
+      "y": 644,
+      "label": "200 · события",
+      "variant": "return"
+    },
+    {
+      "id": "syncing",
+      "from": "sdk",
+      "to": "client",
+      "y": 678,
+      "label": "SYNCING",
+      "variant": "return"
+    },
+    {
+      "id": "session-snapshot",
+      "from": "client",
+      "to": "actions",
+      "y": 712,
+      "label": "session · userId · deviceId",
+      "variant": "return"
+    },
+    {
+      "id": "status-success",
+      "from": "actions",
+      "to": "ui",
+      "y": 746,
+      "label": "status success → чат",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Старт требует авторизацию",
+      "items": [
+        "Клиент Matrix не создаётся: сохранённый access token не используется",
+        "Адрес и логин из localStorage только предзаполняют форму входа",
+        "Статус остаётся idle, поэтому показан AuthLinks"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Вход по логину и паролю",
+      "items": [
+        "После login: createClient + startClient, затем первый /sync",
+        "SYNCING даёт Redux снимок сессии, таймлайн остаётся в SDK",
+        "status success включает чат; токены хранятся ради deviceId при следующем входе"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Потеря активной сессии",
+      "items": [
+        "401 на /sync зовёт tokenRefreshFunction; принятый refresh обновляет токены без сброса",
+        "401 на refresh — TokenRefreshLogoutError и Session.logged_out",
+        "Сброс: токены и IndexedDB удалены, AuthPad с красным тумблером"
+      ]
+    }
+  ]
+}

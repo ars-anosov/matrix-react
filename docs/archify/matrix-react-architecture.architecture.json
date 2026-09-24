@@ -1,25 +1,416 @@
 {
   "schema_version": 1,
   "diagram_type": "architecture",
-  "meta": { "title": "matrix-react: UI, store и сервисы", "quality_profile": "showcase" },
+  "meta": {
+    "title": "Архитектура",
+    "quality_profile": "showcase"
+  },
   "components": [
-    { "id": "view", "type": "frontend", "label": "Компоненты", "sublabel": "разметка и события", "pos": [70, 320], "size": [170, 72] },
-    { "id": "container", "type": "frontend", "label": "Контейнеры", "sublabel": "useSelector · подписки", "pos": [330, 320], "size": [170, 72] },
-    { "id": "actions", "type": "backend", "label": "Redux actions", "sublabel": "thunk · команды", "pos": [590, 320], "size": [170, 72] },
-    { "id": "service", "type": "backend", "label": "Сервисы", "sublabel": "Matrix · AD · медиа", "pos": [850, 320], "size": [170, 72] },
-    { "id": "sdk", "type": "external", "label": "matrix-js-sdk", "sublabel": "комнаты · таймлайн", "pos": [1110, 320], "size": [170, 72] },
-    { "id": "state", "type": "database", "label": "Redux store", "sublabel": "сессии · индекс комнат", "pos": [460, 90], "size": [190, 72] }
+    {
+      "id": "viewAd",
+      "type": "frontend",
+      "label": "AuthAd · AuthPad",
+      "sublabel": "формы AD",
+      "tag": "AUTHCTL_",
+      "pos": [
+        40,
+        140
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "bridge",
+      "type": "frontend",
+      "label": "AuthContainer",
+      "sublabel": "мост AUTHCTL_ ↔ MTRXCTL_",
+      "pos": [
+        360,
+        140
+      ],
+      "size": [
+        220,
+        76
+      ]
+    },
+    {
+      "id": "adAct",
+      "type": "backend",
+      "label": "authControlActions",
+      "sublabel": "AUTHCTL_",
+      "tag": "AUTHCTL_",
+      "pos": [
+        680,
+        140
+      ],
+      "size": [
+        220,
+        76
+      ]
+    },
+    {
+      "id": "adStore",
+      "type": "database",
+      "label": "authControlRdcr",
+      "sublabel": "состояние AD",
+      "tag": "AUTHCTL_",
+      "pos": [
+        680,
+        250
+      ],
+      "size": [
+        220,
+        76
+      ]
+    },
+    {
+      "id": "adSvc",
+      "type": "backend",
+      "label": "adAuth",
+      "sublabel": "AD-авторизация · ky",
+      "pos": [
+        1040,
+        140
+      ],
+      "size": [
+        240,
+        76
+      ]
+    },
+    {
+      "id": "adRes",
+      "type": "external",
+      "label": "AD-сервис",
+      "sublabel": "внешний блок",
+      "pos": [
+        1450,
+        140
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "storage",
+      "type": "database",
+      "label": "localStorage",
+      "sublabel": "ключи приложения",
+      "pos": [
+        1450,
+        300
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "idb",
+      "type": "database",
+      "label": "IndexedDB",
+      "sublabel": "sync и crypto",
+      "pos": [
+        1450,
+        400
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "viewMtrx",
+      "type": "frontend",
+      "label": "MtrxReg · MtrxPad",
+      "sublabel": "регистрация и чат",
+      "pos": [
+        40,
+        560
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "mtrxCnt",
+      "type": "frontend",
+      "label": "MtrxContainer",
+      "sublabel": "контейнер чата",
+      "pos": [
+        360,
+        560
+      ],
+      "size": [
+        220,
+        76
+      ]
+    },
+    {
+      "id": "mtrxAct",
+      "type": "backend",
+      "label": "mtrxControlActions",
+      "sublabel": "MTRXCTL_",
+      "tag": "MTRXCTL_",
+      "pos": [
+        680,
+        560
+      ],
+      "size": [
+        220,
+        76
+      ]
+    },
+    {
+      "id": "mtrxStore",
+      "type": "database",
+      "label": "mtrxControlRdcr",
+      "sublabel": "индекс комнат",
+      "tag": "MTRXCTL_",
+      "pos": [
+        680,
+        670
+      ],
+      "size": [
+        220,
+        76
+      ]
+    },
+    {
+      "id": "mtrxSvc",
+      "type": "backend",
+      "label": "Matrix-сервисы",
+      "sublabel": "matrixClient · matrixRooms · matrixMedia",
+      "pos": [
+        1040,
+        560
+      ],
+      "size": [
+        240,
+        76
+      ]
+    },
+    {
+      "id": "sdk",
+      "type": "external",
+      "label": "matrix-js-sdk",
+      "sublabel": "homeserver · sync · crypto",
+      "pos": [
+        1450,
+        560
+      ],
+      "size": [
+        200,
+        76
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "UI — компоненты",
+      "wraps": [
+        "viewAd",
+        "viewMtrx"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Контейнеры — связь с Redux",
+      "wraps": [
+        "bridge",
+        "mtrxCnt"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Redux — actions и reducers",
+      "wraps": [
+        "adAct",
+        "adStore",
+        "mtrxAct",
+        "mtrxStore"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Сервисы",
+      "wraps": [
+        "adSvc",
+        "mtrxSvc"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Хранилище",
+      "wraps": [
+        "storage",
+        "idb"
+      ]
+    }
   ],
   "connections": [
-    { "id": "view-events", "from": "view", "to": "container", "label": "события UI" },
-    { "id": "dispatch", "from": "container", "to": "actions", "label": "dispatch" },
-    { "id": "domain", "from": "actions", "to": "service", "label": "доменный API" },
-    { "id": "sdk-access", "from": "service", "to": "sdk", "label": "Matrix API" },
-    { "id": "ui-state", "from": "state", "to": "container", "label": "useSelector", "fromSide": "bottom", "toSide": "top" },
-    { "id": "action-state", "from": "actions", "to": "state", "label": "состояние UI", "fromSide": "top", "toSide": "bottom" }
+    {
+      "id": "view-events",
+      "from": "viewAd",
+      "to": "bridge",
+      "label": "события"
+    },
+    {
+      "id": "auth-dispatch",
+      "from": "bridge",
+      "to": "adAct",
+      "label": "dispatch"
+    },
+    {
+      "id": "ad-domain",
+      "from": "adAct",
+      "to": "adSvc",
+      "label": "доменный API"
+    },
+    {
+      "id": "ad-http",
+      "from": "adSvc",
+      "to": "adRes",
+      "label": "ky · POST"
+    },
+    {
+      "id": "ad-state",
+      "from": "adAct",
+      "to": "adStore",
+      "label": "состояние AD",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 30
+    },
+    {
+      "id": "ad-use",
+      "from": "adStore",
+      "to": "bridge",
+      "label": "useSelector",
+      "fromSide": "left",
+      "toSide": "left"
+    },
+    {
+      "id": "ad-keys",
+      "from": "adSvc",
+      "to": "storage",
+      "label": "ключи AD"
+    },
+    {
+      "id": "mtrx-events",
+      "from": "viewMtrx",
+      "to": "mtrxCnt",
+      "label": "события"
+    },
+    {
+      "id": "mtrx-dispatch",
+      "from": "mtrxCnt",
+      "to": "mtrxAct",
+      "label": "dispatch"
+    },
+    {
+      "id": "mtrx-domain",
+      "from": "mtrxAct",
+      "to": "mtrxSvc",
+      "label": "доменный API"
+    },
+    {
+      "id": "mtrx-api",
+      "from": "mtrxSvc",
+      "to": "sdk",
+      "label": "Matrix API"
+    },
+    {
+      "id": "mtrx-state",
+      "from": "mtrxAct",
+      "to": "mtrxStore",
+      "label": "деляты комнат",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 30
+    },
+    {
+      "id": "mtrx-use",
+      "from": "mtrxStore",
+      "to": "mtrxCnt",
+      "label": "useSelector: индекс",
+      "fromSide": "left",
+      "toSide": "bottom"
+    },
+    {
+      "id": "mtrx-tokens",
+      "from": "mtrxSvc",
+      "to": "storage",
+      "label": "токены и адрес",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "sdk-idb",
+      "from": "sdk",
+      "to": "idb",
+      "label": "sync и crypto",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "mtrx-messages",
+      "from": "mtrxSvc",
+      "to": "viewMtrx",
+      "label": "сообщения комнаты — мимо Redux",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "via": [
+        [
+          1160,
+          800
+        ],
+        [
+          140,
+          800
+        ]
+      ]
+    },
+    {
+      "id": "bridge-mtrx",
+      "from": "bridge",
+      "to": "mtrxAct",
+      "label": "мост: loginMatrix · logoutMatrix",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
   ],
   "cards": [
-    { "dot": "cyan", "title": "Слой UI", "items": ["Компоненты не работают с SDK", "Контейнеры связывают UI и store"] },
-    { "dot": "emerald", "title": "Источник истины", "items": ["Redux хранит только UI-индекс", "Комнаты и сообщения живут в SDK"] }
+    {
+      "dot": "cyan",
+      "title": "Два среза",
+      "items": [
+        "Строка AUTHCTL_ — AD-вход и сессия AD",
+        "Строка MTRXCTL_ — регистрация Matrix, чат и медиа",
+        "Thunk-и не диспатчат чужой namespace"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Слои",
+      "items": [
+        "UI → контейнеры → Redux → сервисы",
+        "Хранилище (localStorage · IndexedDB) — общее для срезов",
+        "AD-сервис и matrix-js-sdk — внешние блоки вне слоёв"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Мост",
+      "items": [
+        "AuthContainer — единственный переход между срезами",
+        "loginMatrix / logoutMatrix и authLost / mtrx_user_id",
+        "Срезы видят друг друга только через мост"
+      ]
+    }
   ]
 }

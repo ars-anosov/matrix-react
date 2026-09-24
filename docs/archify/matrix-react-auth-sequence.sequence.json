@@ -1,33 +1,193 @@
 {
   "schema_version": 1,
   "diagram_type": "sequence",
-  "meta": { "title": "Мост AD → Matrix: вход и сброс", "quality_profile": "showcase", "viewBox": [1590, 870], "column_fit": "spread" },
+  "meta": {
+    "title": "Мост Auth → Чат",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1800,
+      890
+    ],
+    "column_fit": "spread"
+  },
   "participants": [
-    { "id": "person", "type": "external", "label": "Пользователь" },
-    { "id": "auth", "type": "frontend", "label": "AuthAd · AuthPad", "sublabel": "вход и тумблер" },
-    { "id": "ad", "type": "backend", "label": "adAuth", "sublabel": "AD-авторизация" },
-    { "id": "bridge", "type": "frontend", "label": "AuthContainer", "sublabel": "мост между срезами" },
-    { "id": "matrix", "type": "backend", "label": "matrixClient", "sublabel": "Matrix-сессия" }
+    {
+      "id": "person",
+      "type": "external",
+      "label": "Пользователь"
+    },
+    {
+      "id": "auth",
+      "type": "frontend",
+      "label": "AuthAd · AuthPad",
+      "sublabel": "вход и тумблер"
+    },
+    {
+      "id": "ad",
+      "type": "backend",
+      "label": "adAuth",
+      "sublabel": "AD-авторизация"
+    },
+    {
+      "id": "bridge",
+      "type": "frontend",
+      "label": "AuthContainer",
+      "sublabel": "мост между срезами"
+    },
+    {
+      "id": "matrix",
+      "type": "backend",
+      "label": "matrixClient",
+      "sublabel": "Matrix-сессия"
+    },
+    {
+      "id": "storage",
+      "type": "database",
+      "label": "localStorage",
+      "sublabel": "ключи приложения"
+    }
   ],
   "segments": [
-    { "from": 155, "to": 390, "label": "AD-вход" },
-    { "from": 405, "to": 610, "label": "Вход Matrix" },
-    { "from": 625, "to": 745, "label": "Сброс" }
+    {
+      "from": 155,
+      "to": 425,
+      "label": "AD-вход"
+    },
+    {
+      "from": 440,
+      "to": 675,
+      "label": "Вход Matrix"
+    },
+    {
+      "from": 690,
+      "to": 815,
+      "label": "Сброс"
+    }
   ],
   "messages": [
-    { "id": "ad-form", "from": "person", "to": "auth", "y": 185, "label": "ввод AD-учётных данных" },
-    { "id": "ad-login", "from": "auth", "to": "ad", "y": 235, "label": "loginAd", "variant": "emphasis" },
-    { "id": "ad-result", "from": "ad", "to": "bridge", "y": 285, "label": "mtrx_login · mtrx_password", "variant": "return" },
-    { "id": "show-bridge", "from": "bridge", "to": "auth", "y": 340, "label": "AuthPad · логин в форму", "variant": "return" },
-    { "id": "toggle-on", "from": "person", "to": "auth", "y": 445, "label": "включить тумблер" },
-    { "id": "invoke-bridge", "from": "auth", "to": "bridge", "y": 490, "label": "onToggleMtrx" },
-    { "id": "matrix-login", "from": "bridge", "to": "matrix", "y": 535, "label": "handleRegister → loginMatrix", "variant": "emphasis" },
-    { "id": "matrix-status", "from": "matrix", "to": "bridge", "y": 585, "label": "успех / ошибка → цвет тумблера", "variant": "return" },
-    { "id": "toggle-off", "from": "person", "to": "auth", "y": 670, "label": "клик по цветному тумблеру" },
-    { "id": "session-clear", "from": "bridge", "to": "matrix", "y": 715, "label": "handleRegClear → logoutMatrix", "variant": "emphasis" }
+    {
+      "id": "ad-form",
+      "from": "person",
+      "to": "auth",
+      "y": 185,
+      "label": "ввод AD-учётных данных"
+    },
+    {
+      "id": "ad-login",
+      "from": "auth",
+      "to": "ad",
+      "y": 235,
+      "label": "loginAd",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ad-store",
+      "from": "ad",
+      "to": "storage",
+      "y": 285,
+      "label": "uriAdAuth · adLogin · adAuthExpireTime"
+    },
+    {
+      "id": "ad-result",
+      "from": "ad",
+      "to": "bridge",
+      "y": 335,
+      "label": "mtrx_login · mtrx_password",
+      "variant": "return"
+    },
+    {
+      "id": "show-bridge",
+      "from": "bridge",
+      "to": "auth",
+      "y": 385,
+      "label": "AuthPad · логин в форму",
+      "variant": "return"
+    },
+    {
+      "id": "toggle-on",
+      "from": "person",
+      "to": "auth",
+      "y": 465,
+      "label": "включить тумблер"
+    },
+    {
+      "id": "invoke-bridge",
+      "from": "auth",
+      "to": "bridge",
+      "y": 510,
+      "label": "onToggleMtrx"
+    },
+    {
+      "id": "matrix-login",
+      "from": "bridge",
+      "to": "matrix",
+      "y": 555,
+      "label": "handleRegister → loginMatrix",
+      "variant": "emphasis"
+    },
+    {
+      "id": "matrix-store",
+      "from": "matrix",
+      "to": "storage",
+      "y": 600,
+      "label": "uriMatrix · токены · mtrxDeviceId"
+    },
+    {
+      "id": "matrix-status",
+      "from": "matrix",
+      "to": "bridge",
+      "y": 645,
+      "label": "успех / ошибка → цвет тумблера",
+      "variant": "return"
+    },
+    {
+      "id": "toggle-off",
+      "from": "person",
+      "to": "auth",
+      "y": 710,
+      "label": "клик по цветному тумблеру"
+    },
+    {
+      "id": "session-clear",
+      "from": "bridge",
+      "to": "matrix",
+      "y": 750,
+      "label": "handleRegClear → logoutMatrix",
+      "variant": "emphasis"
+    },
+    {
+      "id": "session-purge",
+      "from": "matrix",
+      "to": "storage",
+      "y": 790,
+      "label": "удаление токенов сессии"
+    }
   ],
   "cards": [
-    { "dot": "cyan", "title": "Граница срезов", "items": ["Только AuthContainer связывает AUTHCTL_ и MTRXCTL_", "Пароль AD не кладётся в Matrix Redux"] },
-    { "dot": "emerald", "title": "Тумблер", "items": ["Отключён — вход данными AD", "Успех или ошибка — сброс сессии"] }
+    {
+      "dot": "cyan",
+      "title": "Граница срезов",
+      "items": [
+        "Только AuthContainer связывает AUTHCTL_ и MTRXCTL_",
+        "Пароль AD не кладётся в Matrix Redux"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Тумблер",
+      "items": [
+        "Отключён — вход данными AD",
+        "Успех или ошибка — сброс сессии"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Хранилище",
+      "items": [
+        "Ключи AD и Matrix пишутся в localStorage",
+        "При сбросе токены удаляются, адрес и логин остаются",
+        "Вместе с ними чистятся IndexedDB-хранилища sync и crypto"
+      ]
+    }
   ]
 }

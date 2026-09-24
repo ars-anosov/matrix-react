@@ -17,7 +17,6 @@ import * as matrixClient from "../services/matrixClient";
 import * as matrixRooms from "../services/matrixRooms";
 import { getMatrixErrorMessage } from "./utils/matrixError";
 
-let restoreSessionPromise = null;
 let sessionOperationId = 0;
 let unsubscribeRoomList = null;
 let unsubscribeDeviceVerification = null;
@@ -101,68 +100,20 @@ const handleRegister =
 
 const handleRegClear = () => async (dispatch) => {
   sessionOperationId += 1;
-  restoreSessionPromise = null;
   unsubscribeDeviceVerification?.();
   unsubscribeDeviceVerification = null;
   await matrixClient.logoutMatrix();
   dispatch({ type: MTRXCTL_CLEAR });
 };
 
+// Читает из localStorage адрес homeserver и логин: форма входа предзаполняется ими,
+// сама сессия не поднимается — при старте приложение всегда требует авторизацию
 const handleHydrateStoredMatrixData = () => (dispatch) => {
   const { uriMatrix, login } = matrixClient.getStoredMatrixData();
   dispatch({
     type: MTRXCTL_STORE_MATRIX_DATA,
     payload: { uriMatrix, login },
   });
-};
-
-const handleRestoreSession = () => (dispatch, getState) => {
-  // Синхронно заполняем сохранённые uriMatrix/login до проверок статуса
-  dispatch(handleHydrateStoredMatrixData());
-
-  // Если в Redux статус уже success — ничего не делаем
-  if (getState().mtrxControlRdcr.status === "success") return;
-  // Если промис восстановления уже запущен — возвращаем его, избегая дублирования
-  if (restoreSessionPromise) return restoreSessionPromise;
-
-  const operationId = ++sessionOperationId;
-
-  // Проверяем синхронную активную сессию
-  const activeSession = matrixClient.getActiveMatrixSession();
-  if (activeSession) {
-    // Обязательно подписываемся на события даже активной сессии
-    watchSessionAndDispatchClear(dispatch, operationId);
-    watchDeviceVerificationAndDispatch(dispatch);
-    dispatchMatrixSuccess(dispatch, activeSession);
-    return;
-  }
-
-  // Если активной сессии в памяти нет (перезагрузка страницы), запускаем асинхронное восстановление из хранилища
-  restoreSessionPromise = (async () => {
-    try {
-      const session = await matrixClient.restoreMatrixSession();
-
-      if (operationId !== sessionOperationId) return;
-
-      if (session) {
-        watchSessionAndDispatchClear(dispatch, operationId);
-        watchDeviceVerificationAndDispatch(dispatch);
-        dispatchMatrixSuccess(dispatch, session);
-      } else {
-        // Если сохраненных токенов нет или они невалидны
-        dispatch({ type: MTRXCTL_CLEAR });
-      }
-    } catch (error) {
-      console.error("Ошибка восстановления сессии Matrix:", error);
-      if (operationId === sessionOperationId) {
-        dispatch({ type: MTRXCTL_CLEAR });
-      }
-    } finally {
-      restoreSessionPromise = null;
-    }
-  })();
-
-  return restoreSessionPromise;
 };
 
 const handleLoadDeviceVerification = () => async (dispatch) => {
@@ -482,7 +433,6 @@ export {
   handleRegister,
   handleRequestDeviceVerification,
   handleResetEncryption,
-  handleRestoreSession,
   handleSelectRoom,
   handleSendFile,
   handleSendMessage,

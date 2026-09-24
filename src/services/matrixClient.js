@@ -907,82 +907,6 @@ async function loginMatrix({ login, password, uriMatrix }) {
   }
 }
 
-function getStoredMatrixSession() {
-  const homeserverUrl = (localStorage.getItem(MTRX_HS_URL_KEY) || "").trim();
-  const accessToken = localStorage.getItem(MTRX_ACCESS_TOKEN_KEY);
-  const userId = localStorage.getItem(MTRX_USER_ID_KEY);
-  const deviceId = localStorage.getItem(MTRX_DEVICE_ID_KEY);
-  const refreshToken = localStorage.getItem(MTRX_REFRESH_TOKEN_KEY);
-
-  if (
-    !homeserverUrl ||
-    homeserverUrl === "undefined" ||
-    !accessToken ||
-    accessToken === "undefined" ||
-    !userId ||
-    userId === "undefined" ||
-    !userId.startsWith("@")
-  ) {
-    return null;
-  }
-
-  return {
-    baseUrl: homeserverUrl,
-    accessToken,
-    userId,
-    deviceId: deviceId === "undefined" ? "" : deviceId || "",
-    refreshToken: refreshToken === "undefined" ? "" : refreshToken || "",
-  };
-}
-
-/**
- * Восстанавливает клиент из сохранённой сессии (access token) и запускает sync.
- *
- * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#startclient
- * @see https://spec.matrix.org/latest/client-server-api/#using-access-tokens
- */
-async function restoreMatrixSession() {
-  const session = getStoredMatrixSession();
-  if (!session) return null;
-
-  let client = null;
-  try {
-    client = await createMatrixClientFromSession(session);
-    await startMatrixSync(client);
-  } catch (error) {
-    console.error("Критическая ошибка восстановления клиента Matrix:", error);
-    destroyMatrixClient();
-    deleteMatrixLocalStores();
-    throw error;
-  }
-
-  const finalUserId = client.getUserId() || session.userId;
-
-  return {
-    homeserverUrl: session.baseUrl,
-    userId: finalUserId,
-    deviceId: session.deviceId || client.getDeviceId() || "",
-    displayName: await fetchDisplayName(client, finalUserId).catch(() => finalUserId),
-  };
-}
-
-/**
- * Возвращает сериализуемый снимок активной сессии или `null`.
- *
- * @see https://spec.matrix.org/latest/client-server-api/#using-access-tokens
- */
-function getActiveMatrixSession() {
-  const client = getMatrixClient();
-  if (!client?.clientRunning) return null;
-
-  return {
-    homeserverUrl: (localStorage.getItem(MTRX_HS_URL_KEY) || "").trim(),
-    userId: client.getUserId(),
-    deviceId: localStorage.getItem(MTRX_DEVICE_ID_KEY) || client.getDeviceId() || "",
-    displayName: null,
-  };
-}
-
 /**
  * Завершает сессию на сервере, чистит локальные и IndexedDB-хранилища.
  *
@@ -1038,7 +962,6 @@ export {
   clearCurrentDeviceVerification,
   confirmCurrentDeviceVerification,
   createNewSecretStorage,
-  getActiveMatrixSession,
   getCurrentDeviceVerification,
   getDeviceVerificationSnapshot,
   getDeviceVerificationState,
@@ -1048,7 +971,6 @@ export {
   logoutMatrix,
   requestCurrentDeviceVerification,
   resetOwnEncryption,
-  restoreMatrixSession,
   startCurrentDeviceVerification,
   verifyCurrentDeviceWithRecoveryKey,
   watchDeviceVerification,

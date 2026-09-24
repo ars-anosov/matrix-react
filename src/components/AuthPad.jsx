@@ -50,6 +50,9 @@ function AuthPad(props) {
   const authLost = !!mtrxControlRdcr?.authLost;
   const mtrxAuthorized = mtrxControlRdcr?.status === "success";
   const mtrxFailed = mtrxControlRdcr?.status === "error";
+  // Пока идёт инициализация Matrix-клиента (запрос логина), тумблер заблокирован:
+  // повторный клик не должен запускать второй вход, пока первый не завершился.
+  const mtrxLoading = mtrxControlRdcr?.status === "loading";
   const mtrxSwitchOn = authLost || mtrxFailed || mtrxAuthorized;
   const mtrxSwitchColor = authLost || mtrxFailed ? "error" : mtrxAuthorized ? "success" : "primary";
   const mtrxSwitchAria = authLost
@@ -142,7 +145,7 @@ function AuthPad(props) {
               <Switch
                 checked={mtrxSwitchOn}
                 color={mtrxSwitchColor}
-                disabled={!hasMtrxData && !mtrxSwitchOn}
+                disabled={mtrxLoading || (!hasMtrxData && !mtrxSwitchOn)}
                 onChange={handleToggleMtrx}
                 slotProps={{
                   input: { "aria-label": mtrxSwitchAria },

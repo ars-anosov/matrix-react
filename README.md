@@ -7,7 +7,7 @@ ReactJS компоненты на базе [matrix-js-sdk](https://github.com/ma
 
 ## Быстрый старт
 
-Требуется Node.js 24.
+Требуется Node.js.
 
 ```bash
 npm install
@@ -27,10 +27,9 @@ npm run check   # линт + форматирование с записью
 
 В dev-режиме Vite поднимает мок-API.
 
-## Инструменты для диаграмм и UI-проверок в WSL (не нужны для запуска приложения)
+## Инструменты для UI в WSL (не нужны для запуска приложения)
 
-Команды выполнять в **WSL Ubuntu** под Node.js 24, не в Windows и не с `sudo`. Глобальные
-пакеты npm устанавливаются для текущей версии Node, выбранной `fnm`:
+Работал в **WSL Ubuntu** под Node.js 24:
 
 ```bash
 npm install -g @mermaid-js/mermaid-cli @playwright/cli
@@ -48,18 +47,38 @@ node "$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify/bi
 
 [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli#installation) (`mmdc`) проверяет и
 рендерит Mermaid; его Puppeteer-браузер **отдельный** от Chromium Playwright.
+
 [Playwright CLI](https://github.com/microsoft/playwright-cli#installation) для UI-проверок
 запускать через `.dsh/bin/browser` по навыку `ui-verify`: обёртка задаёт профиль и кэш браузера.
+
 [Archify для DSH](https://github.com/tt-a1i/archify/blob/main/integrations/deepseek-harness/README.md#install)
 ставится **в профиль `web`**, а не через глобальный npm; для визуальной проверки ему нужен
 Linux-Chromium — порядок в навыке `archify-visual-check`.
+
+## Плагины совместимости DSH с WSL (не нужны для запуска приложения)
+
+Агент и инструменты работают в WSL Ubuntu, поэтому мост
+между ОС ставится набором [dsh-wsl-kit](https://github.com/173787247/dsh-wsl-kit) в профиль
+`web` (не через глобальный npm). Рекомендуемый минимум — набор `daily`:
+
+```bash
+# Скрипт вызывает `dsh plugin --profile web add` для каждого плагина:
+curl -fsSL https://raw.githubusercontent.com/173787247/dsh-wsl-kit/master/install.sh \
+  | KIT_SET=daily bash
+
+# Отдельный плагин:
+dsh plugin --profile web add github:173787247/dsh-wsl-net
+
+# Проверить установку (список плагинов профиля):
+node -e "console.log(require(process.env.HOME + '/.dsh/profiles/web/package.json').dsh.profile.bundles)"
+```
+
+После установки перезапустить `dsh web`
 
 # Компоненты
 
 ## MtrxReg.jsx
 Форма входа в Matrix.
-
-![component_MtrxReg.png](img/component_MtrxReg.png)
 
 ## MtrxPad.jsx
 Мессенджер: список комнат, поле логина для нового чата и панель активной комнаты.
@@ -68,14 +87,10 @@ Linux-Chromium — порядок в навыке `archify-visual-check`.
 Список комнат: аватар, название, «Приглашение» или «Пространство», бейдж непрочитанного.
 Строка списка фильтруется по логину из поля нового чата.
 
-![component_MtrxRoomList.png](img/component_MtrxRoomList.png)
-
 ## MtrxRoom.jsx
 Активная комната: шапка с аватаром и подписью, таймлайн последних сообщений, кнопка выхода.
 Панель выбирает ветку: приглашение (`MtrxInvite`), пространство (`MtrxSpace`) или чат
 с composer'ом.
-
-![component_MtrxRoom.png](img/component_MtrxRoom.png)
 
 ### MtrxComposer.jsx
 Ввод сообщения: Enter — отправка, Shift+Enter — перенос строки; при ошибке текст возвращается в поле.
@@ -102,8 +117,6 @@ Linux-Chromium — порядок в навыке `archify-visual-check`.
 
 ## MtrxDeviceVerification.jsx
 E2EE: авторизация устройства — SAS по emoji или recovery key.
-
-![component_MtrxDeviceVerification.png](img/component_MtrxDeviceVerification.png)
 
 # Доп. компоненты
 Плюшки для интеграции с внешними сервисами
@@ -132,11 +145,13 @@ POST-запрос к серверу авторизации, ожидаемый �
 
 # Документация
 
-[![Архитектура matrix-react](docs/archify/matrix-react-architecture.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html)
+[![Архитектура](docs/archify/matrix-react-architecture.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html)
 
-[![Мост AD → Matrix: вход и сброс](docs/archify/matrix-react-auth-sequence.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-auth-sequence.html)
+[![Старт и авторизация](docs/archify/matrix-react-session-restore.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-session-restore.html)
 
-[![Чат: индекс, таймлайн и отправка](docs/archify/matrix-react-chat-flow.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-chat-flow.html)
+[![Чат](docs/archify/matrix-react-chat-flow.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-chat-flow.html)
+
+[![Мост Auth → Чат](docs/archify/matrix-react-auth-sequence.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-auth-sequence.html)
 
 Все документы: <https://ars-anosov.github.io/matrix-react/>
 

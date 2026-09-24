@@ -21,8 +21,10 @@ const MtrxContainer = () => {
 
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
+  // Сохранённые адрес и логин только предзаполняют форму входа: сессию при старте
+  // не восстанавливаем — приложение всегда требует авторизацию
   useEffect(() => {
-    mtrxControlActions.handleRestoreSession();
+    mtrxControlActions.handleHydrateStoredMatrixData();
   }, [mtrxControlActions]);
 
   const { displayReg, displayPad, status, selectedRoomId } = mtrxControlRdcr;

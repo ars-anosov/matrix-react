@@ -6,8 +6,8 @@
   "visualReview": "pending",
   "artifact": {
     "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-auth-sequence.html",
-    "sha256": "30abc99c0c6bbb25d214c02cdf9f247d44b2afb455cc14aec58ea6e7ef957681",
-    "bytes": 634083
+    "sha256": "2227648894816eb4b6dec272ace9f672d2d9c96c6c0a56fc9260168347574f7a",
+    "bytes": 638384
   },
   "state": {
     "detail": "read",
@@ -15,7 +15,7 @@
   },
   "chrome": {
     "status": "available",
-    "executable": "/home/ars/.cache/ms-playwright/chromium-1244/chrome-linux64/chrome"
+    "executable": "/home/ars/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome"
   },
   "containment": {
     "status": "pass",

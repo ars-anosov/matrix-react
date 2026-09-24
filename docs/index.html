@@ -60,32 +60,40 @@
       <ul>
         <li>
           <a href="./archify/matrix-react-architecture.html">
-            <div class="t">Диаграмма архитектуры (archify)</div>
+            <div class="t">Архитектура (archify)</div>
             <div class="d">
               Слои UI, Redux actions, store и сервисов; источник истины — matrix-js-sdk.
             </div>
           </a>
         </li>
         <li>
-          <a href="./archify/matrix-react-auth-sequence.html">
-            <div class="t">Мост AD → Matrix (archify)</div>
+          <a href="./archify/matrix-react-session-restore.html">
+            <div class="t">Старт и авторизация (archify)</div>
             <div class="d">
-              AD-вход, передача реквизитов через AuthContainer, Matrix-вход и сброс сессии.
+              Сессия при старте не восстанавливается: форма входа предзаполнена, статус idle.
             </div>
           </a>
         </li>
         <li>
           <a href="./archify/matrix-react-chat-flow.html">
-            <div class="t">Последовательность событий чата (archify)</div>
+            <div class="t">Чат (archify)</div>
             <div class="d">
-              Дельты списка — в Redux, сообщения — прямо в контейнер; отправка идёт через matrixRooms.
+              Дельты списка — в Redux, сообщения — прямо в контейнер.
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="./archify/matrix-react-auth-sequence.html">
+            <div class="t">Мост Auth → Чат (archify)</div>
+            <div class="d">
+              AD-вход, передача реквизитов через AuthContainer, Matrix-вход.
             </div>
           </a>
         </li>
         <li>
           <a href="https://github.com/ars-anosov/matrix-react/blob/main/docs/STATE.md">
             <div class="t">Mermaid-схемы (STATE.md)</div>
-            <div class="d">Четыре короткие схемы: слои, мост AD, Matrix-сессия и чат.</div>
+            <div class="d">С описаниями.</div>
           </a>
         </li>
       </ul>

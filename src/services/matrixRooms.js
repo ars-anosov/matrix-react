@@ -228,6 +228,8 @@ function getMediaCaption(content) {
 
 function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
   const events = room?.getLiveTimeline?.()?.getEvents?.() || [];
+  // Свой mxid комнаты: по нему UI понимает, какие сообщения выравнивать справа
+  const myUserId = room?.myUserId || "";
 
   return events
     .filter((event) => {
@@ -253,6 +255,8 @@ function buildRoomMessages(room, limit = ROOM_MESSAGES_LIMIT) {
         eventId: event.getId?.() || `${senderId}-${timestamp}-${index}`,
         senderId,
         sender,
+        // Своё сообщение: отправитель совпал с mxid текущей сессии
+        isOwn: Boolean(senderId) && senderId === myUserId,
         // У медиа в body лежит подпись, а имя файла отдаём отдельным полем
         body: media ? caption : body,
         formattedBody: media && !caption ? "" : formattedBody,

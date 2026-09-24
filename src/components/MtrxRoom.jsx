@@ -298,6 +298,8 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSen
               {messages.map((message, index) => {
                 const previousMessage = messages[index - 1];
                 const isContinuation = previousMessage?.sender === message.sender;
+                // Своё сообщение уходит вправо: аватар и имя встают у правого края
+                const isOwn = Boolean(message.isOwn);
                 const messageDate = getMessageDate(message.timestamp);
                 const previousDate = getMessageDate(previousMessage?.timestamp);
                 const showDateDivider = messageDate && messageDate !== previousDate;
@@ -319,6 +321,8 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSen
                       sx={{
                         gap: 1.25,
                         px: 0.5,
+                        // Свои сообщения — зеркально: аватар справа, текст по правому краю
+                        flexDirection: isOwn ? "row-reverse" : "row",
                         // Отступ между сообщениями: небольшой у подряд идущих
                         // строк одного отправителя и больше перед новым блоком
                         py: isContinuation ? 0.5 : 0.75,
@@ -349,9 +353,9 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSen
                       >
                         {getInitials(message.sender)}
                       </Avatar>
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Box sx={{ minWidth: 0, flex: 1, textAlign: isOwn ? "right" : "left" }}>
                         {!isContinuation && (
-                          <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", minWidth: 0 }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", justifyContent: isOwn ? "flex-end" : "flex-start", minWidth: 0 }}>
                             <Typography
                               variant="body2"
                               component="span"
@@ -385,12 +389,21 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSen
                             {formatMessageTime(message.timestamp)}
                           </Typography>
                         )}
-                        {message.media && <MtrxAttachment message={message} onDownload={onDownloadFile} />}
+                        {message.media && (
+                          // Вложение своего сообщения — у правого края: превью и
+                          // карточка файла идут за текстом, а не остаются слева
+                          <Box sx={{ display: "flex", minWidth: 0, justifyContent: isOwn ? "flex-end" : "flex-start" }}>
+                            <MtrxAttachment message={message} onDownload={onDownloadFile} />
+                          </Box>
+                        )}
                         {(!message.media || message.body.trim() || message.formattedBody) && (
                           <Box
                             component="div"
                             sx={{
                               mt: isContinuation ? 0 : 0.15,
+                              // Короткая своя строка не растягивается на всю ширину,
+                              // а прижимается к правому краю (textAlign — у родителя)
+                              ...(isOwn ? { width: "fit-content", ml: "auto" } : null),
                               whiteSpace: "pre-wrap",
                               overflowWrap: "anywhere",
                               color: "text.primary",
@@ -474,6 +487,8 @@ MtrxRoom.propTypes = {
       PropTypes.shape({
         eventId: PropTypes.string.isRequired,
         sender: PropTypes.string.isRequired,
+        // Своё сообщение (senderId === mxid сессии): выравнивается по правому краю
+        isOwn: PropTypes.bool,
         avatarUrl: PropTypes.string,
         body: PropTypes.string.isRequired,
         formattedBody: PropTypes.string,

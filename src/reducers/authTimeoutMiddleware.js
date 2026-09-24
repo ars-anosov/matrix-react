@@ -4,33 +4,44 @@ import { AUTHCTL_CLEAR } from "../constants/redux";
 // Теперь она гарантированно существует в единственном экземпляре.
 let intervalId = null;
 
-// Сервисы сюда не импортируются: чтение срока и сброс AD-сессии инжектит
-// configureStore — единственное место, где стор сходится с сервисами.
+const AUTH_TIMEOUT_CHECK_MS = 10000;
+
+// Сервисы сюда не импортируются: сброс AD-сессии инжектит configureStore —
+// единственное место, где стор сходится с сервисами.
 export const createAuthTimeoutMiddleware =
-  ({ isSessionExpired, clearSession }) =>
-  (store) => {
-    const checkTokenExpiration = () => {
-      if (isSessionExpired()) {
-        if (import.meta.env.DEV) {
-          console.warn("Время сессии истекло (вызов из Middleware). Очищаем данные.");
-        }
-
-        clearSession();
-        store.dispatch({ type: AUTHCTL_CLEAR });
-      }
-    };
-
-    // Запускаем интервал строго один раз
-    if (!intervalId) {
-      checkTokenExpiration(); // Проверка прямо в момент инициализации приложения
-      intervalId = setInterval(checkTokenExpiration, 10000);
+  ({ clearSession }) =>
+  () =>
+  (next) =>
+  (action) => {
+    // Любой сброс AD-сессии (в том числе по таймауту) чистит и её срок в хранилище.
+    if (action.type === AUTHCTL_CLEAR) {
+      clearSession();
     }
 
-    return (next) => (action) => {
-      if (action.type === AUTHCTL_CLEAR) {
-        clearSession();
-      }
-
-      return next(action);
-    };
+    return next(action);
   };
+
+/**
+ * Запускает проверку срока AD-сессии: сразу и дальше раз в `intervalMs`.
+ *
+ * Вызывать только после `createStore`: во время `applyMiddleware` Redux запрещает
+ * dispatch («Dispatching while constructing your middleware is not allowed»),
+ * поэтому middleware не может проверять срок в момент своей сборки.
+ */
+export function startAuthTimeoutCheck({ store, isSessionExpired, clearSession, intervalMs = AUTH_TIMEOUT_CHECK_MS }) {
+  if (intervalId) return;
+
+  const checkTokenExpiration = () => {
+    if (!isSessionExpired()) return;
+
+    if (import.meta.env.DEV) {
+      console.warn("Время AD-сессии истекло. Очищаем данные.");
+    }
+
+    clearSession();
+    store.dispatch({ type: AUTHCTL_CLEAR });
+  };
+
+  checkTokenExpiration();
+  intervalId = setInterval(checkTokenExpiration, intervalMs);
+}
