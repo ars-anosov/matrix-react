@@ -57,73 +57,7 @@ flowchart LR
   `MTRXCTL_` → Matrix-сервисы → `matrix-js-sdk`; ключи приложения в `localStorage` пишут сервисы
   обоих срезов, sync и crypto — в `IndexedDB`.
 
-## 2. Мост Auth → Чат
-
-```mermaid
-sequenceDiagram
-  participant P as Пользователь
-  participant A as AuthAd · AuthPad
-  participant AD as adAuth
-  participant B as AuthContainer
-  participant M as matrixClient
-  participant LS as localStorage
-  Note over P,LS: AD-вход
-  P->>A: ввод AD-учётных данных
-  A->>AD: loginAd
-  AD->>LS: uriAdAuth · adLogin · adAuthExpireTime
-  AD-->>B: mtrx_login · mtrx_password
-  B-->>A: AuthPad · логин в форму
-  Note over P,LS: Вход Matrix
-  P->>A: включить тумблер
-  A->>B: onToggleMtrx
-  B->>M: handleRegister → loginMatrix
-  M->>LS: uriMatrix · токены · mtrxDeviceId
-  M-->>B: успех / ошибка → цвет тумблера
-  Note over P,LS: Сброс
-  P->>A: клик по цветному тумблеру
-  B->>M: handleRegClear → logoutMatrix
-  M->>LS: удаление токенов сессии
-```
-
-- `AuthContainer` — единственный мост между срезами `AUTHCTL_` и `MTRXCTL_`; пароль AD в Matrix
-  Redux не попадает.
-- Отключённый тумблер запускает вход данными AD; успех, ошибка или потеря сессии — сброс.
-- Ключи AD и Matrix ложатся в `localStorage` (`constants/storage.js`); при сбросе токены
-  удаляются, адрес и логин остаются.
-
-## 3. Чат
-
-```mermaid
-sequenceDiagram
-  participant UI as Контейнер чата
-  participant Act as mtrxControlActions
-  participant R as matrixRooms
-  participant SDK as matrix-js-sdk
-  participant RX as Redux
-  Note over UI,RX: Список комнат
-  UI->>Act: handleStartRoomWatch
-  Act->>R: watchRoomList
-  SDK-->>R: Room · myMembership · receipt
-  R-->>Act: INITIALIZE / PUT / DELETE
-  Act->>RX: roomIds · roomsMeta
-  Note over UI,RX: Выбранная комната
-  UI->>Act: handleSelectRoom
-  Act->>RX: selectedRoomId
-  UI->>R: watchRoomMessages
-  SDK-->>R: Room.timeline · Event.decrypted
-  R-->>UI: снимок сообщений — мимо Redux
-  Note over UI,RX: Отправка
-  UI->>Act: handleSendMessage
-  Act->>R: sendRoomMessage
-  R->>SDK: sendTextMessage
-```
-
-- Список комнат и выбор — лёгкий индекс в Redux, который обновляется дельтами.
-- Две подписки: `watchRoomList` обновляет индекс, `watchRoomMessages` отдаёт таймлайн
-  контейнеру напрямую (в том числе по `Event.decrypted`) — сообщения активной комнаты остаются
-  в SDK.
-
-## 4. Старт и авторизация
+## 2. Старт и авторизация
 
 ```mermaid
 sequenceDiagram
@@ -175,6 +109,72 @@ sequenceDiagram
   `Session.logged_out` → `invalidateMatrixSession` (токены и IndexedDB удалены) → `authLost` →
   `AuthPad` с красным тумблером.
 
+## 3. Чат
+
+```mermaid
+sequenceDiagram
+  participant UI as Контейнер чата
+  participant Act as mtrxControlActions
+  participant R as matrixRooms
+  participant SDK as matrix-js-sdk
+  participant RX as Redux
+  Note over UI,RX: Список комнат
+  UI->>Act: handleStartRoomWatch
+  Act->>R: watchRoomList
+  SDK-->>R: Room · myMembership · receipt
+  R-->>Act: INITIALIZE / PUT / DELETE
+  Act->>RX: roomIds · roomsMeta
+  Note over UI,RX: Выбранная комната
+  UI->>Act: handleSelectRoom
+  Act->>RX: selectedRoomId
+  UI->>R: watchRoomMessages
+  SDK-->>R: Room.timeline · Event.decrypted
+  R-->>UI: снимок сообщений — мимо Redux
+  Note over UI,RX: Отправка
+  UI->>Act: handleSendMessage
+  Act->>R: sendRoomMessage
+  R->>SDK: sendTextMessage
+```
+
+- Список комнат и выбор — лёгкий индекс в Redux, который обновляется дельтами.
+- Две подписки: `watchRoomList` обновляет индекс, `watchRoomMessages` отдаёт таймлайн
+  контейнеру напрямую (в том числе по `Event.decrypted`) — сообщения активной комнаты остаются
+  в SDK.
+
+## 4. Мост Auth → Чат
+
+```mermaid
+sequenceDiagram
+  participant P as Пользователь
+  participant A as AuthAd · AuthPad
+  participant AD as adAuth
+  participant B as AuthContainer
+  participant M as matrixClient
+  participant LS as localStorage
+  Note over P,LS: AD-вход
+  P->>A: ввод AD-учётных данных
+  A->>AD: loginAd
+  AD->>LS: uriAdAuth · adLogin · adAuthExpireTime
+  AD-->>B: mtrx_login · mtrx_password
+  B-->>A: AuthPad · логин в форму
+  Note over P,LS: Вход Matrix
+  P->>A: включить тумблер
+  A->>B: onToggleMtrx
+  B->>M: handleRegister → loginMatrix
+  M->>LS: uriMatrix · токены · mtrxDeviceId
+  M-->>B: успех / ошибка → цвет тумблера
+  Note over P,LS: Сброс
+  P->>A: клик по цветному тумблеру
+  B->>M: handleRegClear → logoutMatrix
+  M->>LS: удаление токенов сессии
+```
+
+- `AuthContainer` — единственный мост между срезами `AUTHCTL_` и `MTRXCTL_`; пароль AD в Matrix
+  Redux не попадает.
+- Отключённый тумблер запускает вход данными AD; успех, ошибка или потеря сессии — сброс.
+- Ключи AD и Matrix ложатся в `localStorage` (`constants/storage.js`); при сбросе токены
+  удаляются, адрес и логин остаются.
+
 ## 5. Хранилища
 
 `localStorage` доступен только сервисам: ключи объявлены в `constants/storage.js`, полный список
@@ -188,6 +188,6 @@ sequenceDiagram
 приложение не задаёт.
 
 Интерактивные схемы: [Архитектура](archify/matrix-react-architecture.html),
-[Мост Auth → Чат](archify/matrix-react-auth-sequence.html),
+[Старт и авторизация](archify/matrix-react-session-restore.html),
 [Чат](archify/matrix-react-chat-flow.html),
-[Старт и авторизация](archify/matrix-react-session-restore.html).
+[Мост Auth → Чат](archify/matrix-react-auth-sequence.html).
