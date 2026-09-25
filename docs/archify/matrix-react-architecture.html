@@ -4841,7 +4841,7 @@
     </div>
 
     <script id="archify-guided-views-data" type="application/json">[]</script>
-
+    <script id="archify-source-evidence-data" type="application/json">{"schemaVersion":1,"verified":true,"repository":{"url":"https://github.com/ars-anosov/matrix-react","revision":"c0c251e9cdeb9f63c338cca6dbde2a989f550171","shortRevision":"c0c251e"},"referenceCount":15,"nodes":{"viewAd":[{"path":"src/components/AuthAd.jsx","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/components/AuthAd.jsx"},{"path":"src/components/AuthPad.jsx","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/components/AuthPad.jsx"}],"bridge":[{"path":"src/containers/AuthContainer.jsx","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/containers/AuthContainer.jsx"}],"adAct":[{"path":"src/actions/authControlActions.js","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/actions/authControlActions.js"}],"adStore":[{"path":"src/reducers/authControlRdcr.js","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/reducers/authControlRdcr.js"}],"adSvc":[{"path":"src/services/adAuth.js","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/services/adAuth.js"}],"storage":[{"path":"src/constants/storage.js","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/constants/storage.js"}],"viewMtrx":[{"path":"src/components/MtrxReg.jsx","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/components/MtrxReg.jsx"},{"path":"src/components/MtrxPad.jsx","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/components/MtrxPad.jsx"}],"mtrxCnt":[{"path":"src/containers/MtrxContainer.jsx","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/containers/MtrxContainer.jsx"}],"mtrxAct":[{"path":"src/actions/mtrxControlActions.js","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/actions/mtrxControlActions.js"}],"mtrxStore":[{"path":"src/reducers/mtrxControlRdcr.js","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/reducers/mtrxControlRdcr.js"}],"mtrxSvc":[{"path":"src/services/matrixClient.js","label":"клиент · sync · crypto","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/services/matrixClient.js"},{"path":"src/services/matrixRooms.js","label":"комнаты · сообщения","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/services/matrixRooms.js"},{"path":"src/services/matrixSdk.js","label":"ленивый import SDK","href":"https://github.com/ars-anosov/matrix-react/blob/c0c251e9cdeb9f63c338cca6dbde2a989f550171/src/services/matrixSdk.js"}]}}</script>
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
       <div class="guided-view-copy">
@@ -4935,8 +4935,8 @@
         <path data-edge-from="viewMtrx" data-edge-to="mtrxCnt" data-edge-label="события" data-edge-key="7" data-edge-id="mtrx-events" data-composition-points="240,598;360,598" d="M 240 598 L 360 598" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="mtrxCnt" data-edge-to="mtrxAct" data-edge-label="dispatch" data-edge-key="8" data-edge-id="mtrx-dispatch" data-composition-points="580,598;680,598" d="M 580 598 L 680 598" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="mtrxAct" data-edge-to="mtrxSvc" data-edge-label="доменный API" data-edge-key="9" data-edge-id="mtrx-domain" data-composition-points="900,598;1040,598" d="M 900 598 L 1040 598" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="mtrxSvc" data-edge-to="sdk" data-edge-label="Matrix API" data-edge-key="10" data-edge-id="mtrx-api" data-composition-points="1280,598;1450,598" d="M 1280 598 L 1450 598" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="mtrxAct" data-edge-to="mtrxStore" data-edge-label="деляты комнат" data-edge-key="11" data-edge-id="mtrx-state" data-composition-points="790,636;790,670" d="M 790 636 L 790 670" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="mtrxSvc" data-edge-to="sdk" data-edge-label="Matrix API · ленивый import" data-edge-key="10" data-edge-id="mtrx-api" data-composition-points="1280,598;1450,598" d="M 1280 598 L 1450 598" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="mtrxAct" data-edge-to="mtrxStore" data-edge-label="дельты комнат" data-edge-key="11" data-edge-id="mtrx-state" data-composition-points="790,636;790,670" d="M 790 636 L 790 670" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="mtrxStore" data-edge-to="mtrxCnt" data-edge-label="useSelector: индекс" data-edge-key="12" data-edge-id="mtrx-use" data-composition-points="680,708;470,708;470,636" d="M 680 708 L 478 708 Q 470 708 470 700 L 470 636" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="mtrxSvc" data-edge-to="storage" data-edge-label="токены и адрес" data-edge-key="13" data-edge-id="mtrx-tokens" data-composition-points="1160,560;1160,536;1426,536;1426,345;1450,345" d="M 1160 560 L 1160 544 Q 1160 536 1168 536 L 1418 536 Q 1426 536 1426 528 L 1426 353 Q 1426 345 1434 345 L 1450 345" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="sdk" data-edge-to="idb" data-edge-label="sync и crypto" data-edge-key="14" data-edge-id="sdk-idb" data-composition-points="1550,560;1550,476" d="M 1550 560 L 1550 476" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
@@ -5162,13 +5162,13 @@
           <rect x="936.2" y="578" width="67.6" height="14" rx="3" class="c-mask"/>
           <text x="970" y="588" class="t-muted" font-size="8" text-anchor="middle">доменный API</text>
         </g>
-        <g data-detail="context" data-edge-from="mtrxSvc" data-edge-to="sdk" data-edge-label="Matrix API" data-edge-key="10" data-edge-id="mtrx-api">
-          <rect x="1336" y="578" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="1365" y="588" class="t-muted" font-size="8" text-anchor="middle">Matrix API</text>
+        <g data-detail="context" data-edge-from="mtrxSvc" data-edge-to="sdk" data-edge-label="Matrix API · ленивый import" data-edge-key="10" data-edge-id="mtrx-api">
+          <rect x="1295.2" y="578" width="139.6" height="14" rx="3" class="c-mask"/>
+          <text x="1365" y="588" class="t-muted" font-size="8" text-anchor="middle">Matrix API · ленивый import</text>
         </g>
-        <g data-detail="context" data-edge-from="mtrxAct" data-edge-to="mtrxStore" data-edge-label="деляты комнат" data-edge-key="11" data-edge-id="mtrx-state">
+        <g data-detail="context" data-edge-from="mtrxAct" data-edge-to="mtrxStore" data-edge-label="дельты комнат" data-edge-key="11" data-edge-id="mtrx-state">
           <rect x="753.8" y="646" width="72.4" height="14" rx="3" class="c-mask"/>
-          <text x="790" y="656" class="t-muted" font-size="8" text-anchor="middle">деляты комнат</text>
+          <text x="790" y="656" class="t-muted" font-size="8" text-anchor="middle">дельты комнат</text>
         </g>
         <g data-detail="context" data-edge-from="mtrxStore" data-edge-to="mtrxCnt" data-edge-label="useSelector: индекс" data-edge-key="12" data-edge-id="mtrx-use">
           <rect x="419.4" y="652" width="101.2" height="14" rx="3" class="c-mask"/>
@@ -5427,6 +5427,18 @@
           <li>&bull; AuthContainer — единственный переход между срезами</li>
           <li>&bull; loginMatrix / logoutMatrix и authLost / mtrx_user_id</li>
           <li>&bull; Срезы видят друг друга только через мост</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot violet"></div>
+          <h3>Загрузка SDK</h3>
+        </div>
+        <ul>
+          <li>&bull; SDK грузится лениво: import() в matrixSdk.js</li>
+          <li>&bull; Отдельный чанк matrix-sdk; клиент держит matrixClientStore.js</li>
+          <li>&bull; UI и Redux видят только доменный API сервисов</li>
         </ul>
       </div>
     </div>

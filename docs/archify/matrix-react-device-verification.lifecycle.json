@@ -1,0 +1,393 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "E2EE: авторизация устройства",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1450,
+      660
+    ],
+    "views": [
+      {
+        "id": "sas-path",
+        "label": "Основной путь SAS",
+        "focus": [
+          "idle",
+          "requested",
+          "ready",
+          "started",
+          "success"
+        ],
+        "note": "Запрос на другое устройство, сверка emoji и доверие кросс-подписи."
+      },
+      {
+        "id": "cancel-return",
+        "label": "Отмена и возврат",
+        "focus": [
+          "started",
+          "cancelled",
+          "idle"
+        ],
+        "note": "«Не совпадают» или закрытие диалога отменяют проверку и возвращают форму."
+      },
+      {
+        "id": "recovery-key",
+        "label": "Recovery key и Secret Storage",
+        "focus": [
+          "idle",
+          "recovery_check",
+          "new_storage",
+          "success"
+        ],
+        "note": "Ключ расшифровывает секреты аккаунта; при их отсутствии создаётся новое хранилище."
+      },
+      {
+        "id": "error-codes",
+        "label": "Ошибки VERIFICATION_ERR",
+        "focus": [
+          "recovery_check",
+          "error",
+          "new_storage",
+          "success"
+        ],
+        "note": "Код ошибки выбирает подсказку и следующий шаг пользователя."
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "Основной путь SAS"
+    },
+    {
+      "id": "waiting",
+      "label": "Отмена"
+    },
+    {
+      "id": "recovery",
+      "label": "Recovery key · Secret Storage"
+    },
+    {
+      "id": "terminal",
+      "label": "Ошибки и восстановление"
+    }
+  ],
+  "states": [
+    {
+      "id": "idle",
+      "type": "start",
+      "label": "Ожидание",
+      "sublabel": "форма: запрос или ключ",
+      "lane": "main",
+      "col": 0,
+      "step": "01",
+      "tag": "idle"
+    },
+    {
+      "id": "requested",
+      "type": "waiting",
+      "label": "Запрос отправлен",
+      "sublabel": "loading → requested",
+      "lane": "main",
+      "col": 1,
+      "step": "02",
+      "tag": "accept"
+    },
+    {
+      "id": "ready",
+      "type": "active",
+      "label": "Запрос принят",
+      "sublabel": "фаза ready",
+      "lane": "main",
+      "col": 2,
+      "step": "03",
+      "tag": "start"
+    },
+    {
+      "id": "started",
+      "type": "decision",
+      "label": "Сверка emoji",
+      "sublabel": "SAS m.sas.v1",
+      "lane": "main",
+      "col": 3,
+      "step": "04",
+      "tag": "sas"
+    },
+    {
+      "id": "success",
+      "type": "success",
+      "label": "Устройство доверено",
+      "sublabel": "crossSigningVerified",
+      "lane": "main",
+      "col": 4,
+      "step": "05",
+      "tag": "verified"
+    },
+    {
+      "id": "cancelled",
+      "type": "failure",
+      "label": "Проверка отменена",
+      "sublabel": "фаза cancelled",
+      "lane": "waiting",
+      "col": 1,
+      "tag": "return"
+    },
+    {
+      "id": "recovery_check",
+      "type": "active",
+      "label": "Проверка ключа",
+      "sublabel": "decodeRecoveryKey",
+      "lane": "recovery",
+      "col": 2,
+      "tag": "recovery"
+    },
+    {
+      "id": "new_storage",
+      "type": "active",
+      "label": "Новое Secret Storage",
+      "sublabel": "createNewSecretStorage",
+      "lane": "terminal",
+      "col": 1,
+      "tag": "storage"
+    },
+    {
+      "id": "error",
+      "type": "failure",
+      "label": "Ошибка проверки",
+      "sublabel": "VERIFICATION_ERR",
+      "lane": "terminal",
+      "col": 0,
+      "tag": "retry"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "req-start",
+      "from": "idle",
+      "to": "requested",
+      "label": "handleRequestDeviceVerification",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        171,
+        100
+      ]
+    },
+    {
+      "id": "req-accept",
+      "from": "requested",
+      "to": "ready",
+      "label": "acceptCurrentDeviceVerification",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        325,
+        70
+      ]
+    },
+    {
+      "id": "sas-start",
+      "from": "ready",
+      "to": "started",
+      "label": "startCurrentDeviceVerification",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        479,
+        100
+      ]
+    },
+    {
+      "id": "sas-confirm",
+      "from": "started",
+      "to": "success",
+      "label": "confirmCurrentDeviceVerification",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        633,
+        70
+      ]
+    },
+    {
+      "id": "sas-cancel",
+      "from": "started",
+      "to": "cancelled",
+      "label": "cancelCurrentDeviceVerification",
+      "route": "straight",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        556,
+        233
+      ]
+    },
+    {
+      "id": "cancel-clear",
+      "from": "cancelled",
+      "to": "idle",
+      "label": "handleClearDeviceVerification",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "via": [
+        [
+          556,
+          390
+        ],
+        [
+          94,
+          390
+        ]
+      ],
+      "labelAt": [
+        325,
+        390
+      ]
+    },
+    {
+      "id": "key-verify",
+      "from": "idle",
+      "to": "recovery_check",
+      "label": "handleVerifyDeviceWithRecoveryKey",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "left",
+      "via": [
+        [
+          35,
+          420
+        ],
+        [
+          630,
+          420
+        ],
+        [
+          630,
+          307
+        ]
+      ],
+      "labelAt": [
+        330,
+        420
+      ]
+    },
+    {
+      "id": "key-ok",
+      "from": "recovery_check",
+      "to": "success",
+      "label": "bootstrapCrossSigning · restoreKeyBackup",
+      "route": "straight",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelAt": [
+        690,
+        205
+      ]
+    },
+    {
+      "id": "key-error",
+      "from": "recovery_check",
+      "to": "error",
+      "label": "errCode · VERIFICATION_ERR",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          860,
+          307
+        ],
+        [
+          860,
+          440
+        ],
+        [
+          402,
+          440
+        ]
+      ],
+      "labelAt": [
+        630,
+        528
+      ]
+    },
+    {
+      "id": "error-storage",
+      "from": "error",
+      "to": "new_storage",
+      "label": "handleCreateSecretStorage",
+      "variant": "security",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        479,
+        528
+      ]
+    },
+    {
+      "id": "storage-ok",
+      "from": "new_storage",
+      "to": "success",
+      "label": "verified после bootstrap",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "right",
+      "via": [
+        [
+          556,
+          560
+        ],
+        [
+          950,
+          560
+        ],
+        [
+          950,
+          157
+        ]
+      ],
+      "labelAt": [
+        950,
+        250
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Основной путь SAS",
+      "items": [
+        "handleRequestDeviceVerification ставит status loading, requestCurrentDeviceVerification даёт фазу requested",
+        "acceptCurrentDeviceVerification → ready, startCurrentDeviceVerification запускает m.sas.v1 и emoji",
+        "confirmCurrentDeviceVerification подтверждает SAS; verified приходит crypto-событиями с задержкой"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Recovery key и Secret Storage",
+      "items": [
+        "verifyCurrentDeviceWithRecoveryKey декодирует ключ, ждёт /sync и сверяет его через checkKey",
+        "createNewSecretStorage создаётся по подтверждению и показывает новый recoveryKey",
+        "resetOwnEncryption по паролю делает новую кросс-подпись, Secret Storage и ключ"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Ошибки VERIFICATION_ERR",
+      "items": [
+        "INVALID_KEY, KEY_MISMATCH, SYNC_INCOMPLETE, STORAGE_EXISTS → форма и «Ввести другой ключ» или «Повторить»",
+        "NO_SECRET_STORAGE → создать хранилище секретов",
+        "CROSS_SIGNING_MISSING и RESET_FAILED → авторизация с другого устройства или сброс E2EE"
+      ]
+    }
+  ]
+}

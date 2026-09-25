@@ -5,8 +5,8 @@
     "title": "Старт и авторизация",
     "quality_profile": "showcase",
     "viewBox": [
-      1900,
-      860
+      2500,
+      1300
     ],
     "column_fit": "spread"
   },
@@ -16,6 +16,12 @@
       "type": "frontend",
       "label": "MtrxContainer",
       "sublabel": "старт · форма входа · чат"
+    },
+    {
+      "id": "auth",
+      "type": "frontend",
+      "label": "AuthContainer",
+      "sublabel": "мост · AuthPad"
     },
     {
       "id": "actions",
@@ -58,6 +64,11 @@
       "from": 410,
       "to": 780,
       "label": "Вход по логину и паролю"
+    },
+    {
+      "from": 790,
+      "to": 1180,
+      "label": "Потеря активной сессии"
     }
   ],
   "messages": [
@@ -182,6 +193,81 @@
       "to": "ui",
       "y": 746,
       "label": "status success → чат",
+      "variant": "return"
+    },
+    {
+      "id": "token-expired",
+      "from": "hs",
+      "to": "sdk",
+      "y": 820,
+      "label": "401 · M_UNKNOWN_TOKEN"
+    },
+    {
+      "id": "refresh-called",
+      "from": "sdk",
+      "to": "client",
+      "y": 854,
+      "label": "tokenRefreshFunction"
+    },
+    {
+      "id": "refresh-post",
+      "from": "client",
+      "to": "hs",
+      "y": 888,
+      "label": "POST /_matrix/client/v3/refresh"
+    },
+    {
+      "id": "refresh-rejected",
+      "from": "hs",
+      "to": "client",
+      "y": 922,
+      "label": "401 · refresh отвергнут",
+      "variant": "return"
+    },
+    {
+      "id": "logout-error",
+      "from": "client",
+      "to": "sdk",
+      "y": 956,
+      "label": "TokenRefreshLogoutError",
+      "variant": "emphasis"
+    },
+    {
+      "id": "logged-out",
+      "from": "sdk",
+      "to": "client",
+      "y": 990,
+      "label": "Session.logged_out"
+    },
+    {
+      "id": "session-callback",
+      "from": "client",
+      "to": "actions",
+      "y": 1024,
+      "label": "колбэк watchMatrixSession",
+      "variant": "return"
+    },
+    {
+      "id": "invalidate-session",
+      "from": "actions",
+      "to": "client",
+      "y": 1058,
+      "label": "invalidateMatrixSession",
+      "variant": "emphasis"
+    },
+    {
+      "id": "purge-stores",
+      "from": "client",
+      "to": "ls",
+      "y": 1092,
+      "label": "токены · mtrxUserId · mtrxDeviceId"
+    },
+    {
+      "id": "auth-lost",
+      "from": "actions",
+      "to": "auth",
+      "y": 1126,
+      "label": "authLost → AuthPad, красный тумблер",
       "variant": "return"
     }
   ],

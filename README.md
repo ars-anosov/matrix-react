@@ -132,8 +132,6 @@ POST-запрос к серверу авторизации, ожидаемый �
 }
 ```
 
-![component_AuthAd.png](img/component_AuthAd.png)
-
 ## AuthPad.jsx
 Тумблер активирует сервис.
 
@@ -151,35 +149,15 @@ POST-запрос к серверу авторизации, ожидаемый �
 
 [![Мост Auth → Чат](docs/archify/matrix-react-auth-sequence.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-auth-sequence.html)
 
+[![E2EE: авторизация устройства](docs/archify/matrix-react-device-verification.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-device-verification.html)
+
 Все документы: <https://ars-anosov.github.io/matrix-react/>
 
 ## Генерация archify-документации
 
 HTML-схемы в `docs/archify/` собираются навыком `archify` (плагин профиля `web`, установка выше).
 
-Команды выполнять из корня репозитория; CLI берётся из профиля `web`:
-
-```bash
-ARCHIFY="$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify/bin/archify.mjs"
-
-# 1. Проверка спецификации: приёмка — 9/9 проверок, 0 ошибок и 0 предупреждений
-node "$ARCHIFY" validate architecture docs/archify/matrix-react-architecture.architecture.json \
-  --quality showcase --repo-root . --json
-
-# 2. Сборка: deliver — единственная пишущая команда, печатает SHA-256 и размеры
-node "$ARCHIFY" deliver architecture docs/archify/matrix-react-architecture.architecture.json \
-  docs/archify/matrix-react-architecture.html --quality showcase --repo-root . --json
-
-# 3. Визуальный контроль по навыку archify-visual-check
-node "$ARCHIFY" visual-check docs/archify/matrix-react-architecture.html --json
-```
-
-Для sequence-схем:
-- меняем `validate sequence`
-- не нужен `--repo-root .` 
-
-При пересборке обновлять и `meta.repository.revision`, иначе ссылки evidence в HTML ведут на старый коммит.
-
+С пояснениями в mermaid - [docs/STATE.md](docs/STATE.md)
 
 # Пакеты
 

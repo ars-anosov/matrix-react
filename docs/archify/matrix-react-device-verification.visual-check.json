@@ -5,9 +5,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-chat-flow.html",
-    "sha256": "fb9110fb5bf9f7e6ca0da61243b32178d3c043c4db786aafe4ca967b33bfe11b",
-    "bytes": 641248
+    "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-device-verification.html",
+    "sha256": "ee82c87887834756b511da014f5f8c85ab1f8998131e04dc6482e4d126ebf780",
+    "bytes": 644691
   },
   "state": {
     "detail": "read",
@@ -89,7 +89,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-chat-flow.visual-check.1440x900.light.png"
+        "file": "matrix-react-device-verification.visual-check.1440x900.light.png"
       },
       {
         "width": 1440,
@@ -103,7 +103,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-chat-flow.visual-check.1440x900.dark.png"
+        "file": "matrix-react-device-verification.visual-check.1440x900.dark.png"
       },
       {
         "width": 2048,
@@ -117,7 +117,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-chat-flow.visual-check.2048x1320.light.png"
+        "file": "matrix-react-device-verification.visual-check.2048x1320.light.png"
       },
       {
         "width": 2048,
@@ -131,13 +131,13 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-chat-flow.visual-check.2048x1320.dark.png"
+        "file": "matrix-react-device-verification.visual-check.2048x1320.dark.png"
       }
     ],
-    "contactSheet": "matrix-react-chat-flow.visual-check.html"
+    "contactSheet": "matrix-react-device-verification.visual-check.html"
   },
   "sidecars": {
-    "receipt": "matrix-react-chat-flow.visual-check.json",
-    "contactSheet": "matrix-react-chat-flow.visual-check.html"
+    "receipt": "matrix-react-device-verification.visual-check.json",
+    "contactSheet": "matrix-react-device-verification.visual-check.html"
   }
 }

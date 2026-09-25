@@ -3,13 +3,21 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Архитектура",
-    "quality_profile": "showcase"
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ars-anosov/matrix-react",
+      "revision": "c0c251e9cdeb9f63c338cca6dbde2a989f550171"
+    }
   },
   "components": [
     {
       "id": "viewAd",
       "type": "frontend",
       "label": "AuthAd · AuthPad",
+      "sources": [
+        { "path": "src/components/AuthAd.jsx" },
+        { "path": "src/components/AuthPad.jsx" }
+      ],
       "sublabel": "формы AD",
       "tag": "AUTHCTL_",
       "pos": [
@@ -25,6 +33,7 @@
       "id": "bridge",
       "type": "frontend",
       "label": "AuthContainer",
+      "sources": [{ "path": "src/containers/AuthContainer.jsx" }],
       "sublabel": "мост AUTHCTL_ ↔ MTRXCTL_",
       "pos": [
         360,
@@ -39,6 +48,7 @@
       "id": "adAct",
       "type": "backend",
       "label": "authControlActions",
+      "sources": [{ "path": "src/actions/authControlActions.js" }],
       "sublabel": "AUTHCTL_",
       "tag": "AUTHCTL_",
       "pos": [
@@ -54,6 +64,7 @@
       "id": "adStore",
       "type": "database",
       "label": "authControlRdcr",
+      "sources": [{ "path": "src/reducers/authControlRdcr.js" }],
       "sublabel": "состояние AD",
       "tag": "AUTHCTL_",
       "pos": [
@@ -69,6 +80,7 @@
       "id": "adSvc",
       "type": "backend",
       "label": "adAuth",
+      "sources": [{ "path": "src/services/adAuth.js" }],
       "sublabel": "AD-авторизация · ky",
       "pos": [
         1040,
@@ -97,6 +109,7 @@
       "id": "storage",
       "type": "database",
       "label": "localStorage",
+      "sources": [{ "path": "src/constants/storage.js" }],
       "sublabel": "ключи приложения",
       "pos": [
         1450,
@@ -125,6 +138,10 @@
       "id": "viewMtrx",
       "type": "frontend",
       "label": "MtrxReg · MtrxPad",
+      "sources": [
+        { "path": "src/components/MtrxReg.jsx" },
+        { "path": "src/components/MtrxPad.jsx" }
+      ],
       "sublabel": "регистрация и чат",
       "pos": [
         40,
@@ -139,6 +156,7 @@
       "id": "mtrxCnt",
       "type": "frontend",
       "label": "MtrxContainer",
+      "sources": [{ "path": "src/containers/MtrxContainer.jsx" }],
       "sublabel": "контейнер чата",
       "pos": [
         360,
@@ -153,6 +171,7 @@
       "id": "mtrxAct",
       "type": "backend",
       "label": "mtrxControlActions",
+      "sources": [{ "path": "src/actions/mtrxControlActions.js" }],
       "sublabel": "MTRXCTL_",
       "tag": "MTRXCTL_",
       "pos": [
@@ -168,6 +187,7 @@
       "id": "mtrxStore",
       "type": "database",
       "label": "mtrxControlRdcr",
+      "sources": [{ "path": "src/reducers/mtrxControlRdcr.js" }],
       "sublabel": "индекс комнат",
       "tag": "MTRXCTL_",
       "pos": [
@@ -183,6 +203,11 @@
       "id": "mtrxSvc",
       "type": "backend",
       "label": "Matrix-сервисы",
+      "sources": [
+        { "path": "src/services/matrixClient.js", "label": "клиент · sync · crypto" },
+        { "path": "src/services/matrixRooms.js", "label": "комнаты · сообщения" },
+        { "path": "src/services/matrixSdk.js", "label": "ленивый import SDK" }
+      ],
       "sublabel": "matrixClient · matrixRooms · matrixMedia",
       "pos": [
         1040,
@@ -322,13 +347,13 @@
       "id": "mtrx-api",
       "from": "mtrxSvc",
       "to": "sdk",
-      "label": "Matrix API"
+      "label": "Matrix API · ленивый import"
     },
     {
       "id": "mtrx-state",
       "from": "mtrxAct",
       "to": "mtrxStore",
-      "label": "деляты комнат",
+      "label": "дельты комнат",
       "fromSide": "bottom",
       "toSide": "top",
       "labelDy": 30
@@ -410,6 +435,15 @@
         "AuthContainer — единственный переход между срезами",
         "loginMatrix / logoutMatrix и authLost / mtrx_user_id",
         "Срезы видят друг друга только через мост"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Загрузка SDK",
+      "items": [
+        "SDK грузится лениво: import() в matrixSdk.js",
+        "Отдельный чанк matrix-sdk; клиент держит matrixClientStore.js",
+        "UI и Redux видят только доменный API сервисов"
       ]
     }
   ]

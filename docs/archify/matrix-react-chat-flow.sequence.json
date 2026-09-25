@@ -5,8 +5,8 @@
     "title": "Чат",
     "quality_profile": "showcase",
     "viewBox": [
-      1660,
-      920
+      2300,
+      1200
     ],
     "column_fit": "spread"
   },
@@ -45,18 +45,28 @@
   "segments": [
     {
       "from": 160,
-      "to": 420,
+      "to": 430,
       "label": "Список комнат"
     },
     {
-      "from": 445,
-      "to": 685,
+      "from": 435,
+      "to": 620,
+      "label": "Метаданные комнат"
+    },
+    {
+      "from": 625,
+      "to": 840,
       "label": "Выбранная комната"
     },
     {
-      "from": 705,
-      "to": 840,
+      "from": 850,
+      "to": 980,
       "label": "Отправка"
+    },
+    {
+      "from": 990,
+      "to": 1110,
+      "label": "Уведомления"
     }
   ],
   "messages": [
@@ -71,14 +81,14 @@
       "id": "subscribe-list",
       "from": "actions",
       "to": "rooms",
-      "y": 242,
+      "y": 240,
       "label": "watchRoomList"
     },
     {
       "id": "sdk-list",
       "from": "sdk",
       "to": "rooms",
-      "y": 292,
+      "y": 284,
       "label": "Room · myMembership · receipt",
       "variant": "dashed"
     },
@@ -86,7 +96,7 @@
       "id": "list-delta",
       "from": "rooms",
       "to": "actions",
-      "y": 337,
+      "y": 328,
       "label": "INITIALIZE / PUT / DELETE",
       "variant": "return"
     },
@@ -94,29 +104,52 @@
       "id": "index-update",
       "from": "actions",
       "to": "redux",
-      "y": 383,
+      "y": 372,
       "label": "roomIds · roomsMeta",
+      "variant": "emphasis"
+    },
+    {
+      "id": "meta-load",
+      "from": "actions",
+      "to": "rooms",
+      "y": 460,
+      "label": "getRoomMeta(roomId)"
+    },
+    {
+      "id": "meta-data",
+      "from": "rooms",
+      "to": "actions",
+      "y": 504,
+      "label": "аватар · подпись · участники",
+      "variant": "return"
+    },
+    {
+      "id": "meta-store",
+      "from": "actions",
+      "to": "redux",
+      "y": 548,
+      "label": "roomsMeta[roomId]",
       "variant": "emphasis"
     },
     {
       "id": "choose-room",
       "from": "ui",
       "to": "actions",
-      "y": 475,
+      "y": 650,
       "label": "handleSelectRoom"
     },
     {
       "id": "selected-id",
       "from": "actions",
       "to": "redux",
-      "y": 520,
+      "y": 694,
       "label": "selectedRoomId"
     },
     {
       "id": "watch-timeline",
       "from": "ui",
       "to": "rooms",
-      "y": 565,
+      "y": 738,
       "label": "watchRoomMessages",
       "variant": "emphasis"
     },
@@ -124,7 +157,7 @@
       "id": "timeline-event",
       "from": "sdk",
       "to": "rooms",
-      "y": 610,
+      "y": 782,
       "label": "Room.timeline · Event.decrypted",
       "variant": "dashed"
     },
@@ -132,7 +165,7 @@
       "id": "messages-to-ui",
       "from": "rooms",
       "to": "ui",
-      "y": 655,
+      "y": 826,
       "label": "снимок сообщений — мимо Redux",
       "variant": "return"
     },
@@ -140,23 +173,38 @@
       "id": "send-action",
       "from": "ui",
       "to": "actions",
-      "y": 731,
+      "y": 875,
       "label": "handleSendMessage"
     },
     {
       "id": "send-room",
       "from": "actions",
       "to": "rooms",
-      "y": 775,
+      "y": 919,
       "label": "sendRoomMessage"
     },
     {
       "id": "send-sdk",
       "from": "rooms",
       "to": "sdk",
-      "y": 818,
+      "y": 963,
       "label": "sendTextMessage",
       "variant": "emphasis"
+    },
+    {
+      "id": "notify-watch",
+      "from": "ui",
+      "to": "rooms",
+      "y": 1020,
+      "label": "watchMessageNotifications"
+    },
+    {
+      "id": "notify-sound",
+      "from": "rooms",
+      "to": "ui",
+      "y": 1064,
+      "label": "новое сообщение → звук",
+      "variant": "return"
     }
   ],
   "cards": [
@@ -174,6 +222,15 @@
       "items": [
         "watchRoomList обновляет индекс дельтами",
         "watchRoomMessages отдаёт таймлайн контейнеру, включая Event.decrypted"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Метаданные и звук",
+      "items": [
+        "После дельты действия догружают мета: getRoomMeta → roomsMeta",
+        "Метаданные приходят асинхронно",
+        "Сигнал о сообщении даёт сервис, звук решает UI"
       ]
     }
   ]
