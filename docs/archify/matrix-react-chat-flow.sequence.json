@@ -5,8 +5,8 @@
     "title": "Чат",
     "quality_profile": "showcase",
     "viewBox": [
-      2300,
-      1200
+      2700,
+      1180
     ],
     "column_fit": "spread"
   },
@@ -24,6 +24,12 @@
       "sublabel": "команды и дельты"
     },
     {
+      "id": "redux",
+      "type": "database",
+      "label": "Redux",
+      "sublabel": "индекс комнат"
+    },
+    {
       "id": "rooms",
       "type": "backend",
       "label": "matrixRooms",
@@ -36,36 +42,36 @@
       "sublabel": "Room · Timeline"
     },
     {
-      "id": "redux",
-      "type": "database",
-      "label": "Redux",
-      "sublabel": "индекс комнат"
+      "id": "hs",
+      "type": "external",
+      "label": "Homeserver",
+      "sublabel": "/sync · /send · media"
     }
   ],
   "segments": [
     {
       "from": 160,
-      "to": 430,
+      "to": 455,
       "label": "Список комнат"
     },
     {
-      "from": 435,
+      "from": 465,
       "to": 620,
       "label": "Метаданные комнат"
     },
     {
-      "from": 625,
-      "to": 840,
+      "from": 630,
+      "to": 830,
       "label": "Выбранная комната"
     },
     {
-      "from": 850,
-      "to": 980,
+      "from": 840,
+      "to": 995,
       "label": "Отправка"
     },
     {
-      "from": 990,
-      "to": 1110,
+      "from": 1005,
+      "to": 1120,
       "label": "Уведомления"
     }
   ],
@@ -81,14 +87,29 @@
       "id": "subscribe-list",
       "from": "actions",
       "to": "rooms",
-      "y": 240,
+      "y": 236,
       "label": "watchRoomList"
+    },
+    {
+      "id": "sync-poll",
+      "from": "sdk",
+      "to": "hs",
+      "y": 276,
+      "label": "GET /sync — long poll"
+    },
+    {
+      "id": "sync-events",
+      "from": "hs",
+      "to": "sdk",
+      "y": 316,
+      "label": "события комнат",
+      "variant": "return"
     },
     {
       "id": "sdk-list",
       "from": "sdk",
       "to": "rooms",
-      "y": 284,
+      "y": 356,
       "label": "Room · myMembership · receipt",
       "variant": "dashed"
     },
@@ -96,7 +117,7 @@
       "id": "list-delta",
       "from": "rooms",
       "to": "actions",
-      "y": 328,
+      "y": 396,
       "label": "INITIALIZE / PUT / DELETE",
       "variant": "return"
     },
@@ -104,7 +125,7 @@
       "id": "index-update",
       "from": "actions",
       "to": "redux",
-      "y": 372,
+      "y": 436,
       "label": "roomIds · roomsMeta",
       "variant": "emphasis"
     },
@@ -112,14 +133,14 @@
       "id": "meta-load",
       "from": "actions",
       "to": "rooms",
-      "y": 460,
+      "y": 475,
       "label": "getRoomMeta(roomId)"
     },
     {
       "id": "meta-data",
       "from": "rooms",
       "to": "actions",
-      "y": 504,
+      "y": 515,
       "label": "аватар · подпись · участники",
       "variant": "return"
     },
@@ -127,7 +148,7 @@
       "id": "meta-store",
       "from": "actions",
       "to": "redux",
-      "y": 548,
+      "y": 555,
       "label": "roomsMeta[roomId]",
       "variant": "emphasis"
     },
@@ -135,21 +156,21 @@
       "id": "choose-room",
       "from": "ui",
       "to": "actions",
-      "y": 650,
+      "y": 655,
       "label": "handleSelectRoom"
     },
     {
       "id": "selected-id",
       "from": "actions",
       "to": "redux",
-      "y": 694,
+      "y": 695,
       "label": "selectedRoomId"
     },
     {
       "id": "watch-timeline",
       "from": "ui",
       "to": "rooms",
-      "y": 738,
+      "y": 735,
       "label": "watchRoomMessages",
       "variant": "emphasis"
     },
@@ -157,7 +178,7 @@
       "id": "timeline-event",
       "from": "sdk",
       "to": "rooms",
-      "y": 782,
+      "y": 775,
       "label": "Room.timeline · Event.decrypted",
       "variant": "dashed"
     },
@@ -165,7 +186,7 @@
       "id": "messages-to-ui",
       "from": "rooms",
       "to": "ui",
-      "y": 826,
+      "y": 815,
       "label": "снимок сообщений — мимо Redux",
       "variant": "return"
     },
@@ -173,36 +194,43 @@
       "id": "send-action",
       "from": "ui",
       "to": "actions",
-      "y": 875,
+      "y": 865,
       "label": "handleSendMessage"
     },
     {
       "id": "send-room",
       "from": "actions",
       "to": "rooms",
-      "y": 919,
+      "y": 905,
       "label": "sendRoomMessage"
     },
     {
       "id": "send-sdk",
       "from": "rooms",
       "to": "sdk",
-      "y": 963,
+      "y": 945,
       "label": "sendTextMessage",
       "variant": "emphasis"
+    },
+    {
+      "id": "send-hs",
+      "from": "sdk",
+      "to": "hs",
+      "y": 985,
+      "label": "PUT /rooms/…/send/m.room.message"
     },
     {
       "id": "notify-watch",
       "from": "ui",
       "to": "rooms",
-      "y": 1020,
+      "y": 1025,
       "label": "watchMessageNotifications"
     },
     {
       "id": "notify-sound",
       "from": "rooms",
       "to": "ui",
-      "y": 1064,
+      "y": 1065,
       "label": "новое сообщение → звук",
       "variant": "return"
     }
@@ -228,9 +256,8 @@
       "dot": "violet",
       "title": "Метаданные и звук",
       "items": [
-        "После дельты действия догружают мета: getRoomMeta → roomsMeta",
-        "Метаданные приходят асинхронно",
-        "Сигнал о сообщении даёт сервис, звук решает UI"
+        "Список, таймлайн и отправка идут через matrix-js-sdk на Homeserver",
+        "Метаданные асинхронны; сигнал о сообщении даёт сервис, звук решает UI"
       ]
     }
   ]

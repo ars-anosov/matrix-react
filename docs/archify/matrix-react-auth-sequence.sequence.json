@@ -5,8 +5,8 @@
     "title": "Мост Auth → Чат",
     "quality_profile": "showcase",
     "viewBox": [
-      1800,
-      890
+      2400,
+      1060
     ],
     "column_fit": "spread"
   },
@@ -23,16 +23,28 @@
       "sublabel": "вход и тумблер"
     },
     {
-      "id": "ad",
-      "type": "backend",
-      "label": "adAuth",
-      "sublabel": "AD-авторизация"
-    },
-    {
       "id": "bridge",
       "type": "frontend",
       "label": "AuthContainer",
       "sublabel": "мост между срезами"
+    },
+    {
+      "id": "redux",
+      "type": "database",
+      "label": "Redux",
+      "sublabel": "authControlRdcr · mtrxControlRdcr"
+    },
+    {
+      "id": "storage",
+      "type": "database",
+      "label": "localStorage",
+      "sublabel": "ключи приложения"
+    },
+    {
+      "id": "ad",
+      "type": "backend",
+      "label": "adAuth",
+      "sublabel": "AD-авторизация · ky"
     },
     {
       "id": "matrix",
@@ -41,26 +53,32 @@
       "sublabel": "Matrix-сессия"
     },
     {
-      "id": "storage",
-      "type": "database",
-      "label": "localStorage",
-      "sublabel": "ключи приложения"
+      "id": "adSrv",
+      "type": "external",
+      "label": "AD-сервис",
+      "sublabel": "POST uriAdAuth"
+    },
+    {
+      "id": "hs",
+      "type": "external",
+      "label": "Homeserver",
+      "sublabel": "/login · /sync"
     }
   ],
   "segments": [
     {
       "from": 155,
-      "to": 425,
+      "to": 480,
       "label": "AD-вход"
     },
     {
-      "from": 440,
-      "to": 675,
+      "from": 490,
+      "to": 790,
       "label": "Вход Matrix"
     },
     {
-      "from": 690,
-      "to": 815,
+      "from": 800,
+      "to": 975,
       "label": "Сброс"
     }
   ],
@@ -76,30 +94,52 @@
       "id": "ad-login",
       "from": "auth",
       "to": "ad",
-      "y": 235,
+      "y": 225,
       "label": "loginAd",
       "variant": "emphasis"
+    },
+    {
+      "id": "ad-service",
+      "from": "ad",
+      "to": "adSrv",
+      "y": 265,
+      "label": "POST uriAdAuth (login · password)"
+    },
+    {
+      "id": "ad-service-ok",
+      "from": "adSrv",
+      "to": "ad",
+      "y": 305,
+      "label": "ad_login · mtrx_login · mtrx_password",
+      "variant": "return"
     },
     {
       "id": "ad-store",
       "from": "ad",
       "to": "storage",
-      "y": 285,
+      "y": 345,
       "label": "uriAdAuth · adLogin · adAuthExpireTime"
     },
     {
       "id": "ad-result",
       "from": "ad",
+      "to": "redux",
+      "y": 385,
+      "label": "AUTHCTL_SUBMIT_SUCCESS · mtrx_login · mtrx_password"
+    },
+    {
+      "id": "ad-read",
+      "from": "redux",
       "to": "bridge",
-      "y": 335,
-      "label": "mtrx_login · mtrx_password",
+      "y": 425,
+      "label": "useSelector: responseData",
       "variant": "return"
     },
     {
       "id": "show-bridge",
       "from": "bridge",
       "to": "auth",
-      "y": 385,
+      "y": 465,
       "label": "AuthPad · логин в форму",
       "variant": "return"
     },
@@ -107,51 +147,73 @@
       "id": "toggle-on",
       "from": "person",
       "to": "auth",
-      "y": 465,
+      "y": 505,
       "label": "включить тумблер"
     },
     {
       "id": "invoke-bridge",
       "from": "auth",
       "to": "bridge",
-      "y": 510,
+      "y": 545,
       "label": "onToggleMtrx"
     },
     {
       "id": "matrix-login",
       "from": "bridge",
       "to": "matrix",
-      "y": 555,
+      "y": 585,
       "label": "handleRegister → loginMatrix",
       "variant": "emphasis"
+    },
+    {
+      "id": "matrix-post",
+      "from": "matrix",
+      "to": "hs",
+      "y": 625,
+      "label": "POST /_matrix/client/v3/login"
+    },
+    {
+      "id": "matrix-post-ok",
+      "from": "hs",
+      "to": "matrix",
+      "y": 665,
+      "label": "access_token · device_id",
+      "variant": "return"
     },
     {
       "id": "matrix-store",
       "from": "matrix",
       "to": "storage",
-      "y": 600,
+      "y": 705,
       "label": "uriMatrix · токены · mtrxDeviceId"
     },
     {
       "id": "matrix-status",
       "from": "matrix",
-      "to": "bridge",
-      "y": 645,
-      "label": "успех / ошибка → цвет тумблера",
+      "to": "redux",
+      "y": 745,
+      "label": "MTRXCTL_SUBMIT_SUCCESS / ERROR"
+    },
+    {
+      "id": "toggle-color",
+      "from": "redux",
+      "to": "auth",
+      "y": 785,
+      "label": "useSelector: статус → цвет тумблера",
       "variant": "return"
     },
     {
       "id": "toggle-off",
       "from": "person",
       "to": "auth",
-      "y": 710,
+      "y": 825,
       "label": "клик по цветному тумблеру"
     },
     {
       "id": "session-clear",
       "from": "bridge",
       "to": "matrix",
-      "y": 750,
+      "y": 865,
       "label": "handleRegClear → logoutMatrix",
       "variant": "emphasis"
     },
@@ -159,8 +221,15 @@
       "id": "session-purge",
       "from": "matrix",
       "to": "storage",
-      "y": 790,
+      "y": 905,
       "label": "удаление токенов сессии"
+    },
+    {
+      "id": "store-clear",
+      "from": "bridge",
+      "to": "redux",
+      "y": 945,
+      "label": "MTRXCTL_CLEAR"
     }
   ],
   "cards": [
@@ -169,6 +238,7 @@
       "title": "Граница срезов",
       "items": [
         "Только AuthContainer связывает AUTHCTL_ и MTRXCTL_",
+        "Оба среза сходятся в Redux: authControlRdcr и mtrxControlRdcr",
         "Пароль AD не кладётся в Matrix Redux"
       ]
     },

@@ -5,8 +5,8 @@
     "title": "Старт и авторизация",
     "quality_profile": "showcase",
     "viewBox": [
-      2500,
-      1300
+      2700,
+      1260
     ],
     "column_fit": "spread"
   },
@@ -27,7 +27,19 @@
       "id": "actions",
       "type": "backend",
       "label": "mtrxControlActions",
-      "sublabel": "hydrate · login"
+      "sublabel": "hydrate · login · clear"
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "Redux",
+      "sublabel": "authControlRdcr · mtrxControlRdcr"
+    },
+    {
+      "id": "ls",
+      "type": "database",
+      "label": "localStorage",
+      "sublabel": "AD- и Matrix-ключи"
     },
     {
       "id": "client",
@@ -46,58 +58,68 @@
       "type": "external",
       "label": "Homeserver",
       "sublabel": "/login · /sync · /refresh"
-    },
-    {
-      "id": "ls",
-      "type": "database",
-      "label": "localStorage",
-      "sublabel": "адрес · логин · deviceId"
     }
   ],
   "segments": [
     {
       "from": 160,
-      "to": 400,
-      "label": "Старт: сессия не восстанавливается"
+      "to": 460,
+      "label": "Старт: сид стора, сессия не восстанавливается"
     },
     {
-      "from": 410,
-      "to": 780,
+      "from": 470,
+      "to": 800,
       "label": "Вход по логину и паролю"
     },
     {
-      "from": 790,
-      "to": 1180,
+      "from": 830,
+      "to": 1190,
       "label": "Потеря активной сессии"
     }
   ],
   "messages": [
     {
+      "id": "boot-seed-read",
+      "from": "store",
+      "to": "ls",
+      "y": 190,
+      "label": "preloadedState: getStoredAdAuthUri",
+      "variant": "security"
+    },
+    {
+      "id": "boot-seed",
+      "from": "ls",
+      "to": "store",
+      "y": 220,
+      "label": "uriAdAuth — сид до монтирования React",
+      "variant": "return"
+    },
+    {
       "id": "hydrate",
       "from": "ui",
       "to": "actions",
-      "y": 190,
+      "y": 250,
       "label": "handleHydrateStoredMatrixData"
     },
     {
       "id": "read-stored",
       "from": "actions",
       "to": "client",
-      "y": 224,
+      "y": 280,
       "label": "getStoredMatrixData"
     },
     {
       "id": "read-ls",
       "from": "client",
       "to": "ls",
-      "y": 258,
+      "y": 310,
       "label": "uriMatrix · mtrxLogin"
     },
     {
       "id": "stored-data",
       "from": "ls",
       "to": "client",
-      "y": 292,
+      "y": 340,
       "label": "адрес · логин",
       "variant": "return"
     },
@@ -105,23 +127,30 @@
       "id": "hydrated",
       "from": "client",
       "to": "actions",
-      "y": 326,
+      "y": 370,
       "label": "uriMatrix · login",
       "variant": "return"
     },
     {
-      "id": "form-ready",
+      "id": "store-data",
       "from": "actions",
+      "to": "store",
+      "y": 400,
+      "label": "MTRXCTL_STORE_MATRIX_DATA"
+    },
+    {
+      "id": "form-ready",
+      "from": "store",
       "to": "ui",
-      "y": 360,
-      "label": "форма входа предзаполнена, status idle",
+      "y": 430,
+      "label": "useSelector: uriMatrix · login",
       "variant": "return"
     },
     {
       "id": "register",
       "from": "ui",
       "to": "actions",
-      "y": 440,
+      "y": 495,
       "label": "handleRegister · логин · пароль",
       "variant": "emphasis"
     },
@@ -129,7 +158,7 @@
       "id": "login",
       "from": "actions",
       "to": "client",
-      "y": 474,
+      "y": 525,
       "label": "loginMatrix",
       "variant": "emphasis"
     },
@@ -137,14 +166,14 @@
       "id": "login-post",
       "from": "client",
       "to": "hs",
-      "y": 508,
+      "y": 555,
       "label": "POST /_matrix/client/v3/login"
     },
     {
       "id": "login-ok",
       "from": "hs",
       "to": "client",
-      "y": 542,
+      "y": 585,
       "label": "access_token · device_id",
       "variant": "return"
     },
@@ -152,7 +181,7 @@
       "id": "start-client",
       "from": "client",
       "to": "sdk",
-      "y": 576,
+      "y": 615,
       "label": "createClient + startClient",
       "variant": "emphasis"
     },
@@ -160,14 +189,14 @@
       "id": "sync",
       "from": "sdk",
       "to": "hs",
-      "y": 610,
+      "y": 645,
       "label": "GET /sync"
     },
     {
       "id": "sync-ok",
       "from": "hs",
       "to": "sdk",
-      "y": 644,
+      "y": 675,
       "label": "200 · события",
       "variant": "return"
     },
@@ -175,7 +204,7 @@
       "id": "syncing",
       "from": "sdk",
       "to": "client",
-      "y": 678,
+      "y": 705,
       "label": "SYNCING",
       "variant": "return"
     },
@@ -183,44 +212,51 @@
       "id": "session-snapshot",
       "from": "client",
       "to": "actions",
-      "y": 712,
+      "y": 735,
       "label": "session · userId · deviceId",
       "variant": "return"
     },
     {
-      "id": "status-success",
+      "id": "submit-ok",
       "from": "actions",
+      "to": "store",
+      "y": 765,
+      "label": "MTRXCTL_SUBMIT_SUCCESS"
+    },
+    {
+      "id": "status-success",
+      "from": "store",
       "to": "ui",
-      "y": 746,
-      "label": "status success → чат",
+      "y": 795,
+      "label": "useSelector: status success → чат",
       "variant": "return"
     },
     {
       "id": "token-expired",
       "from": "hs",
       "to": "sdk",
-      "y": 820,
+      "y": 855,
       "label": "401 · M_UNKNOWN_TOKEN"
     },
     {
       "id": "refresh-called",
       "from": "sdk",
       "to": "client",
-      "y": 854,
+      "y": 885,
       "label": "tokenRefreshFunction"
     },
     {
       "id": "refresh-post",
       "from": "client",
       "to": "hs",
-      "y": 888,
+      "y": 915,
       "label": "POST /_matrix/client/v3/refresh"
     },
     {
       "id": "refresh-rejected",
       "from": "hs",
       "to": "client",
-      "y": 922,
+      "y": 945,
       "label": "401 · refresh отвергнут",
       "variant": "return"
     },
@@ -228,7 +264,7 @@
       "id": "logout-error",
       "from": "client",
       "to": "sdk",
-      "y": 956,
+      "y": 975,
       "label": "TokenRefreshLogoutError",
       "variant": "emphasis"
     },
@@ -236,14 +272,14 @@
       "id": "logged-out",
       "from": "sdk",
       "to": "client",
-      "y": 990,
+      "y": 1005,
       "label": "Session.logged_out"
     },
     {
       "id": "session-callback",
       "from": "client",
       "to": "actions",
-      "y": 1024,
+      "y": 1035,
       "label": "колбэк watchMatrixSession",
       "variant": "return"
     },
@@ -251,7 +287,7 @@
       "id": "invalidate-session",
       "from": "actions",
       "to": "client",
-      "y": 1058,
+      "y": 1065,
       "label": "invalidateMatrixSession",
       "variant": "emphasis"
     },
@@ -259,15 +295,22 @@
       "id": "purge-stores",
       "from": "client",
       "to": "ls",
-      "y": 1092,
+      "y": 1095,
       "label": "токены · mtrxUserId · mtrxDeviceId"
     },
     {
-      "id": "auth-lost",
+      "id": "store-clear",
       "from": "actions",
+      "to": "store",
+      "y": 1125,
+      "label": "MTRXCTL_CLEAR · authLost"
+    },
+    {
+      "id": "auth-lost",
+      "from": "store",
       "to": "auth",
-      "y": 1126,
-      "label": "authLost → AuthPad, красный тумблер",
+      "y": 1155,
+      "label": "useSelector: authLost → AuthPad, красный тумблер",
       "variant": "return"
     }
   ],
@@ -276,9 +319,9 @@
       "dot": "cyan",
       "title": "Старт требует авторизацию",
       "items": [
-        "Клиент Matrix не создаётся: сохранённый access token не используется",
-        "Адрес и логин из localStorage только предзаполняют форму входа",
-        "Статус остаётся idle, поэтому показан AuthLinks"
+        "Самый ранний доступ к хранилищу — сид стора: store/preloadedState.js читает uriAdAuth через adAuth.getStoredAdAuthUri ещё до монтирования React",
+        "Следом startAuthTimeoutCheck раз в 10 с читает adAuthExpireTime и на AUTHCTL_CLEAR удаляет его",
+        "Клиент Matrix не создаётся: сохранённый access token не используется, статус остаётся idle и показан AuthLinks"
       ]
     },
     {
@@ -286,7 +329,7 @@
       "title": "Вход по логину и паролю",
       "items": [
         "После login: createClient + startClient, затем первый /sync",
-        "SYNCING даёт Redux снимок сессии, таймлайн остаётся в SDK",
+        "SYNCING даёт снимок сессии в mtrxControlRdcr, таймлайн остаётся в SDK",
         "status success включает чат; токены хранятся ради deviceId при следующем входе"
       ]
     },
@@ -296,7 +339,7 @@
       "items": [
         "401 на /sync зовёт tokenRefreshFunction; принятый refresh обновляет токены без сброса",
         "401 на refresh — TokenRefreshLogoutError и Session.logged_out",
-        "Сброс: токены и IndexedDB удалены, AuthPad с красным тумблером"
+        "Сброс: MTRXCTL_CLEAR даёт authLost, токены и IndexedDB удалены, AuthPad с красным тумблером"
       ]
     }
   ]

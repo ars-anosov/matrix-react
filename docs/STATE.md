@@ -77,19 +77,23 @@ flowchart LR
 ```mermaid
 sequenceDiagram
   participant UI as MtrxContainer
+  participant Auth as AuthContainer
   participant Act as mtrxControlActions
+  participant RX as Redux
+  participant LS as localStorage
   participant Cl as matrixClient
   participant SDK as matrix-js-sdk
   participant HS as Homeserver
-  participant LS as localStorage
-  participant Auth as AuthContainer
-  Note over UI,Auth: Старт — сессия не восстанавливается
+  Note over UI,Auth: Старт — сид стора, сессия не восстанавливается
+  RX->>LS: preloadedState: getStoredAdAuthUri
+  LS-->>RX: uriAdAuth
   UI->>Act: handleHydrateStoredMatrixData
   Act->>Cl: getStoredMatrixData
   Cl->>LS: uriMatrix · mtrxLogin
   LS-->>Cl: адрес · логин
   Cl-->>Act: uriMatrix · login
-  Act-->>UI: форма входа предзаполнена, status idle
+  Act->>RX: MTRXCTL_STORE_MATRIX_DATA
+  RX-->>UI: useSelector: uriMatrix · login
   Note over UI,Auth: Вход по логину и паролю
   UI->>Act: handleRegister
   Act->>Cl: loginMatrix
@@ -100,7 +104,8 @@ sequenceDiagram
   HS-->>SDK: 200 · события
   SDK-->>Cl: SYNCING
   Cl-->>Act: session · userId · deviceId
-  Act-->>UI: status success → чат
+  Act->>RX: MTRXCTL_SUBMIT_SUCCESS
+  RX-->>UI: useSelector: status success → чат
   Note over UI,Auth: Потеря активной сессии
   HS-->>SDK: 401 · M_UNKNOWN_TOKEN
   SDK->>Cl: tokenRefreshFunction
@@ -110,12 +115,20 @@ sequenceDiagram
   SDK->>Cl: Session.logged_out
   Cl-->>Act: колбэк watchMatrixSession
   Act->>Cl: invalidateMatrixSession
-  Cl->>LS: удаление токенов · mtrxUserId · mtrxDeviceId
-  Act-->>Auth: authLost → AuthPad, красный тумблер
+  Cl->>LS: токены · mtrxUserId · mtrxDeviceId
+  Act->>RX: MTRXCTL_CLEAR · authLost
+  RX-->>Auth: useSelector: authLost → AuthPad
 ```
 
 - Старт: сохранённые адрес и логин только предзаполняют форму входа; клиент Matrix не создаётся,
   `status` остаётся `idle`, поэтому виден `AuthLinks` — авторизация требуется при каждом запуске.
+- Самый ранний доступ к хранилищу — ещё до монтирования React: сид стора
+  (`store/preloadedState.js`) читает `uriAdAuth` через `adAuth.getStoredAdAuthUri`; следом
+  `startAuthTimeoutCheck` раз в 10 с читает `adAuthExpireTime` и на `AUTHCTL_CLEAR` удаляет его.
+- Состояние ведёт срез `mtrxControlRdcr`: гидратация (`MTRXCTL_STORE_MATRIX_DATA`), вход
+  (`MTRXCTL_SUBMIT_SUCCESS`) и потеря сессии (`MTRXCTL_CLEAR · authLost`) приходят dispatch'ем,
+  а `MtrxContainer` и `AuthContainer` читают их через `useSelector` — прямых стрелок от действий
+  к UI в коде нет.
 - Вход: `loginMatrix` делает `loginRequest` (POST `/login`, `refresh_token: true`), затем
   `createMatrixClientFromSession` (`createClient` с IndexedDB, crypto и `tokenRefreshFunction`) и
   `startMatrixSync`; `SYNCING` даёт снимок сессии, `status success` включает чат и
@@ -137,12 +150,15 @@ sequenceDiagram
 sequenceDiagram
   participant UI as Контейнер чата
   participant Act as mtrxControlActions
+  participant RX as Redux
   participant R as matrixRooms
   participant SDK as matrix-js-sdk
-  participant RX as Redux
+  participant HS as Homeserver
   Note over UI,RX: Список комнат
   UI->>Act: handleStartRoomWatch
   Act->>R: watchRoomList
+  SDK->>HS: GET /sync — long poll
+  HS-->>SDK: события комнат
   SDK-->>R: Room · myMembership · receipt
   R-->>Act: INITIALIZE / PUT / DELETE
   Act->>RX: roomIds · roomsMeta
@@ -160,6 +176,7 @@ sequenceDiagram
   UI->>Act: handleSendMessage
   Act->>R: sendRoomMessage
   R->>SDK: sendTextMessage
+  SDK->>HS: PUT /rooms/…/send/m.room.message
   Note over UI,RX: Уведомления
   UI->>R: watchMessageNotifications
   R-->>UI: новое сообщение → звук
@@ -174,6 +191,11 @@ sequenceDiagram
   приходят асинхронно и не блокируют список.
 - Сигнал о новом сообщении даёт сервис (`watchMessageNotifications`), а решение играть звук
   принимает UI — ему нужны фокус окна и видимость комнаты.
+- `localStorage` в этом потоке не участвует: `matrixRooms` и `matrixMedia` хранилище не трогают,
+  комнаты и сообщения живут в SDK, а индекс — в `mtrxControlRdcr` (поэтому участника
+  `localStorage` на диаграмме нет).
+- Homeserver участвует через SDK: список и таймлайн приходят из `/sync`, отправка уходит
+  `PUT /rooms/…/send/m.room.message`; аватары и медиа — тоже запросы к Homeserver.
 
 ## 4. Мост Auth → Чат
 
@@ -184,31 +206,46 @@ sequenceDiagram
 sequenceDiagram
   participant P as Пользователь
   participant A as AuthAd · AuthPad
-  participant AD as adAuth
   participant B as AuthContainer
-  participant M as matrixClient
+  participant RX as Redux
   participant LS as localStorage
+  participant AD as adAuth
+  participant M as matrixClient
+  participant ADS as AD-сервис
+  participant HS as Homeserver
   Note over P,LS: AD-вход
   P->>A: ввод AD-учётных данных
   A->>AD: loginAd
+  AD->>ADS: POST uriAdAuth (login · password)
+  ADS-->>AD: ad_login · mtrx_login · mtrx_password
   AD->>LS: uriAdAuth · adLogin · adAuthExpireTime
-  AD-->>B: mtrx_login · mtrx_password
+  AD->>RX: AUTHCTL_SUBMIT_SUCCESS · mtrx_login · mtrx_password
+  RX-->>B: useSelector: responseData
   B-->>A: AuthPad · логин в форму
   Note over P,LS: Вход Matrix
   P->>A: включить тумблер
   A->>B: onToggleMtrx
   B->>M: handleRegister → loginMatrix
+  M->>HS: POST /_matrix/client/v3/login
+  HS-->>M: access_token · device_id
   M->>LS: uriMatrix · токены · mtrxDeviceId
-  M-->>B: успех / ошибка → цвет тумблера
+  M->>RX: MTRXCTL_SUBMIT_SUCCESS / ERROR
+  RX-->>A: useSelector: статус → цвет тумблера
   Note over P,LS: Сброс
   P->>A: клик по цветному тумблеру
   B->>M: handleRegClear → logoutMatrix
   M->>LS: удаление токенов сессии
+  B->>RX: MTRXCTL_CLEAR
 ```
 
 - `AuthContainer` — единственный мост между срезами `AUTHCTL_` и `MTRXCTL_`; пароль AD в Matrix
   Redux не попадает.
+- Оба среза сходятся в Redux: `authControlRdcr` принимает `AUTHCTL_SUBMIT_SUCCESS`,
+  `mtrxControlRdcr` — `MTRXCTL_SUBMIT_SUCCESS / ERROR` и `MTRXCTL_CLEAR`; цвета тумблера и
+  реквизиты AD мост читает из них через `useSelector`.
 - Отключённый тумблер запускает вход данными AD; успех, ошибка или потеря сессии — сброс.
+- Внешние серверы показаны явно: `adAuth` ходит в AD-сервис (`POST uriAdAuth`), `matrixClient` —
+  на Homeserver (`POST /login`, дальше `/sync` через `createClient + startClient`).
 - Ключи AD и Matrix ложатся в `localStorage` (`constants/storage.js`); при сбросе токены
   удаляются, адрес и логин остаются, а вместе с токенами чистятся IndexedDB-хранилища `sync` и
   `crypto`.
@@ -297,5 +334,8 @@ node "$ARCHIFY" visual-check docs/archify/<name>.html --json
 - `visual-check` всегда пишет `visualReview: "pending"`: скриншоты — материал для глаза, а не
   автоматическое подтверждение отрисовки; визуальную приёмку делает навык
   `archify-visual-check`.
+- Порядок участников sequence — по [AGENTS.md](../AGENTS.md) п. 4: React-компоненты (`frontend`)
+  слева, `localStorage` и reducer рядом, runtime-сервис перед внешними, внешние сервисы
+  (`external`) — крайними справа; инициатор-человек остаётся первым.
 - Подписи в артефактах — по-русски, как и в этом файле; имена продуктов, команд и API остаются
   английскими.
