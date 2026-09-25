@@ -27,23 +27,11 @@ npm run check   # линт + форматирование с записью
 
 В dev-режиме Vite поднимает мок-API.
 
-## Инструменты для UI в WSL (не нужны для запуска приложения)
+## Инструменты (не нужны для запуска приложения)
 
 Работал в **WSL Ubuntu** под Node.js 24:
 
-```bash
-npm install -g @mermaid-js/mermaid-cli @playwright/cli
-playwright-cli install-browser chromium
-dsh plugin --profile web add @tt-a1i/archify-dsh@0.1.0
-```
-
-Проверить установку:
-
-```bash
-mmdc --version
-playwright-cli --version
-node "$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify/bin/archify.mjs" doctor
-```
+### Для взаимодействия с UI
 
 [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli#installation) (`mmdc`) проверяет и
 рендерит Mermaid; его Puppeteer-браузер **отдельный** от Chromium Playwright.
@@ -52,13 +40,23 @@ node "$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify/bi
 запускать через `.dsh/bin/browser` по навыку `ui-verify`: обёртка задаёт профиль и кэш браузера.
 
 [Archify для DSH](https://github.com/tt-a1i/archify/blob/main/integrations/deepseek-harness/README.md#install)
-ставится **в профиль `web`**, а не через глобальный npm; для визуальной проверки ему нужен
+ставится в профиль `web` (не через глобальный npm); для визуальной проверки ему нужен
 Linux-Chromium — порядок в навыке `archify-visual-check`.
 
-## Плагины совместимости DSH с WSL (не нужны для запуска приложения)
+```bash
+npm install -g @mermaid-js/mermaid-cli @playwright/cli
+playwright-cli install-browser chromium
+dsh plugin --profile web add @tt-a1i/archify-dsh@0.1.0
 
-Агент и инструменты работают в WSL Ubuntu, поэтому мост
-между ОС ставится набором [dsh-wsl-kit](https://github.com/173787247/dsh-wsl-kit) в профиль
+#Проверить установку:
+mmdc --version
+playwright-cli --version
+node "$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify/bin/archify.mjs" doctor
+```
+
+### Плагины совместимости DSH с WSL
+
+Мост между ОС и WSL ставится набором [dsh-wsl-kit](https://github.com/173787247/dsh-wsl-kit) в профиль
 `web` (не через глобальный npm). Рекомендуемый минимум — набор `daily`:
 
 ```bash
@@ -155,6 +153,32 @@ POST-запрос к серверу авторизации, ожидаемый �
 
 Все документы: <https://ars-anosov.github.io/matrix-react/>
 
+## Генерация archify-документации
+
+HTML-схемы в `docs/archify/` собираются навыком `archify` (плагин профиля `web`, установка выше).
+
+Команды выполнять из корня репозитория; CLI берётся из профиля `web`:
+
+```bash
+ARCHIFY="$HOME/.dsh/profiles/web/node_modules/@tt-a1i/archify-dsh/skills/archify/bin/archify.mjs"
+
+# 1. Проверка спецификации: приёмка — 9/9 проверок, 0 ошибок и 0 предупреждений
+node "$ARCHIFY" validate architecture docs/archify/matrix-react-architecture.architecture.json \
+  --quality showcase --repo-root . --json
+
+# 2. Сборка: deliver — единственная пишущая команда, печатает SHA-256 и размеры
+node "$ARCHIFY" deliver architecture docs/archify/matrix-react-architecture.architecture.json \
+  docs/archify/matrix-react-architecture.html --quality showcase --repo-root . --json
+
+# 3. Визуальный контроль по навыку archify-visual-check
+node "$ARCHIFY" visual-check docs/archify/matrix-react-architecture.html --json
+```
+
+Для sequence-схем:
+- меняем `validate sequence`
+- не нужен `--repo-root .` 
+
+При пересборке обновлять и `meta.repository.revision`, иначе ссылки evidence в HTML ведут на старый коммит.
 
 
 # Пакеты
