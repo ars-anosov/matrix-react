@@ -294,13 +294,8 @@ node "$ARCHIFY" visual-check docs/archify/<name>.html --json
   `--repo-root .` не нужен: поле `meta.repository` есть только у architecture.
 - Раскладка артефактов: `<name>.<type>.json` (спека) + `<name>.html` (артефакт) +
   `<name>.visual-check.*` (receipt, скриншоты, contact sheet).
-- Наши спеки: `matrix-react-architecture.architecture.json`,
-  `matrix-react-session-restore.sequence.json`, `matrix-react-chat-flow.sequence.json`,
-  `matrix-react-auth-sequence.sequence.json`,
-  `matrix-react-device-verification.lifecycle.json`.
 - `visual-check` всегда пишет `visualReview: "pending"`: скриншоты — материал для глаза, а не
   автоматическое подтверждение отрисовки; визуальную приёмку делает навык
   `archify-visual-check`.
 - Подписи в артефактах — по-русски, как и в этом файле; имена продуктов, команд и API остаются
   английскими.
-
