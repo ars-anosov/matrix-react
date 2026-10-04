@@ -12,7 +12,7 @@
 # Ретеншн. open/snapshot/screenshot/console пишут в output/ файлы с авто-именами
 # (page-<ISO>.yml|png, console-<ISO>.log) и сами их не удаляют — за день проверок набегают сотни
 # файлов. Перед запуском такие файлы старше суток удаляются; именованные (--filename=...) не
-# трогаем, а свежие авто-имена текущего прогона убирает шаг 7 навыка ui-verify.
+# трогаем, а свежие авто-имена текущего прогона убирает шаг 4 навыка ui-verify.
 #
 # Использование: .dsh/bin/browser open http://localhost:3000
 set -euo pipefail
@@ -24,12 +24,6 @@ mkdir -p "$CACHE/home" "$CACHE/xdg"
 export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
 export HOME="$CACHE/home"
 export XDG_CACHE_HOME="$CACHE/xdg"
-
-# Запасной путь, пока системные библиотеки Chromium не поставлены через apt (см. навык ui-verify).
-DEPS="$CACHE/deps/root/usr/lib/x86_64-linux-gnu"
-if [ -d "$DEPS" ]; then
-  export LD_LIBRARY_PATH="$DEPS${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-fi
 
 # Только авто-имена и только старше суток: свежий скриншот прогона не задевается.
 find "$CACHE/output" -maxdepth 1 -type f \
