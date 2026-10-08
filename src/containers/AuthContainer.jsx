@@ -3,14 +3,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
 import * as authActions from "../actions/authControlActions.js";
 import * as mtrxActions from "../actions/mtrxControlActions.js";
-import AuthAd from "../components/AuthAd.jsx";
 import AuthLinks from "../components/AuthLinks.jsx";
 import AuthPad from "../components/AuthPad.jsx";
+import AuthRest from "../components/AuthRest.jsx";
 
 // Ключ пары матричных реквизитов: защищает от повторных dispatch на каждый ререндер
 const buildMtrxKey = (mtrxLogin, mtrxPassword) => `${mtrxLogin}\u0000${mtrxPassword}`;
 
-// Мост к сервисам (AD → Matrix). Thunk-и namespace-чистые: authControlActions не
+// Мост к сервисам (REST → Matrix). Thunk-и namespace-чистые: authControlActions не
 // диспатчит MTRXCTL_, mtrxControlActions — AUTHCTL_. Все переходы между срезами
 // (AUTHCTL_ ↔ MTRXCTL_) живут только здесь.
 const AuthContainer = () => {
@@ -22,20 +22,20 @@ const AuthContainer = () => {
   const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch]);
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { responseData, displayAd, displayAuthPad, status: authStatus } = authControlRdcr;
+  const { responseData, displayRest, displayAuthPad, status: authStatus } = authControlRdcr;
   const { uriMatrix, status: mtrxStatus, authLost: mtrxAuthLost } = mtrxControlRdcr;
 
-  // Реквизиты Matrix из ответа AD (см. README → AuthAd.jsx)
+  // Реквизиты Matrix из ответа REST (см. README → AuthRest.jsx)
   const mtrxLogin = responseData?.mtrx_login || "";
   const mtrxPassword = responseData?.mtrx_password || "";
   const mtrxUserId = mtrxControlRdcr.responseData?.user_id || "";
 
-  // Ключ уже подставленных в MtrxReg AD-данных: защищает от повторных dispatch
+  // Ключ уже подставленных в MtrxReg REST-данных: защищает от повторных dispatch
   const filledKeyRef = useRef("");
   // Форсируем показ AuthPad только на переходе в authLost, чтобы ✕ не открывал панель снова
   const authLostForcedRef = useRef(false);
 
-  // Мост к сервисам (AUTHCTL_ → MTRXCTL_): AD-вход заполняет поле логина формы MtrxReg.
+  // Мост к сервисам (AUTHCTL_ → MTRXCTL_): REST-вход заполняет поле логина формы MtrxReg.
   // Пароль в стор не кладём — он уходит в thunk только по клику тумблера.
   useEffect(() => {
     if (!mtrxLogin) {
@@ -65,7 +65,7 @@ const AuthContainer = () => {
 
   // Мост к сервисам: тумблер AuthPad — индикатор состояния сессии Matrix и действие.
   // Красный (authLost / status === "error") и зелёный (авторизован) — клик сбрасывает
-  // текущую сессию. Откл (сессии нет) — клик запускает автоматическую авторизацию данными AD.
+  // текущую сессию. Откл (сессии нет) — клик запускает автоматическую авторизацию данными REST.
   const handleToggleMtrx = () => {
     if (mtrxAuthLost || mtrxStatus === "success" || mtrxStatus === "error") {
       mtrxControlActions.handleRegClear();
@@ -89,16 +89,16 @@ const AuthContainer = () => {
 
   // Стартовый экран: ссылки открывают формы своего среза (переходов между срезами нет —
   // каждый вызов пишет только в свой)
-  const handleOpenAd = () => {
-    authControlActions.handleChangeStore("displayAd", true);
+  const handleOpenRest = () => {
+    authControlActions.handleChangeStore("displayRest", true);
   };
 
   const handleOpenMtrx = () => {
     mtrxControlActions.handleChangeStore("displayReg", true);
   };
 
-  // Мост к сервисам (MTRXCTL_ → AUTHCTL_): AuthAdInfo читает матричный идентификатор.
-  // Только в рамках активного AD-сеанса, иначе после AD-выхода responseData заполнится снова.
+  // Мост к сервисам (MTRXCTL_ → AUTHCTL_): AuthRestInfo читает матричный идентификатор.
+  // Только в рамках активного REST-сеанса, иначе после REST-выхода responseData заполнится снова.
   useEffect(() => {
     if (authStatus !== "success" || mtrxStatus !== "success" || !mtrxUserId) return;
     if (responseData?.mtrx_user_id === mtrxUserId) return;
@@ -110,23 +110,23 @@ const AuthContainer = () => {
   }, [authStatus, mtrxStatus, mtrxUserId, responseData, authControlActions]);
 
   // Стартовый экран — ссылки на обе формы, пока ни одна авторизация не прошла.
-  // Дальше: успех AD → мост AuthPad, успех Matrix → чат MtrxPadContainer (MtrxContainer)
+  // Дальше: успех REST → мост AuthPad, успех Matrix → чат MtrxPadContainer (MtrxContainer)
   const showAuthLinks = authStatus !== "success" && mtrxStatus !== "success";
 
-  // Оба блока AD-домена: форма входа (displayAd) и мост к сервисам (displayAuthPad).
+  // Оба блока REST-домена: форма входа (displayRest) и мост к сервисам (displayAuthPad).
   // Форма — модальный Dialog (портал), в потоке документа она места не занимает
   return (
     <>
-      {showAuthLinks && <AuthLinks onOpenAd={handleOpenAd} onOpenMtrx={handleOpenMtrx} />}
+      {showAuthLinks && <AuthLinks onOpenRest={handleOpenRest} onOpenMtrx={handleOpenMtrx} />}
 
-      {displayAd && <AuthAd authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
+      {displayRest && <AuthRest authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
 
       {displayAuthPad && (
         <AuthPad
           authControlRdcr={authControlRdcr}
           mtrxControlRdcr={mtrxControlRdcr}
           onToggleMtrx={handleToggleMtrx}
-          onOpenAd={handleOpenAd}
+          onOpenRest={handleOpenRest}
           onClose={handleCloseAuthPad}
         />
       )}

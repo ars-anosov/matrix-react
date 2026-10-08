@@ -4930,56 +4930,56 @@
 
 
         <!-- Messages -->
-        <g data-edge-from="person" data-edge-to="auth" data-edge-label="ввод AD-учётных данных" data-edge-key="0" data-edge-id="ad-form">
-          <path data-composition-edge-from="person" data-composition-edge-to="auth" data-composition-edge-id="ad-form" data-composition-points="164,185;413.5,185" d="M 164 185 L 413.5 185" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="person" data-edge-to="auth" data-edge-label="ввод REST-учётных данных" data-edge-key="0" data-edge-id="rest-form">
+          <path data-composition-edge-from="person" data-composition-edge-to="auth" data-composition-edge-id="rest-form" data-composition-points="164,185;413.5,185" d="M 164 185 L 413.5 185" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="225.55" y="165" width="126.4" height="16" rx="3" class="c-mask"/>
-          <text x="288.75" y="175" class="t-backend" font-size="9" text-anchor="middle">ввод AD-учётных данных</text>
+          <rect x="220.35" y="165" width="136.8" height="16" rx="3" class="c-mask"/>
+          <text x="288.75" y="175" class="t-backend" font-size="9" text-anchor="middle">ввод REST-учётных данных</text>
         </g>
         </g>
 
-        <g data-edge-from="auth" data-edge-to="ad" data-edge-label="loginAd" data-edge-key="1" data-edge-id="ad-login">
-          <path data-composition-edge-from="auth" data-composition-edge-to="ad" data-composition-edge-id="ad-login" data-composition-points="427.5,225;1467.5,225" d="M 427.5 225 L 1467.5 225" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="auth" data-edge-to="rest" data-edge-label="loginRest" data-edge-key="1" data-edge-id="rest-login">
+          <path data-composition-edge-from="auth" data-composition-edge-to="rest" data-composition-edge-id="rest-login" data-composition-points="427.5,225;1467.5,225" d="M 427.5 225 L 1467.5 225" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="923.3" y="205" width="48.4" height="16" rx="3" class="c-mask"/>
-          <text x="947.5" y="215" class="t-backend" font-size="9" text-anchor="middle">loginAd</text>
+          <rect x="918.1" y="205" width="58.800000000000004" height="16" rx="3" class="c-mask"/>
+          <text x="947.5" y="215" class="t-backend" font-size="9" text-anchor="middle">loginRest</text>
         </g>
         </g>
 
-        <g data-edge-from="ad" data-edge-to="adSrv" data-edge-label="POST uriAdAuth (login · password)" data-edge-key="2" data-edge-id="ad-service">
-          <path data-composition-edge-from="ad" data-composition-edge-to="adSrv" data-composition-edge-id="ad-service" data-composition-points="1481.5,265;1994.5,265" d="M 1481.5 265 L 1994.5 265" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="rest" data-edge-to="restSrv" data-edge-label="POST uriRestAuth (login · password)" data-edge-key="2" data-edge-id="rest-service">
+          <path data-composition-edge-from="rest" data-composition-edge-to="restSrv" data-composition-edge-id="rest-service" data-composition-points="1481.5,265;1994.5,265" d="M 1481.5 265 L 1994.5 265" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="1646.2" y="245" width="183.6" height="16" rx="3" class="c-mask"/>
-          <text x="1738" y="255" class="t-backend" font-size="9" text-anchor="middle">POST uriAdAuth (login · password)</text>
+          <rect x="1641" y="245" width="194" height="16" rx="3" class="c-mask"/>
+          <text x="1738" y="255" class="t-backend" font-size="9" text-anchor="middle">POST uriRestAuth (login · password)</text>
         </g>
         </g>
 
-        <g data-edge-from="adSrv" data-edge-to="ad" data-edge-label="ad_login · mtrx_login · mtrx_password" data-edge-key="3" data-edge-id="ad-service-ok">
-          <path data-composition-edge-from="adSrv" data-composition-edge-to="ad" data-composition-edge-id="ad-service-ok" data-composition-points="1994.5,305;1481.5,305" d="M 1994.5 305 L 1481.5 305" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="restSrv" data-edge-to="rest" data-edge-label="ad_login · mtrx_login · mtrx_password" data-edge-key="3" data-edge-id="rest-service-ok">
+          <path data-composition-edge-from="restSrv" data-composition-edge-to="rest" data-composition-edge-id="rest-service-ok" data-composition-points="1994.5,305;1481.5,305" d="M 1994.5 305 L 1481.5 305" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
           <rect x="1635.8" y="285" width="204.4" height="16" rx="3" class="c-mask"/>
           <text x="1738" y="295" class="t-muted" font-size="9" text-anchor="middle">ad_login · mtrx_login · mtrx_password</text>
         </g>
         </g>
 
-        <g data-edge-from="ad" data-edge-to="storage" data-edge-label="uriAdAuth · adLogin · adAuthExpireTime" data-edge-key="4" data-edge-id="ad-store">
-          <path data-composition-edge-from="ad" data-composition-edge-to="storage" data-composition-edge-id="ad-store" data-composition-points="1467.5,345;1218,345" d="M 1467.5 345 L 1218 345" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="rest" data-edge-to="storage" data-edge-label="uriRestAuth · restLogin · restAuthExpireTime" data-edge-key="4" data-edge-id="rest-store">
+          <path data-composition-edge-from="rest" data-composition-edge-to="storage" data-composition-edge-id="rest-store" data-composition-points="1467.5,345;1218,345" d="M 1467.5 345 L 1218 345" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="1237.95" y="325" width="209.6" height="16" rx="3" class="c-mask"/>
-          <text x="1342.75" y="335" class="t-backend" font-size="9" text-anchor="middle">uriAdAuth · adLogin · adAuthExpireTime</text>
+          <rect x="1222.35" y="325" width="240.8" height="16" rx="3" class="c-mask"/>
+          <text x="1342.75" y="335" class="t-backend" font-size="9" text-anchor="middle">uriRestAuth · restLogin · restAuthExpireTime</text>
         </g>
         </g>
 
-        <g data-edge-from="ad" data-edge-to="redux" data-edge-label="AUTHCTL_SUBMIT_SUCCESS · mtrx_login · mtrx_password" data-edge-key="5" data-edge-id="ad-result">
-          <path data-composition-edge-from="ad" data-composition-edge-to="redux" data-composition-edge-id="ad-result" data-composition-points="1467.5,385;954.5,385" d="M 1467.5 385 L 954.5 385" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="rest" data-edge-to="redux" data-edge-label="AUTHCTL_SUBMIT_SUCCESS · mtrx_login · mtrx_password" data-edge-key="5" data-edge-id="rest-result">
+          <path data-composition-edge-from="rest" data-composition-edge-to="redux" data-composition-edge-id="rest-result" data-composition-points="1467.5,385;954.5,385" d="M 1467.5 385 L 954.5 385" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
           <rect x="1072.4" y="365" width="277.2" height="16" rx="3" class="c-mask"/>
           <text x="1211" y="375" class="t-backend" font-size="9" text-anchor="middle">AUTHCTL_SUBMIT_SUCCESS · mtrx_login · mtrx_password</text>
         </g>
         </g>
 
-        <g data-edge-from="redux" data-edge-to="bridge" data-edge-label="useSelector: responseData" data-edge-key="6" data-edge-id="ad-read">
-          <path data-composition-edge-from="redux" data-composition-edge-to="bridge" data-composition-edge-id="ad-read" data-composition-points="940.5,425;691,425" d="M 940.5 425 L 691 425" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="redux" data-edge-to="bridge" data-edge-label="useSelector: responseData" data-edge-key="6" data-edge-id="rest-read">
+          <path data-composition-edge-from="redux" data-composition-edge-to="bridge" data-composition-edge-id="rest-read" data-composition-points="940.5,425;691,425" d="M 940.5 425 L 691 425" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
           <rect x="744.75" y="405" width="142" height="16" rx="3" class="c-mask"/>
           <text x="815.75" y="415" class="t-muted" font-size="9" text-anchor="middle">useSelector: responseData</text>
@@ -5092,8 +5092,8 @@
 
         <!-- Segment Labels -->
         <g data-graph-role="segment-label" data-segment-id="0">
-          <rect x="56" y="133" width="50.4" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="146" class="t-dim" font-size="9" font-weight="600">AD-вход</text>
+          <rect x="56" y="133" width="60.800000000000004" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="146" class="t-dim" font-size="9" font-weight="600">REST-вход</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="1">
           <rect x="56" y="468" width="71.2" height="18" rx="3" class="c-mask"/>
@@ -5116,8 +5116,8 @@
           <text x="157" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Пользователь</text>
         </g>
 
-        <g id="node-auth" data-node-id="auth" data-node-label="AuthAd · AuthPad" tabindex="0" role="button" aria-label="Focus AuthAd · AuthPad, вход и тумблер, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="вход и тумблер" data-node-context="Sequence participant">
-          <title>AuthAd · AuthPad · вход и тумблер · Sequence participant</title>
+        <g id="node-auth" data-node-id="auth" data-node-label="AuthRest · AuthPad" tabindex="0" role="button" aria-label="Focus AuthRest · AuthPad, вход и тумблер, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="вход и тумблер" data-node-context="Sequence participant">
+          <title>AuthRest · AuthPad · вход и тумблер · Sequence participant</title>
           <rect x="325.5" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="325.5" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(331.5 78) scale(0.6875)">
@@ -5126,7 +5126,7 @@
             <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
-          <text data-detail-anchor x="420.5" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AuthAd · AuthPad</text>
+          <text data-detail-anchor x="420.5" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AuthRest · AuthPad</text>
           <text data-detail="context" x="420.5" y="111" class="t-muted" font-size="7" text-anchor="middle">вход и тумблер</text>
         </g>
 
@@ -5168,15 +5168,15 @@
           <text data-detail="context" x="1211" y="111" class="t-muted" font-size="7" text-anchor="middle">ключи приложения</text>
         </g>
 
-        <g id="node-ad" data-node-id="ad" data-node-label="adAuth" tabindex="0" role="button" aria-label="Focus adAuth, AD-авторизация · ky, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="AD-авторизация · ky" data-node-context="Sequence participant">
-          <title>adAuth · AD-авторизация · ky · Sequence participant</title>
+        <g id="node-rest" data-node-id="rest" data-node-label="restAuth" tabindex="0" role="button" aria-label="Focus restAuth, REST-авторизация · ky, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="REST-авторизация · ky" data-node-context="Sequence participant">
+          <title>restAuth · REST-авторизация · ky · Sequence participant</title>
           <rect x="1379.5" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="1379.5" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1385.5 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1474.5" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">adAuth</text>
-          <text data-detail="context" x="1474.5" y="111" class="t-muted" font-size="7" text-anchor="middle">AD-авторизация · ky</text>
+          <text data-detail-anchor x="1474.5" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">restAuth</text>
+          <text data-detail="context" x="1474.5" y="111" class="t-muted" font-size="7" text-anchor="middle">REST-авторизация · ky</text>
         </g>
 
         <g id="node-matrix" data-node-id="matrix" data-node-label="matrixClient" tabindex="0" role="button" aria-label="Focus matrixClient, Matrix-сессия, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Matrix-сессия" data-node-context="Sequence participant">
@@ -5190,16 +5190,16 @@
           <text data-detail="context" x="1738" y="111" class="t-muted" font-size="7" text-anchor="middle">Matrix-сессия</text>
         </g>
 
-        <g id="node-adSrv" data-node-id="adSrv" data-node-label="AD-сервис" tabindex="0" role="button" aria-label="Focus AD-сервис, POST uriAdAuth, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="POST uriAdAuth" data-node-context="Sequence participant">
-          <title>AD-сервис · POST uriAdAuth · Sequence participant</title>
+        <g id="node-restSrv" data-node-id="restSrv" data-node-label="REST-сервис" tabindex="0" role="button" aria-label="Focus REST-сервис, POST uriRestAuth, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="POST uriRestAuth" data-node-context="Sequence participant">
+          <title>REST-сервис · POST uriRestAuth · Sequence participant</title>
           <rect x="1906.5" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="1906.5" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1912.5 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-detail-anchor x="2001.5" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AD-сервис</text>
-          <text data-detail="context" x="2001.5" y="111" class="t-muted" font-size="7" text-anchor="middle">POST uriAdAuth</text>
+          <text data-detail-anchor x="2001.5" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">REST-сервис</text>
+          <text data-detail="context" x="2001.5" y="111" class="t-muted" font-size="7" text-anchor="middle">POST uriRestAuth</text>
         </g>
 
         <g id="node-hs" data-node-id="hs" data-node-label="Homeserver" tabindex="0" role="button" aria-label="Focus Homeserver, /login · /sync, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="/login · /sync" data-node-context="Sequence participant">
@@ -5421,7 +5421,7 @@
         <ul>
           <li>&bull; Только AuthContainer связывает AUTHCTL_ и MTRXCTL_</li>
           <li>&bull; Оба среза сходятся в Redux: authControlRdcr и mtrxControlRdcr</li>
-          <li>&bull; Пароль AD не кладётся в Matrix Redux</li>
+          <li>&bull; Пароль REST не кладётся в Matrix Redux</li>
         </ul>
       </div>
 
@@ -5431,7 +5431,7 @@
           <h3>Тумблер</h3>
         </div>
         <ul>
-          <li>&bull; Отключён — вход данными AD</li>
+          <li>&bull; Отключён — вход данными REST</li>
           <li>&bull; Успех или ошибка — сброс сессии</li>
         </ul>
       </div>
@@ -5442,7 +5442,7 @@
           <h3>Хранилище</h3>
         </div>
         <ul>
-          <li>&bull; Ключи AD и Matrix пишутся в localStorage</li>
+          <li>&bull; Ключи REST и Matrix пишутся в localStorage</li>
           <li>&bull; При сбросе токены удаляются, адрес и логин остаются</li>
           <li>&bull; Вместе с ними чистятся IndexedDB-хранилища sync и crypto</li>
         </ul>

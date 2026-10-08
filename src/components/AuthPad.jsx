@@ -4,27 +4,27 @@ import PropTypes from "prop-types";
 import { useEffect } from "react";
 import { HEADER_BACKGROUND, PAPER_BACKGROUND } from "../theme.js";
 
-// Состояние AD-подключения для кнопки в подвале панели: статусы и иконки те же,
+// Состояние REST-подключения для кнопки в подвале панели: статусы и иконки те же,
 // что у кнопок состояния в MtrxInfo (HowToReg — сессия есть, PersonOff — нет).
 // У подключённой сессии вместо слова «Подключено» — логин, под которым вошли
-function getAdConnectionConfig(status, adLogin) {
+function getRestConnectionConfig(status, restLogin) {
   switch (status) {
     case "loading":
       return { label: "Авторизация…", color: "warning", icon: <IconPersonOff /> };
     case "success":
       // Логин может не прийти (сессия из хранилища без сохранённого логина)
-      return { label: adLogin || "Подключено", color: "success", icon: <IconHowToReg /> };
+      return { label: restLogin || "Подключено", color: "success", icon: <IconHowToReg /> };
     case "error":
       return { label: "Ошибка авторизации", color: "error", icon: <IconPersonOff /> };
     default:
-      return { label: "AD не подключено", color: "inherit", icon: <IconPersonOff /> };
+      return { label: "REST не подключено", color: "inherit", icon: <IconPersonOff /> };
   }
 }
 
 // Панель «Мост к сервисам». Сама ничего не диспатчит: все действия — колбэки
 // контейнера AuthContainer, который держит оба среза (AUTHCTL_ и MTRXCTL_).
 function AuthPad(props) {
-  const { authControlRdcr, mtrxControlRdcr, onToggleMtrx, onOpenAd, onClose } = props;
+  const { authControlRdcr, mtrxControlRdcr, onToggleMtrx, onOpenRest, onClose } = props;
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log("AuthPad MOUNT");
@@ -38,8 +38,8 @@ function AuthPad(props) {
   const mtrxPassword = authControlRdcr?.responseData?.mtrx_password || "";
   const hasMtrxData = Boolean(mtrxLogin && mtrxPassword);
 
-  // Подпись, цвет и иконка кнопки состояния AD в подвале панели
-  const adConnection = getAdConnectionConfig(authControlRdcr?.status, authControlRdcr?.responseData?.ad_login || "");
+  // Подпись, цвет и иконка кнопки состояния REST в подвале панели
+  const restConnection = getRestConnectionConfig(authControlRdcr?.status, authControlRdcr?.responseData?.ad_login || "");
 
   // Тумблер отражает состояние сессии Matrix:
   //   откл           — сессии нет → клик запускает автоматическую авторизацию;
@@ -68,7 +68,7 @@ function AuthPad(props) {
     onToggleMtrx();
   };
 
-  // Информируем, если AD-авторизация не выполнена или не вернула матричную пару:
+  // Информируем, если REST-авторизация не выполнена или не вернула матричную пару:
   // без неё тумблер автозапуска не сработает
   const missingFields = [];
   if (!mtrxLogin) missingFields.push("mtrx_login");
@@ -76,9 +76,9 @@ function AuthPad(props) {
 
   let infoText = "";
   if (authControlRdcr?.status !== "success") {
-    infoText = "Авторизуйтесь в AD чтобы получить Matrix-данные.";
+    infoText = "Авторизуйтесь в REST чтобы получить Matrix-данные.";
   } else if (missingFields.length > 0) {
-    infoText = `AD не вернул: ${missingFields.join(", ")}.`;
+    infoText = `REST не вернул: ${missingFields.join(", ")}.`;
   }
 
   return (
@@ -89,7 +89,7 @@ function AuthPad(props) {
       open
       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       sx={{
-        // Панель открывает модальную форму AuthAd, а zIndex.snackbar (1400) выше
+        // Панель открывает модальную форму AuthRest, а zIndex.snackbar (1400) выше
         // zIndex.modal (1300) — опускаем панель под подложку диалога
         zIndex: (theme) => theme.zIndex.modal - 1,
         // Ширину задаёт корень Snackbar: у fixed-элемента дочерний width: "100%"
@@ -154,7 +154,7 @@ function AuthPad(props) {
             </Stack>
           </Stack>
 
-          {/* Отчерк и мелкая серая подпись по центру: AD-сеанса нет или в нём нет матричной пары */}
+          {/* Отчерк и мелкая серая подпись по центру: REST-сеанса нет или в нём нет матричной пары */}
           {infoText && (
             <>
               <Divider sx={{ mt: 1 }} />
@@ -167,8 +167,8 @@ function AuthPad(props) {
 
         <Divider />
 
-        {/* Подвал панели: слева состояние AD-сессии. Кнопка кликабельна — открывает
-            форму входа AuthAd, где видно сеанс и есть выход из него */}
+        {/* Подвал панели: слева состояние REST-сессии. Кнопка кликабельна — открывает
+            форму входа AuthRest, где видно сеанс и есть выход из него */}
         <Stack
           direction="row"
           sx={{
@@ -178,22 +178,22 @@ function AuthPad(props) {
             bgcolor: HEADER_BACKGROUND,
           }}
         >
-          <Tooltip title="Открыть форму входа AD">
+          <Tooltip title="Открыть форму входа REST">
             {/* Стиль как у кнопок состояния в MtrxInfo: цветная иконка с подписью,
                 без подложки и рамки — остаётся только hover-подсветка MUI */}
             <Button
               size="small"
               variant="text"
-              color={adConnection.color}
-              startIcon={adConnection.icon}
-              onClick={onOpenAd}
-              aria-label={`AD: ${adConnection.label}. Открыть форму входа`}
+              color={restConnection.color}
+              startIcon={restConnection.icon}
+              onClick={onOpenRest}
+              aria-label={`REST: ${restConnection.label}. Открыть форму входа`}
               sx={{ maxWidth: "100%" }}
             >
               {/* Длинный логин (почта, домен) не должен растягивать подвал:
                   многоточие работает только на flex-элементе с minWidth 0 */}
               <Box component="span" sx={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {adConnection.label}
+                {restConnection.label}
               </Box>
             </Button>
           </Tooltip>
@@ -209,7 +209,7 @@ AuthPad.propTypes = {
     responseData: PropTypes.shape({
       mtrx_login: PropTypes.string,
       mtrx_password: PropTypes.string,
-      // Логин AD — подпись кнопки состояния в подвале панели
+      // Логин REST — подпись кнопки состояния в подвале панели
       ad_login: PropTypes.string,
     }),
   }).isRequired,
@@ -218,8 +218,8 @@ AuthPad.propTypes = {
     authLost: PropTypes.bool,
   }).isRequired,
   onToggleMtrx: PropTypes.func.isRequired,
-  // Клик по кнопке состояния в подвале — открыть форму входа AD (AuthAd)
-  onOpenAd: PropTypes.func.isRequired,
+  // Клик по кнопке состояния в подвале — открыть форму входа REST (AuthRest)
+  onOpenRest: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 };
 

@@ -3,7 +3,7 @@ import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
 // Иконки-входы стартового экрана: использовать Matrix или получить матричные атрибуты
-// через AD. Показываются, пока ни AD-, ни Matrix-сессия не активны (условие считает
+// через REST. Показываются, пока ни REST-, ни Matrix-сессия не активны (условие считает
 // AuthContainer). Сами ничего не диспатчат — только колбэки. Размеры — стандартные:
 // Typography по умолчанию (body1), IconButton medium с иконкой 24px.
 const iconButtonSx = {
@@ -28,8 +28,8 @@ function AuthLinks({ onOpenMtrx }) {
           </IconButton>
         </Tooltip>
 
-        {/* <Tooltip title="Получить атрибуты через AD">
-          <IconButton aria-label="Получить атрибуты через AD" onClick={onOpenAd} sx={iconButtonSx}>
+        {/* <Tooltip title="Получить атрибуты через REST">
+          <IconButton aria-label="Получить атрибуты через REST" onClick={onOpenRest} sx={iconButtonSx}>
             <AdminPanelSettings />
           </IconButton>
         </Tooltip> */}

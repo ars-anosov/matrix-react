@@ -3,22 +3,22 @@ import { IconButton, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect } from "react";
 
-function AuthAdInfo(props) {
+function AuthRestInfo(props) {
   const { authControlRdcr, authControlActions, showFull = false } = props;
 
   if (import.meta.env.DEV) {
-    console.log("AuthAdInfo render");
+    console.log("AuthRestInfo render");
   }
 
   useEffect(() => {
-    if (import.meta.env.DEV) console.log("AuthAdInfo MOUNT");
+    if (import.meta.env.DEV) console.log("AuthRestInfo MOUNT");
     return () => {
-      if (import.meta.env.DEV) console.log("AuthAdInfo UNMOUNT");
+      if (import.meta.env.DEV) console.log("AuthRestInfo UNMOUNT");
     };
   }, []);
 
   const toggleAuth = () => {
-    authControlActions?.handleChangeStore("displayAd", !authControlRdcr?.displayAd);
+    authControlActions?.handleChangeStore("displayRest", !authControlRdcr?.displayRest);
   };
 
   const isAuthorized = authControlRdcr?.status === "success";
@@ -70,10 +70,10 @@ Matrix:\t\t${authControlRdcr?.responseData?.mtrx_user_id || ""}`}
   );
 }
 
-AuthAdInfo.propTypes = {
+AuthRestInfo.propTypes = {
   authControlRdcr: PropTypes.object.isRequired,
   authControlActions: PropTypes.object.isRequired,
   showFull: PropTypes.bool,
 };
 
-export default AuthAdInfo;
+export default AuthRestInfo;

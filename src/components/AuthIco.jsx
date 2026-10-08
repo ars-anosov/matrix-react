@@ -14,17 +14,17 @@ const pulse = keyframes`
   100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); transform: scale(1); }
 `;
 
-// Индикатор состояния AD-сессии: цвет иконки и подложки задаёт статус,
+// Индикатор состояния REST-сессии: цвет иконки и подложки задаёт статус,
 // подпись дублирует его в tooltip и aria-label.
-function AdIco({ authControlRdcr }) {
+function RestIco({ authControlRdcr }) {
   const theme = useTheme();
   const status = authControlRdcr?.status;
 
   // Логирование монтирования только для разработки
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.log("AdIco MOUNT");
-      return () => console.log("AdIco UNMOUNT");
+      console.log("RestIco MOUNT");
+      return () => console.log("RestIco UNMOUNT");
     }
   }, []);
 
@@ -36,28 +36,28 @@ function AdIco({ authControlRdcr }) {
           icon: <IconSync />,
           color: theme.palette.warning.dark,
           pulse: true,
-          label: "AD: авторизация…",
+          label: "REST: авторизация…",
         };
       case "success":
         return {
           icon: <IconHowToReg />,
           color: theme.palette.success.main,
           pulse: false,
-          label: "AD: сессия активна",
+          label: "REST: сессия активна",
         };
       case "error":
         return {
           icon: <IconPersonOff />,
           color: theme.palette.error.main,
           pulse: false,
-          label: "AD: ошибка авторизации",
+          label: "REST: ошибка авторизации",
         };
       default:
         return {
           icon: <IconAdminPanelSettings />,
           color: theme.palette.text.secondary,
           pulse: false,
-          label: "AD: не подключено",
+          label: "REST: не подключено",
         };
     }
   }, [status, theme]);
@@ -96,10 +96,10 @@ function AdIco({ authControlRdcr }) {
   );
 }
 
-AdIco.propTypes = {
+RestIco.propTypes = {
   authControlRdcr: PropTypes.shape({
     status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
   }).isRequired,
 };
 
-export default AdIco;
+export default RestIco;

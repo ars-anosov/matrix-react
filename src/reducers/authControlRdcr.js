@@ -1,14 +1,14 @@
 import { AUTHCTL_CLEAR, AUTHCTL_STORE_VALUE, AUTHCTL_SUBMIT_ERROR, AUTHCTL_SUBMIT_REQUEST, AUTHCTL_SUBMIT_SUCCESS } from "../constants/redux";
 
-// Только UI-дефолты: сохранённые значения (uriAdAuth) подставляет сид стора —
+// Только UI-дефолты: сохранённые значения (uriRestAuth) подставляет сид стора —
 // store/preloadedState.js → preloadedState в configureStore.
 export const initialState = {
-  displayAd: false,
-  // Мост к сервисам показываем после успешной AD-авторизации (AUTHCTL_SUBMIT_SUCCESS);
+  displayRest: false,
+  // Мост к сервисам показываем после успешной REST-авторизации (AUTHCTL_SUBMIT_SUCCESS);
   // на старте вместо него — ссылки на обе формы авторизации (AuthLinks)
   displayAuthPad: false,
   displayControl: false,
-  uriAdAuth: "",
+  uriRestAuth: "",
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,
   errText: "",
@@ -20,7 +20,7 @@ export default function authControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "loading",
-        displayAd: true,
+        displayRest: true,
         responseData: null,
         errText: "",
       };
@@ -29,7 +29,7 @@ export default function authControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "success",
-        displayAd: false,
+        displayRest: false,
         displayAuthPad: true,
         responseData: action.payload.responseData,
         errText: "",
@@ -40,9 +40,9 @@ export default function authControlRdcr(state = initialState, action) {
       return {
         ...state,
         status: "error",
-        // Форму открывает только displayAd — других флагов, удерживающих окно,
+        // Форму открывает только displayRest — других флагов, удерживающих окно,
         // нет, поэтому ✕, Escape и клик по подложке её закрывают.
-        displayAd: true,
+        displayRest: true,
         responseData: null,
         errText,
       };

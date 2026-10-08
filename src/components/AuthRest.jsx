@@ -25,14 +25,14 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { getStoredAdLogin } from "../services/adAuth";
+import { getStoredRestLogin } from "../services/restAuth";
 
-function AdAuth(props) {
+function RestAuth(props) {
   const { authControlRdcr, authControlActions } = props;
 
-  const [login, setLogin] = useState(() => getStoredAdLogin());
+  const [login, setLogin] = useState(() => getStoredRestLogin());
   const [password, setPassword] = useState("");
-  const [uriAdAuth, setUriAdAuth] = useState("");
+  const [uriRestAuth, setUriRestAuth] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   // Ошибку, закрытую крестиком алерта, прячем локально: Redux-статус ошибки
   // остаётся (его показывает индикатор AuthIco), но текст больше не мозолит глаза
@@ -47,29 +47,29 @@ function AdAuth(props) {
 
   // Синхронизируем URI из глобального стора при его изменении
   useEffect(() => {
-    setUriAdAuth(authControlRdcr.uriAdAuth || "");
-  }, [authControlRdcr.uriAdAuth]);
+    setUriRestAuth(authControlRdcr.uriRestAuth || "");
+  }, [authControlRdcr.uriRestAuth]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
     // Новая попытка входа показывает ошибку снова, даже если текст тот же
     setIsErrDismissed(false);
     if (!login.trim() || !password) return;
-    authControlActions.handleAdRegister({ login, password, uriAdAuth });
+    authControlActions.handleRestRegister({ login, password, uriRestAuth });
   };
 
   const handleReset = () => {
     // setLogin('')
     setPassword("");
-    setUriAdAuth(authControlRdcr.uriAdAuth || "");
-    authControlActions.handleAdAuthClear();
+    setUriRestAuth(authControlRdcr.uriRestAuth || "");
+    authControlActions.handleRestAuthClear();
   };
 
   const handleClose = () => {
-    authControlActions.handleChangeStore("displayAd", false);
+    authControlActions.handleChangeStore("displayRest", false);
   };
 
-  const isSubmitDisabled = isLoading || isSuccess || !login.trim() || !password || (import.meta.env.DEV && !uriAdAuth.trim());
+  const isSubmitDisabled = isLoading || isSuccess || !login.trim() || !password || (import.meta.env.DEV && !uriRestAuth.trim());
 
   // Модальное окно: портал вне потока документа, поэтому форма не раздвигает
   // остальные компоненты; Escape и клик по подложке закрывают её через onClose.
@@ -81,8 +81,8 @@ function AdAuth(props) {
       onClose={handleClose}
       maxWidth="xs"
       fullWidth
-      aria-labelledby="adAuthTitle"
-      aria-describedby="adAuthSubtitle"
+      aria-labelledby="restAuthTitle"
+      aria-describedby="restAuthSubtitle"
       slotProps={{
         paper: {
           component: "form",
@@ -93,12 +93,16 @@ function AdAuth(props) {
       }}
     >
       {/* Кнопка закрытия формы в углу подложки */}
-      <IconButton aria-label="Закрыть форму AD авторизации" onClick={handleClose} disabled={isLoading} sx={{ position: "absolute", top: 8, right: 8 }}>
+      <IconButton aria-label="Закрыть форму REST авторизации" onClick={handleClose} disabled={isLoading} sx={{ position: "absolute", top: 8, right: 8 }}>
         <IconClose color="action" />
       </IconButton>
 
       {/* Блок Логотипа и Заголовка: DialogTitle — единственный заголовок окна (h2) */}
-      <DialogTitle id="adAuthTitle" variant="h5" sx={{ pt: 4, pb: 1, fontWeight: 600, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+      <DialogTitle
+        id="restAuthTitle"
+        variant="h5"
+        sx={{ pt: 4, pb: 1, fontWeight: 600, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}
+      >
         <Avatar
           sx={{
             width: 56,
@@ -114,14 +118,14 @@ function AdAuth(props) {
             }}
           />
         </Avatar>
-        AD Авторизация
+        REST Авторизация
       </DialogTitle>
 
       {/* DialogContent после DialogTitle идёт без верхнего паддинга — это штатное
           правило MUI; первым элементом идёт подзаголовок, поэтому лейбл поля не обрезается */}
       <DialogContent>
-        <DialogContentText id="adAuthSubtitle" variant="body2" sx={{ textAlign: "center", mb: 2.5 }}>
-          {isSuccess ? responseData?.ad_cn || "" : "Введите учетные данные Active Directory"}
+        <DialogContentText id="restAuthSubtitle" variant="body2" sx={{ textAlign: "center", mb: 2.5 }}>
+          {isSuccess ? responseData?.ad_cn || "" : "Введите учетные данные"}
         </DialogContentText>
 
         <Stack spacing={2.5}>
@@ -130,7 +134,7 @@ function AdAuth(props) {
             fullWidth
             required
             disabled={isLoading || isSuccess}
-            id="adAuthLogin"
+            id="restAuthLogin"
             label="Логин"
             variant="outlined"
             autoComplete="username"
@@ -152,7 +156,7 @@ function AdAuth(props) {
             fullWidth
             required
             disabled={isLoading || isSuccess}
-            id="adAuthPassword"
+            id="restAuthPassword"
             label="Пароль"
             type={showPassword ? "text" : "password"}
             autoComplete={showPassword ? "off" : "current-password"}
@@ -189,12 +193,12 @@ function AdAuth(props) {
               fullWidth
               required
               disabled={isLoading || isSuccess}
-              id="uriAdAuth"
+              id="uriRestAuth"
               label="API URI (Dev Only)"
               variant="outlined"
               size="small"
-              value={uriAdAuth}
-              onChange={(event) => setUriAdAuth(event.target.value)}
+              value={uriRestAuth}
+              onChange={(event) => setUriRestAuth(event.target.value)}
               sx={{ opacity: 0.8 }}
             />
           )}
@@ -249,9 +253,9 @@ function AdAuth(props) {
   );
 }
 
-AdAuth.propTypes = {
+RestAuth.propTypes = {
   authControlRdcr: PropTypes.shape({
-    uriAdAuth: PropTypes.string,
+    uriRestAuth: PropTypes.string,
     status: PropTypes.string,
     errText: PropTypes.string,
     responseData: PropTypes.shape({
@@ -265,10 +269,10 @@ AdAuth.propTypes = {
     }),
   }).isRequired,
   authControlActions: PropTypes.shape({
-    handleAdRegister: PropTypes.func.isRequired,
+    handleRestRegister: PropTypes.func.isRequired,
     handleChangeStore: PropTypes.func.isRequired,
-    handleAdAuthClear: PropTypes.func.isRequired,
+    handleRestAuthClear: PropTypes.func.isRequired,
   }).isRequired,
 };
 
-export default AdAuth;
+export default RestAuth;

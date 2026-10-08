@@ -20,8 +20,8 @@ import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import Copyright from "../Copyright";
 import { HEADER_BACKGROUND } from "../theme.js";
-import AuthAdInfo from "./AuthAdInfo";
 import AuthIco from "./AuthIco";
+import AuthRestInfo from "./AuthRestInfo";
 import MtrxIco from "./MtrxIco";
 import MtrxInfo from "./MtrxInfo";
 
@@ -32,8 +32,8 @@ const MENU_ITEMS_MTRX = [
 ];
 
 const MENU_ITEMS_AUTH = [
-  { key: "displayControl", primary: "AD Кругляш", secondary: "AuthIco.jsx" },
-  { key: "displayAd", primary: "AD Авторизация", secondary: "AuthAd.jsx" },
+  { key: "displayControl", primary: "REST Кругляш", secondary: "AuthIco.jsx" },
+  { key: "displayRest", primary: "REST Авторизация", secondary: "AuthRest.jsx" },
   { key: "displayAuthPad", primary: "Мост к сервисам", secondary: "AuthPad.jsx" },
 ];
 
@@ -63,7 +63,7 @@ function MenuAppBar(props) {
   }, []);
 
   const [anchorEl_mtrxControl, setAnchorEl_mtrxControl] = useState(null);
-  const [anchorEl_adControl, setAnchorEl_adControl] = useState(null);
+  const [anchorEl_restControl, setAnchorEl_restControl] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleOpenMenu = () => setDrawerOpen(true);
@@ -145,7 +145,7 @@ function MenuAppBar(props) {
 
               <Divider sx={{ my: 1.5 }} />
 
-              <List disablePadding sx={{ px: 1 }} subheader={<ListSubheader {...LIST_SUBHEADER_PROPS}>Компоненты AD</ListSubheader>}>
+              <List disablePadding sx={{ px: 1 }} subheader={<ListSubheader {...LIST_SUBHEADER_PROPS}>Компоненты REST</ListSubheader>}>
                 {MENU_ITEMS_AUTH.map((item) => {
                   const isChecked = !!authControlRdcr[item.key];
                   const labelId = `checkbox-list-label-${item.key}`;
@@ -192,7 +192,7 @@ function MenuAppBar(props) {
           )}
 
           {authControlRdcr.displayControl && (
-            <Stack direction="row" spacing={1} sx={STATUS_STACK_SX} onClick={(e) => setAnchorEl_adControl(e.currentTarget)}>
+            <Stack direction="row" spacing={1} sx={STATUS_STACK_SX} onClick={(e) => setAnchorEl_restControl(e.currentTarget)}>
               <Typography variant="caption" sx={{ pl: 1 }}>
                 {authControlRdcr?.responseData?.ad_login}
               </Typography>
@@ -218,17 +218,17 @@ function MenuAppBar(props) {
       </Popover>
 
       <Popover
-        id="adControl_id"
-        open={Boolean(anchorEl_adControl)}
-        anchorEl={anchorEl_adControl}
-        onClose={() => setAnchorEl_adControl(null)}
+        id="restControl_id"
+        open={Boolean(anchorEl_restControl)}
+        anchorEl={anchorEl_restControl}
+        onClose={() => setAnchorEl_restControl(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         transformOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Box sx={{ p: 1 }}>
-          <Typography variant="body2">{authControlRdcr.uriAdAuth}</Typography>
+          <Typography variant="body2">{authControlRdcr.uriRestAuth}</Typography>
           <Divider />
-          <AuthAdInfo authControlRdcr={authControlRdcr} authControlActions={authControlActions} showFull={false} />
+          <AuthRestInfo authControlRdcr={authControlRdcr} authControlActions={authControlActions} showFull={false} />
         </Box>
       </Popover>
     </Box>

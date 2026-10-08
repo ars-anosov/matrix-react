@@ -5,6 +5,6 @@ export const MTRX_USER_ID_KEY = "mtrxUserId";
 export const MTRX_DEVICE_ID_KEY = "mtrxDeviceId";
 export const MTRX_REFRESH_TOKEN_KEY = "mtrxRefreshToken";
 
-export const AD_URI_AUTH_KEY = "uriAdAuth";
-export const AD_LOGIN_KEY = "adLogin";
-export const AD_AUTH_EXPIRE_TIME_KEY = "adAuthExpireTime";
+export const REST_URI_AUTH_KEY = "uriRestAuth";
+export const REST_LOGIN_KEY = "restLogin";
+export const REST_AUTH_EXPIRE_TIME_KEY = "restAuthExpireTime";

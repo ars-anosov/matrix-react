@@ -13,7 +13,7 @@ import * as matrixRooms from "../services/matrixRooms.js";
 import MtrxPadContainer from "./MtrxPadContainer.jsx";
 
 // Контейнер среза Matrix: форма входа MtrxReg и мессенджер MtrxPadContainer.
-// AD-вход (AuthAd) относится к authControlRdcr — его рендерит AuthContainer.
+// REST-вход (AuthRest) относится к authControlRdcr — его рендерит AuthContainer.
 const MtrxContainer = () => {
   const dispatch = useDispatch();
 

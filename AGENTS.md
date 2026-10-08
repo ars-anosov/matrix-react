@@ -34,7 +34,7 @@ Node.js 24, Vite 8, React 19, Material UI 9 + Emotion, Redux 5, `matrix-js-sdk`,
 - Action types — в `constants/redux.js`. Thunk-и `AUTHCTL_` и `MTRXCTL_` не диспатчат чужой
   namespace: мост между ними только в `AuthContainer`. Он владеет формами авторизации и
   `AuthLinks`, а `MtrxContainer` — регистрацией Matrix и чатом. Без активной сессии стартовый
-  экран показывает только `AuthLinks`; AD-сессия открывает `AuthPad`, Matrix-сессия — чат.
+  экран показывает только `AuthLinks`; REST-сессия открывает `AuthPad`, Matrix-сессия — чат.
 
 ## Соглашения
 

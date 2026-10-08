@@ -39,7 +39,7 @@
       "id": "ls",
       "type": "database",
       "label": "localStorage",
-      "sublabel": "AD- и Matrix-ключи"
+      "sublabel": "REST- и Matrix-ключи"
     },
     {
       "id": "client",
@@ -83,7 +83,7 @@
       "from": "store",
       "to": "ls",
       "y": 190,
-      "label": "preloadedState: getStoredAdAuthUri",
+      "label": "preloadedState: getStoredRestAuthUri",
       "variant": "security"
     },
     {
@@ -91,7 +91,7 @@
       "from": "ls",
       "to": "store",
       "y": 220,
-      "label": "uriAdAuth — сид до монтирования React",
+      "label": "uriRestAuth — сид до монтирования React",
       "variant": "return"
     },
     {
@@ -319,8 +319,8 @@
       "dot": "cyan",
       "title": "Старт требует авторизацию",
       "items": [
-        "Самый ранний доступ к хранилищу — сид стора: store/preloadedState.js читает uriAdAuth через adAuth.getStoredAdAuthUri ещё до монтирования React",
-        "Следом startAuthTimeoutCheck раз в 10 с читает adAuthExpireTime и на AUTHCTL_CLEAR удаляет его",
+        "Самый ранний доступ к хранилищу — сид стора: store/preloadedState.js читает uriRestAuth через restAuth.getStoredRestAuthUri ещё до монтирования React",
+        "Следом startAuthTimeoutCheck раз в 10 с читает restAuthExpireTime и на AUTHCTL_CLEAR удаляет его",
         "Клиент Matrix не создаётся: сохранённый access token не используется, статус остаётся idle и показан AuthLinks"
       ]
     },

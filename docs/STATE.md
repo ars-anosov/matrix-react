@@ -15,7 +15,7 @@
 ```mermaid
 flowchart LR
   subgraph UI["UI — компоненты"]
-    ViewAd["AuthAd · AuthPad<br/>формы AD"]
+    ViewAuth["AuthRest · AuthPad<br/>формы REST"]
     ViewMtrx["MtrxReg · MtrxPad<br/>регистрация и чат"]
   end
   subgraph CT["Контейнеры — связь с Redux"]
@@ -23,26 +23,26 @@ flowchart LR
     MtrxCnt["MtrxContainer<br/>контейнер чата"]
   end
   subgraph RX["Redux — actions и reducers"]
-    AdAct["authControlActions<br/>AUTHCTL_"]
-    AdStore["authControlRdcr<br/>состояние AD"]
+    AuthAct["authControlActions<br/>AUTHCTL_"]
+    AuthStore["authControlRdcr<br/>состояние REST"]
     MtrxAct["mtrxControlActions<br/>MTRXCTL_"]
     MtrxStore["mtrxControlRdcr<br/>индекс комнат"]
   end
   subgraph SV["Сервисы"]
-    AdSvc["adAuth<br/>AD-авторизация · ky"]
+    RestSvc["restAuth<br/>REST-авторизация · ky"]
     MtrxSvc["Matrix-сервисы<br/>matrixClient · matrixRooms · matrixMedia"]
   end
   subgraph ST["Хранилище"]
     Ls["localStorage<br/>ключи приложения"]
     Idb["IndexedDB<br/>sync и crypto"]
   end
-  ViewAd -->|события| Bridge
-  Bridge -->|dispatch| AdAct
-  AdAct -->|доменный API| AdSvc
-  AdSvc -->|ky · POST| AdRes["AD-сервис<br/>внешний блок"]
-  AdAct -->|состояние AD| AdStore
-  AdStore -->|useSelector| Bridge
-  AdSvc -->|ключи AD| Ls
+  ViewAuth -->|события| Bridge
+  Bridge -->|dispatch| AuthAct
+  AuthAct -->|доменный API| RestSvc
+  RestSvc -->|ky · POST| RestRes["REST-сервис<br/>внешний блок"]
+  AuthAct -->|состояние REST| AuthStore
+  AuthStore -->|useSelector| Bridge
+  RestSvc -->|ключи REST| Ls
   ViewMtrx -->|события| MtrxCnt
   MtrxCnt -->|dispatch| MtrxAct
   MtrxAct -->|доменный API| MtrxSvc
@@ -56,11 +56,11 @@ flowchart LR
 ```
 
 - Пунктирные области — слои: UI, контейнеры (связь со store), Redux (`actions` и `reducers`),
-  сервисы и хранилище; `AD-сервис` и `matrix-js-sdk` — внешние блоки вне слоёв.
+  сервисы и хранилище; `REST-сервис` и `matrix-js-sdk` — внешние блоки вне слоёв.
 - Срезы `AUTHCTL_` и `MTRXCTL_` идут строками (суффикс в подписях узлов): состояние каждого —
   свой редьюсер (`authControlRdcr`, `mtrxControlRdcr`), а переход между срезами есть только в
   `AuthContainer` (мост); обратный поток (`authLost`, `mtrx_user_id`) идёт через тот же мост.
-- У каждого среза свой сервис и внешний ресурс: `AUTHCTL_` → `adAuth` → AD-сервис (`ky`),
+- У каждого среза свой сервис и внешний ресурс: `AUTHCTL_` → `restAuth` → REST-сервис (`ky`),
   `MTRXCTL_` → Matrix-сервисы → `matrix-js-sdk`; ключи приложения в `localStorage` пишут сервисы
   обоих срезов, sync и crypto — в `IndexedDB`.
 - Thunk-и namespace-чистые: `AUTHCTL_` и `MTRXCTL_` не диспатчат чужой срез — мост между ними
@@ -85,8 +85,8 @@ sequenceDiagram
   participant SDK as matrix-js-sdk
   participant HS as Homeserver
   Note over UI,Auth: Старт — сид стора, сессия не восстанавливается
-  RX->>LS: preloadedState: getStoredAdAuthUri
-  LS-->>RX: uriAdAuth
+  RX->>LS: preloadedState: getStoredRestAuthUri
+  LS-->>RX: uriRestAuth
   UI->>Act: handleHydrateStoredMatrixData
   Act->>Cl: getStoredMatrixData
   Cl->>LS: uriMatrix · mtrxLogin
@@ -123,8 +123,8 @@ sequenceDiagram
 - Старт: сохранённые адрес и логин только предзаполняют форму входа; клиент Matrix не создаётся,
   `status` остаётся `idle`, поэтому виден `AuthLinks` — авторизация требуется при каждом запуске.
 - Самый ранний доступ к хранилищу — ещё до монтирования React: сид стора
-  (`store/preloadedState.js`) читает `uriAdAuth` через `adAuth.getStoredAdAuthUri`; следом
-  `startAuthTimeoutCheck` раз в 10 с читает `adAuthExpireTime` и на `AUTHCTL_CLEAR` удаляет его.
+  (`store/preloadedState.js`) читает `uriRestAuth` через `restAuth.getStoredRestAuthUri`; следом
+  `startAuthTimeoutCheck` раз в 10 с читает `restAuthExpireTime` и на `AUTHCTL_CLEAR` удаляет его.
 - Состояние ведёт срез `mtrxControlRdcr`: гидратация (`MTRXCTL_STORE_MATRIX_DATA`), вход
   (`MTRXCTL_SUBMIT_SUCCESS`) и потеря сессии (`MTRXCTL_CLEAR · authLost`) приходят dispatch'ем,
   а `MtrxContainer` и `AuthContainer` читают их через `useSelector` — прямых стрелок от действий
@@ -205,21 +205,21 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   participant P as Пользователь
-  participant A as AuthAd · AuthPad
+  participant A as AuthRest · AuthPad
   participant B as AuthContainer
   participant RX as Redux
   participant LS as localStorage
-  participant AD as adAuth
+  participant REST as restAuth
   participant M as matrixClient
-  participant ADS as AD-сервис
+  participant API as REST-сервис
   participant HS as Homeserver
-  Note over P,LS: AD-вход
-  P->>A: ввод AD-учётных данных
-  A->>AD: loginAd
-  AD->>ADS: POST uriAdAuth (login · password)
-  ADS-->>AD: ad_login · mtrx_login · mtrx_password
-  AD->>LS: uriAdAuth · adLogin · adAuthExpireTime
-  AD->>RX: AUTHCTL_SUBMIT_SUCCESS · mtrx_login · mtrx_password
+  Note over P,LS: REST-вход
+  P->>A: ввод REST-учётных данных
+  A->>REST: loginRest
+  REST->>API: POST uriRestAuth (login · password)
+  API-->>REST: ad_login · mtrx_login · mtrx_password
+  REST->>LS: uriRestAuth · restLogin · restAuthExpireTime
+  REST->>RX: AUTHCTL_SUBMIT_SUCCESS · mtrx_login · mtrx_password
   RX-->>B: useSelector: responseData
   B-->>A: AuthPad · логин в форму
   Note over P,LS: Вход Matrix
@@ -238,15 +238,15 @@ sequenceDiagram
   B->>RX: MTRXCTL_CLEAR
 ```
 
-- `AuthContainer` — единственный мост между срезами `AUTHCTL_` и `MTRXCTL_`; пароль AD в Matrix
+- `AuthContainer` — единственный мост между срезами `AUTHCTL_` и `MTRXCTL_`; пароль REST в Matrix
   Redux не попадает.
 - Оба среза сходятся в Redux: `authControlRdcr` принимает `AUTHCTL_SUBMIT_SUCCESS`,
   `mtrxControlRdcr` — `MTRXCTL_SUBMIT_SUCCESS / ERROR` и `MTRXCTL_CLEAR`; цвета тумблера и
-  реквизиты AD мост читает из них через `useSelector`.
-- Отключённый тумблер запускает вход данными AD; успех, ошибка или потеря сессии — сброс.
-- Внешние серверы показаны явно: `adAuth` ходит в AD-сервис (`POST uriAdAuth`), `matrixClient` —
+  реквизиты REST мост читает из них через `useSelector`.
+- Отключённый тумблер запускает вход данными REST; успех, ошибка или потеря сессии — сброс.
+- Внешние серверы показаны явно: `restAuth` ходит в REST-сервис (`POST uriRestAuth`), `matrixClient` —
   на Homeserver (`POST /login`, дальше `/sync` через `createClient + startClient`).
-- Ключи AD и Matrix ложатся в `localStorage` (`constants/storage.js`); при сбросе токены
+- Ключи REST и Matrix ложатся в `localStorage` (`constants/storage.js`); при сбросе токены
   удаляются, адрес и логин остаются, а вместе с токенами чистятся IndexedDB-хранилища `sync` и
   `crypto`.
 
@@ -299,7 +299,7 @@ stateDiagram-v2
 
 `localStorage` доступен только сервисам; ключи объявлены в `src/constants/storage.js`.
 `matrixClient` хранит `uriMatrix`, `mtrxLogin`, `mtrxAccessToken`, `mtrxUserId`, `mtrxDeviceId` и
-`mtrxRefreshToken`; `adAuth` — `uriAdAuth`, `adLogin` и `adAuthExpireTime` (срок AD-сессии 24 ч).
+`mtrxRefreshToken`; `restAuth` — `uriRestAuth`, `restLogin` и `restAuthExpireTime` (срок REST-сессии 24 ч).
 Токены нужны активной сессии и переиспользованию `deviceId`, а не для входа при следующем
 запуске. При выходе удаляются токены, `mtrxUserId` и `mtrxDeviceId`; recovery key и ключ Secret
 Storage живут только в памяти сессии. Вместе с токенами `matrixClient` чистит IndexedDB-хранилища

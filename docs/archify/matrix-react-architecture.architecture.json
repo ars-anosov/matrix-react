@@ -11,14 +11,14 @@
   },
   "components": [
     {
-      "id": "viewAd",
+      "id": "viewAuth",
       "type": "frontend",
-      "label": "AuthAd · AuthPad",
+      "label": "AuthRest · AuthPad",
       "sources": [
-        { "path": "src/components/AuthAd.jsx" },
+        { "path": "src/components/AuthRest.jsx" },
         { "path": "src/components/AuthPad.jsx" }
       ],
-      "sublabel": "формы AD",
+      "sublabel": "формы REST",
       "tag": "AUTHCTL_",
       "pos": [
         40,
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "id": "adAct",
+      "id": "authAct",
       "type": "backend",
       "label": "authControlActions",
       "sources": [{ "path": "src/actions/authControlActions.js" }],
@@ -61,11 +61,11 @@
       ]
     },
     {
-      "id": "adStore",
+      "id": "authStore",
       "type": "database",
       "label": "authControlRdcr",
       "sources": [{ "path": "src/reducers/authControlRdcr.js" }],
-      "sublabel": "состояние AD",
+      "sublabel": "состояние REST",
       "tag": "AUTHCTL_",
       "pos": [
         680,
@@ -77,11 +77,11 @@
       ]
     },
     {
-      "id": "adSvc",
+      "id": "restSvc",
       "type": "backend",
-      "label": "adAuth",
-      "sources": [{ "path": "src/services/adAuth.js" }],
-      "sublabel": "AD-авторизация · ky",
+      "label": "restAuth",
+      "sources": [{ "path": "src/services/restAuth.js" }],
+      "sublabel": "REST-авторизация · ky",
       "pos": [
         1040,
         140
@@ -92,9 +92,9 @@
       ]
     },
     {
-      "id": "adRes",
+      "id": "restRes",
       "type": "external",
-      "label": "AD-сервис",
+      "label": "REST-сервис",
       "sublabel": "внешний блок",
       "pos": [
         1450,
@@ -238,7 +238,7 @@
       "kind": "region",
       "label": "UI — компоненты",
       "wraps": [
-        "viewAd",
+        "viewAuth",
         "viewMtrx"
       ]
     },
@@ -254,8 +254,8 @@
       "kind": "region",
       "label": "Redux — actions и reducers",
       "wraps": [
-        "adAct",
-        "adStore",
+        "authAct",
+        "authStore",
         "mtrxAct",
         "mtrxStore"
       ]
@@ -264,7 +264,7 @@
       "kind": "region",
       "label": "Сервисы",
       "wraps": [
-        "adSvc",
+        "restSvc",
         "mtrxSvc"
       ]
     },
@@ -280,50 +280,50 @@
   "connections": [
     {
       "id": "view-events",
-      "from": "viewAd",
+      "from": "viewAuth",
       "to": "bridge",
       "label": "события"
     },
     {
       "id": "auth-dispatch",
       "from": "bridge",
-      "to": "adAct",
+      "to": "authAct",
       "label": "dispatch"
     },
     {
-      "id": "ad-domain",
-      "from": "adAct",
-      "to": "adSvc",
+      "id": "auth-domain",
+      "from": "authAct",
+      "to": "restSvc",
       "label": "доменный API"
     },
     {
-      "id": "ad-http",
-      "from": "adSvc",
-      "to": "adRes",
+      "id": "auth-http",
+      "from": "restSvc",
+      "to": "restRes",
       "label": "ky · POST"
     },
     {
-      "id": "ad-state",
-      "from": "adAct",
-      "to": "adStore",
-      "label": "состояние AD",
+      "id": "auth-state",
+      "from": "authAct",
+      "to": "authStore",
+      "label": "состояние REST",
       "fromSide": "bottom",
       "toSide": "top",
       "labelDy": 30
     },
     {
-      "id": "ad-use",
-      "from": "adStore",
+      "id": "auth-use",
+      "from": "authStore",
       "to": "bridge",
       "label": "useSelector",
       "fromSide": "left",
       "toSide": "left"
     },
     {
-      "id": "ad-keys",
-      "from": "adSvc",
+      "id": "auth-keys",
+      "from": "restSvc",
       "to": "storage",
-      "label": "ключи AD"
+      "label": "ключи REST"
     },
     {
       "id": "mtrx-events",
@@ -414,7 +414,7 @@
       "dot": "cyan",
       "title": "Два среза",
       "items": [
-        "Строка AUTHCTL_ — AD-вход и сессия AD",
+        "Строка AUTHCTL_ — REST-вход и сессия REST",
         "Строка MTRXCTL_ — регистрация Matrix, чат и медиа",
         "Thunk-и не диспатчат чужой namespace"
       ]
@@ -425,7 +425,7 @@
       "items": [
         "UI → контейнеры → Redux → сервисы",
         "Хранилище (localStorage · IndexedDB) — общее для срезов",
-        "AD-сервис и matrix-js-sdk — внешние блоки вне слоёв"
+        "REST-сервис и matrix-js-sdk — внешние блоки вне слоёв"
       ]
     },
     {
