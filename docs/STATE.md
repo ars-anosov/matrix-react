@@ -123,8 +123,7 @@ sequenceDiagram
 - Старт: сохранённые адрес и логин только предзаполняют форму входа; клиент Matrix не создаётся,
   `status` остаётся `idle`, поэтому виден `AuthLinks` — авторизация требуется при каждом запуске.
 - Самый ранний доступ к хранилищу — ещё до монтирования React: сид стора
-  (`store/preloadedState.js`) читает `uriRestAuth` через `restAuth.getStoredRestAuthUri`; следом
-  `startAuthTimeoutCheck` раз в 10 с читает `restAuthExpireTime` и на `AUTHCTL_CLEAR` удаляет его.
+  (`store/preloadedState.js`) читает `uriRestAuth` через `restAuth.getStoredRestAuthUri`.
 - Состояние ведёт срез `mtrxControlRdcr`: гидратация (`MTRXCTL_STORE_MATRIX_DATA`), вход
   (`MTRXCTL_SUBMIT_SUCCESS`) и потеря сессии (`MTRXCTL_CLEAR · authLost`) приходят dispatch'ем,
   а `MtrxContainer` и `AuthContainer` читают их через `useSelector` — прямых стрелок от действий
@@ -218,7 +217,7 @@ sequenceDiagram
   A->>REST: loginRest
   REST->>API: POST uriRestAuth (login · password)
   API-->>REST: ad_login · mtrx_login · mtrx_password
-  REST->>LS: uriRestAuth · restLogin · restAuthExpireTime
+  REST->>LS: uriRestAuth · restLogin
   REST->>RX: AUTHCTL_SUBMIT_SUCCESS · mtrx_login · mtrx_password
   RX-->>B: useSelector: responseData
   B-->>A: AuthPad · логин в форму
@@ -299,7 +298,7 @@ stateDiagram-v2
 
 `localStorage` доступен только сервисам; ключи объявлены в `src/constants/storage.js`.
 `matrixClient` хранит `uriMatrix`, `mtrxLogin`, `mtrxAccessToken`, `mtrxUserId`, `mtrxDeviceId` и
-`mtrxRefreshToken`; `restAuth` — `uriRestAuth`, `restLogin` и `restAuthExpireTime` (срок REST-сессии 24 ч).
+`mtrxRefreshToken`; `restAuth` — `uriRestAuth` и `restLogin`.
 Токены нужны активной сессии и переиспользованию `deviceId`, а не для входа при следующем
 запуске. При выходе удаляются токены, `mtrxUserId` и `mtrxDeviceId`; recovery key и ключ Secret
 Storage живут только в памяти сессии. Вместе с токенами `matrixClient` чистит IndexedDB-хранилища

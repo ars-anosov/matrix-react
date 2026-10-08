@@ -320,7 +320,6 @@
       "title": "Старт требует авторизацию",
       "items": [
         "Самый ранний доступ к хранилищу — сид стора: store/preloadedState.js читает uriRestAuth через restAuth.getStoredRestAuthUri ещё до монтирования React",
-        "Следом startAuthTimeoutCheck раз в 10 с читает restAuthExpireTime и на AUTHCTL_CLEAR удаляет его",
         "Клиент Matrix не создаётся: сохранённый access token не используется, статус остаётся idle и показан AuthLinks"
       ]
     },

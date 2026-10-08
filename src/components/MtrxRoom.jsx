@@ -321,7 +321,7 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSen
                       sx={{
                         gap: 1.25,
                         px: 0.5,
-                        // Свои сообщения — зеркально: аватар справа, текст по правому краю
+                        // Свои сообщения — зеркально: аватар и блок сообщения справа
                         flexDirection: isOwn ? "row-reverse" : "row",
                         // Отступ между сообщениями: небольшой у подряд идущих
                         // строк одного отправителя и больше перед новым блоком
@@ -353,7 +353,7 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSen
                       >
                         {getInitials(message.sender)}
                       </Avatar>
-                      <Box sx={{ minWidth: 0, flex: 1, textAlign: isOwn ? "right" : "left" }}>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
                         {!isContinuation && (
                           <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", justifyContent: isOwn ? "flex-end" : "flex-start", minWidth: 0 }}>
                             <Typography
@@ -401,9 +401,18 @@ function MtrxRoom({ room, fullHeight = false, onSelectRoom, onSendMessage, onSen
                             component="div"
                             sx={{
                               mt: isContinuation ? 0 : 0.15,
-                              // Короткая своя строка не растягивается на всю ширину,
-                              // а прижимается к правому краю (textAlign — у родителя)
-                              ...(isOwn ? { width: "fit-content", ml: "auto" } : null),
+                              // Сообщение — блок: свои прижаты вправо и светло-голубые,
+                              // у собеседника — слева без фона; текст внутри
+                              // выравнивается по левому краю блока
+                              width: "fit-content",
+                              maxWidth: "100%",
+                              ml: isOwn ? "auto" : 0,
+                              px: 1.25,
+                              py: 0.5,
+                              // 12 % — та же сила тона, что у кругляшей и плашек статуса
+                              bgcolor: isOwn ? alpha(theme.palette.primary.main, 0.12) : "transparent",
+                              borderRadius: 2,
+                              textAlign: "left",
                               whiteSpace: "pre-wrap",
                               overflowWrap: "anywhere",
                               color: "text.primary",

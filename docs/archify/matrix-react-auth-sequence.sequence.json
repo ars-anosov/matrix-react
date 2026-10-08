@@ -118,7 +118,7 @@
       "from": "rest",
       "to": "storage",
       "y": 345,
-      "label": "uriRestAuth · restLogin · restAuthExpireTime"
+      "label": "uriRestAuth · restLogin"
     },
     {
       "id": "rest-result",

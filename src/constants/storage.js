@@ -7,4 +7,3 @@ export const MTRX_REFRESH_TOKEN_KEY = "mtrxRefreshToken";
 
 export const REST_URI_AUTH_KEY = "uriRestAuth";
 export const REST_LOGIN_KEY = "restLogin";
-export const REST_AUTH_EXPIRE_TIME_KEY = "restAuthExpireTime";
