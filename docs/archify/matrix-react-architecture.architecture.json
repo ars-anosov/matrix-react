@@ -6,7 +6,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react",
-      "revision": "c0c251e9cdeb9f63c338cca6dbde2a989f550171"
+      "revision": "c323f65fc19d5446db86803700e53c64e115f7f5"
     }
   },
   "components": [
