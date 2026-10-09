@@ -132,6 +132,24 @@ POST-запрос к серверу авторизации, ожидаемый �
 }
 ```
 
+## AuthOidc.jsx
+Вход через OAuth 2.0 / OIDC в [authentik](https://authentik.ars-dev.ru). Приложение уже
+настроено на Synapse: его Authorization flow (`default-provider-authorization-explicit-consent`)
+возвращает код на `/_synapse/client/oidc/callback`.
+
+Используется legacy-схема Synapse `m.login.sso`:
+
+1. SPA открывает popup с `/_matrix/client/v3/login/sso/redirect/oidc-authentik?redirectUrl=…`;
+   Synapse редиректит его в authentik (Authorization Code + PKCE делает Synapse, не SPA).
+2. Пользователь подтверждает доступ; authentik отдаёт код на `/_synapse/client/oidc/callback`.
+3. Synapse редиректит popup на `public/sso-callback.html` с `?loginToken=…`.
+4. Страница возврата отправляет `loginToken` в основное окно через `postMessage` и закрывается.
+5. SPA меняет токен на сессию: `POST /_matrix/client/v3/login` c `m.login.token`.
+
+Адрес ресурса IdP (`https://authentik.ars-dev.ru`) и id провайдера (`oidc-authentik`) хранятся
+в `localStorage` (`uriOidcAuth`, `oidcIdpId`); в dev-режиме адрес правится прямо в форме.
+Вход выполняется в popup, поэтому браузер должен разрешать всплывающие окна для приложения.
+
 ## AuthPad.jsx
 Тумблер активирует сервис.
 

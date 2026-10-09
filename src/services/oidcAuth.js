@@ -170,12 +170,4 @@ async function startOidcLogin({ uriOidcAuth, idpId, uriMatrix, buildSsoLoginUrl 
   return { loginToken, issuer, idpId: resolvedIdpId };
 }
 
-export {
-  buildSsoRedirectUrl,
-  getStoredOidcIdpId,
-  getStoredOidcIssuer,
-  resolveOidcIssuerUrl,
-  startOidcLogin,
-  storeOidcIdpId,
-  storeOidcIssuer,
-};
+export { buildSsoRedirectUrl, getStoredOidcIdpId, getStoredOidcIssuer, resolveOidcIssuerUrl, startOidcLogin, storeOidcIdpId, storeOidcIssuer };

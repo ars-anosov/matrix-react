@@ -68,6 +68,8 @@ flowchart LR
 - `matrix-js-sdk` грузится лениво: `import()` в `services/matrixSdk.js` даёт отдельный чанк
   `matrix-sdk`, активный клиент держит `services/matrixClientStore.js`; UI и Redux видят только
   доменный API сервисов, без SDK-объектов.
+- Сервисов авторизации два: `restAuth` (REST-сессия и матричная пара) и `oidcAuth` (вход через
+  OIDC/authentik, см. § 2); на диаграмме архитектуры узел `oidcAuth` пока не отрисован.
 
 ## 2. Старт и авторизация
 
@@ -139,6 +141,45 @@ sequenceDiagram
   `TokenRefreshLogoutError` → `Session.logged_out` → колбэк `watchMatrixSession` →
   `invalidateMatrixSession` (токены и IndexedDB удалены) → `authLost` → `AuthPad` с красным
   тумблером.
+
+### Вход через OIDC (authentik)
+
+Отдельная ветка входа, которой пока нет на диаграмме выше (её источник истины —
+`archify/matrix-react-session-restore.sequence.json`, он эту ветку ещё не описывает). Поток
+ведёт `services/oidcAuth.js` и thunk `handleOidcLogin` (namespace `MTRXCTL_`):
+
+```mermaid
+sequenceDiagram
+  participant Form as AuthOidc
+  participant Act as mtrxControlActions
+  participant Oidc as oidcAuth
+  participant Cl as matrixClient
+  participant SSO as Synapse /login/sso
+  participant AK as authentik
+  participant CB as sso-callback.html
+  Form->>Act: handleOidcLogin · uriOidcAuth
+  Act->>Oidc: startOidcLogin
+  Oidc->>SSO: popup /login/sso/redirect/oidc-authentik
+  SSO->>AK: 302 authorize (код и PKCE делает Synapse)
+  AK-->>SSO: код на /_synapse/client/oidc/callback
+  SSO->>CB: redirect с ?loginToken
+  CB->>Oidc: postMessage loginToken (тот же origin)
+  Oidc-->>Act: loginToken
+  Act->>Cl: loginMatrixWithToken
+  Cl->>SSO: POST /login · m.login.token
+  SSO-->>Cl: access_token · device_id
+```
+
+- Форма `AuthOidc` (модальный `Dialog`) собирает адрес ресурса IdP и запускает флоу; адрес
+  (`uriOidcAuth`) и id провайдера (`oidcIdpId`) хранятся в `localStorage`, сохранённое значение
+  подставляет сид стора.
+- Спаринг делает Synapse: SPA открывает `/_matrix/client/v3/login/sso/redirect/{idpId}`, а не
+  ходит в authentik напрямую, — поэтому client secret и код в SPA не попадают.
+- Возврат токена идёт через `public/sso-callback.html` и `postMessage` с проверкой origin:
+  `loginToken` не остаётся в адресной строке приложения.
+- Сессию поднимает `loginMatrixWithToken` (`m.login.token`) тем же путём, что и вход по паролю:
+  `activateMatrixSession` создаёт клиент, сохраняет сессию и запускает sync; refresh-токен
+  password-сессии не используется.
 
 ## 3. Чат
 
@@ -298,7 +339,8 @@ stateDiagram-v2
 
 `localStorage` доступен только сервисам; ключи объявлены в `src/constants/storage.js`.
 `matrixClient` хранит `uriMatrix`, `mtrxLogin`, `mtrxAccessToken`, `mtrxUserId`, `mtrxDeviceId` и
-`mtrxRefreshToken`; `restAuth` — `uriRestAuth` и `restLogin`.
+`mtrxRefreshToken`; `restAuth` — `uriRestAuth` и `restLogin`; `oidcAuth` — `uriOidcAuth` и
+`oidcIdpId`.
 Токены нужны активной сессии и переиспользованию `deviceId`, а не для входа при следующем
 запуске. При выходе удаляются токены, `mtrxUserId` и `mtrxDeviceId`; recovery key и ключ Secret
 Storage живут только в памяти сессии. Вместе с токенами `matrixClient` чистит IndexedDB-хранилища
