@@ -848,32 +848,13 @@ function resolveHomeserverUrl(uriMatrix = "") {
 }
 
 /**
- * Вход по логину и паролю (`m.login.password`), сохранение сессии и запуск sync.
+ * Поднимает сессию по ответу `/login`: создаёт клиент, сохраняет сессию и запускает sync.
+ * Один путь для входа по паролю и по login token (OIDC/SSO).
  *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#loginrequest
  * @see https://spec.matrix.org/latest/client-server-api/#login
  */
-async function loginMatrix({ login, password, uriMatrix }) {
-  const homeserverUrl = resolveHomeserverUrl(uriMatrix);
-  const tempClient = await createTempMatrixClient(homeserverUrl);
-
-  const { login: storedLogin, deviceId: storedLoginDeviceId } = getStoredMatrixData();
-  const storedDeviceId = storedLogin === login ? storedLoginDeviceId || undefined : undefined;
-
-  const loginResponse = await tempClient.loginRequest({
-    type: "m.login.password",
-    identifier: {
-      type: "m.id.user",
-      user: login,
-    },
-    password,
-    device_id: storedDeviceId,
-    initial_device_display_name: DEVICE_DISPLAY_NAME,
-    refresh_token: true,
-  });
-
-  tempClient.stopClient?.();
-
+async function activateMatrixSession({ homeserverUrl, login, loginResponse }) {
   try {
     const client = await createMatrixClientFromSession({
       baseUrl: homeserverUrl,
@@ -905,6 +886,62 @@ async function loginMatrix({ login, password, uriMatrix }) {
     deleteMatrixLocalStores();
     throw error;
   }
+}
+
+/**
+ * Вход по логину и паролю (`m.login.password`), сохранение сессии и запуск sync.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#loginrequest
+ * @see https://spec.matrix.org/latest/client-server-api/#login
+ */
+async function loginMatrix({ login, password, uriMatrix }) {
+  const homeserverUrl = resolveHomeserverUrl(uriMatrix);
+  const tempClient = await createTempMatrixClient(homeserverUrl);
+
+  const { login: storedLogin, deviceId: storedLoginDeviceId } = getStoredMatrixData();
+  const storedDeviceId = storedLogin === login ? storedLoginDeviceId || undefined : undefined;
+
+  const loginResponse = await tempClient.loginRequest({
+    type: "m.login.password",
+    identifier: {
+      type: "m.id.user",
+      user: login,
+    },
+    password,
+    device_id: storedDeviceId,
+    initial_device_display_name: DEVICE_DISPLAY_NAME,
+    refresh_token: true,
+  });
+
+  tempClient.stopClient?.();
+  return activateMatrixSession({ homeserverUrl, login, loginResponse });
+}
+
+/**
+ * Завершает вход по login token (`m.login.token`), который Synapse выдал после
+ * OIDC-редиректа в authentik. Тот же путь, что и у входа по паролю: сессия, sync.
+ *
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#loginrequest
+ * @see https://spec.matrix.org/latest/client-server-api/#login
+ */
+async function loginMatrixWithToken({ loginToken, uriMatrix }) {
+  if (typeof loginToken !== "string" || !loginToken) {
+    throw new Error("Не получен loginToken от homeserver.");
+  }
+
+  const homeserverUrl = resolveHomeserverUrl(uriMatrix);
+  const tempClient = await createTempMatrixClient(homeserverUrl);
+
+  const loginResponse = await tempClient.loginRequest({
+    type: "m.login.token",
+    token: loginToken,
+    initial_device_display_name: DEVICE_DISPLAY_NAME,
+    refresh_token: true,
+  });
+
+  tempClient.stopClient?.();
+
+  return activateMatrixSession({ homeserverUrl, login: loginResponse.user_id, loginResponse });
 }
 
 /**
@@ -968,6 +1005,7 @@ export {
   getStoredMatrixData,
   invalidateMatrixSession,
   loginMatrix,
+  loginMatrixWithToken,
   logoutMatrix,
   requestCurrentDeviceVerification,
   resetOwnEncryption,

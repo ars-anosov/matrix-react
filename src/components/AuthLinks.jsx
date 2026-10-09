@@ -1,11 +1,12 @@
-import { Hub as IconHub } from "@mui/icons-material";
+import { Hub as IconHub, Key as IconKey } from "@mui/icons-material";
 import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
-// Иконки-входы стартового экрана: использовать Matrix или получить матричные атрибуты
-// через REST. Показываются, пока ни REST-, ни Matrix-сессия не активны (условие считает
-// AuthContainer). Сами ничего не диспатчат — только колбэки. Размеры — стандартные:
-// Typography по умолчанию (body1), IconButton medium с иконкой 24px.
+// Иконки-входы стартового экрана: использовать Matrix, войти через authentik (OIDC)
+// или получить матричные атрибуты через REST. Показываются, пока ни REST-, ни
+// Matrix-сессия не активны (условие считает AuthContainer). Сами ничего не
+// диспатчат — только колбэки. Размеры — стандартные: Typography по умолчанию
+// (body1), IconButton medium с иконкой 24px.
 const iconButtonSx = {
   border: 1,
   borderColor: "divider",
@@ -14,7 +15,7 @@ const iconButtonSx = {
   "&:hover": { borderColor: "primary.main", backgroundColor: "action.hover" },
 };
 
-function AuthLinks({ onOpenMtrx }) {
+function AuthLinks({ onOpenMtrx, onOpenOidc }) {
   return (
     // flexGrow занимает свободное место окна, поэтому блок стоит по центру между
     // AppBar и футером (auto-отступ футера забирает остаток, только когда блока нет)
@@ -25,6 +26,12 @@ function AuthLinks({ onOpenMtrx }) {
         <Tooltip title="Использовать Matrix">
           <IconButton aria-label="Войти с учётной записью Matrix" onClick={onOpenMtrx} sx={iconButtonSx}>
             <IconHub />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Войти через authentik (OIDC)">
+          <IconButton aria-label="Войти через authentik по OIDC" onClick={onOpenOidc} sx={iconButtonSx}>
+            <IconKey />
           </IconButton>
         </Tooltip>
 
@@ -40,6 +47,7 @@ function AuthLinks({ onOpenMtrx }) {
 
 AuthLinks.propTypes = {
   onOpenMtrx: PropTypes.func.isRequired,
+  onOpenOidc: PropTypes.func.isRequired,
 };
 
 export default AuthLinks;

@@ -15,6 +15,7 @@ import {
 import { VERIFICATION_ERR } from "../constants/verification";
 import * as matrixClient from "../services/matrixClient";
 import * as matrixRooms from "../services/matrixRooms";
+import { DEFAULT_OIDC_IDP_ID, startOidcLogin } from "../services/oidcAuth";
 import { getMatrixErrorMessage } from "./utils/matrixError";
 
 let sessionOperationId = 0;
@@ -94,6 +95,53 @@ const handleRegister =
     } catch (error) {
       if (operationId === sessionOperationId) {
         dispatchMtrxRegError(dispatch, getMatrixErrorMessage(error));
+      }
+    }
+  };
+
+// SSO-редирект Synapse (legacy m.login.sso): popup открывает его и уходит в authentik.
+// Для MatrixClient с baseUrl абсолютный адрес не нужен, достаточно пути.
+// Формат — как у http.getUrl в matrix-js-sdk: id провайдера отдельным сегментом пути.
+function buildSsoLoginUrl(redirectUrl, idpId) {
+  return `/_matrix/client/v3/login/sso/redirect/${encodeURIComponent(idpId)}?redirectUrl=${encodeURIComponent(redirectUrl)}`;
+}
+
+// Текст ошибки OIDC/SSO: у MatrixError причина лежит в data, у прочих ошибок
+// (таймаут, закрытый popup) — в message. Остальное разбирает общий разбор ошибок Matrix.
+function getOidcErrorMessage(error) {
+  const data = error?.data;
+
+  if (typeof data?.error === "string" && data.error.trim()) return data.error.trim();
+  if (typeof data?.errcode === "string" && data.errcode.trim()) return data.errcode.trim();
+  if (error?.oidc && typeof error.message === "string" && error.message.trim()) return error.message.trim();
+
+  return getMatrixErrorMessage(error);
+}
+
+// Вход через OIDC (authentik): popup → loginToken → сессия Matrix тем же путём, что
+// и вход по паролю. Адрес ресурса IdP сохраняет сервис — только после удачного входа.
+const handleOidcLogin =
+  (formData = {}) =>
+  async (dispatch) => {
+    const operationId = ++sessionOperationId;
+    const uriOidcAuth = typeof formData.uriOidcAuth === "string" ? formData.uriOidcAuth.trim() : "";
+    const uriMatrix = typeof formData.uriMatrix === "string" ? formData.uriMatrix.trim() : "";
+    const idpId = typeof formData.idpId === "string" && formData.idpId.trim() ? formData.idpId.trim() : DEFAULT_OIDC_IDP_ID;
+
+    dispatch({ type: MTRXCTL_SUBMIT_REQUEST });
+
+    try {
+      // startOidcLogin открывает popup синхронно, поэтому вызов идёт до первого await
+      const { loginToken } = await startOidcLogin({ uriOidcAuth, idpId, uriMatrix, buildSsoLoginUrl });
+      const session = await matrixClient.loginMatrixWithToken({ loginToken, uriMatrix });
+      if (operationId !== sessionOperationId) return;
+
+      watchSessionAndDispatchClear(dispatch, operationId);
+      watchDeviceVerificationAndDispatch(dispatch);
+      dispatchMatrixSuccess(dispatch, session);
+    } catch (error) {
+      if (operationId === sessionOperationId) {
+        dispatchMtrxRegError(dispatch, getOidcErrorMessage(error));
       }
     }
   };
@@ -429,6 +477,7 @@ export {
   handleLeaveRoom,
   handleLoadDeviceVerification,
   handleLoadRoomMeta,
+  handleOidcLogin,
   handleRegClear,
   handleRegister,
   handleRequestDeviceVerification,

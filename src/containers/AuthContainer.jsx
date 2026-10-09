@@ -4,6 +4,7 @@ import { bindActionCreators } from "redux";
 import * as authActions from "../actions/authControlActions.js";
 import * as mtrxActions from "../actions/mtrxControlActions.js";
 import AuthLinks from "../components/AuthLinks.jsx";
+import AuthOidc from "../components/AuthOidc.jsx";
 import AuthPad from "../components/AuthPad.jsx";
 import AuthRest from "../components/AuthRest.jsx";
 
@@ -23,7 +24,7 @@ const AuthContainer = () => {
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
   const { responseData, displayRest, displayAuthPad, status: authStatus } = authControlRdcr;
-  const { uriMatrix, status: mtrxStatus, authLost: mtrxAuthLost } = mtrxControlRdcr;
+  const { uriMatrix, status: mtrxStatus, authLost: mtrxAuthLost, displayOidc } = mtrxControlRdcr;
 
   // Реквизиты Matrix из ответа REST (см. README → AuthRest.jsx)
   const mtrxLogin = responseData?.mtrx_login || "";
@@ -97,6 +98,12 @@ const AuthContainer = () => {
     mtrxControlActions.handleChangeStore("displayReg", true);
   };
 
+  // Вход через OIDC (authentik): форма собирает адрес ресурса IdP, флоу ведёт
+  // thunk handleOidcLogin — он пишет только в свой срез (MTRXCTL_)
+  const handleOpenOidc = () => {
+    mtrxControlActions.handleChangeStore("displayOidc", true);
+  };
+
   // Мост к сервисам (MTRXCTL_ → AUTHCTL_): AuthRestInfo читает матричный идентификатор.
   // Только в рамках активного REST-сеанса, иначе после REST-выхода responseData заполнится снова.
   useEffect(() => {
@@ -117,9 +124,11 @@ const AuthContainer = () => {
   // Форма — модальный Dialog (портал), в потоке документа она места не занимает
   return (
     <>
-      {showAuthLinks && <AuthLinks onOpenRest={handleOpenRest} onOpenMtrx={handleOpenMtrx} />}
+      {showAuthLinks && <AuthLinks onOpenRest={handleOpenRest} onOpenMtrx={handleOpenMtrx} onOpenOidc={handleOpenOidc} />}
 
       {displayRest && <AuthRest authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
+
+      {displayOidc && <AuthOidc mtrxControlRdcr={mtrxControlRdcr} mtrxControlActions={mtrxControlActions} />}
 
       {displayAuthPad && (
         <AuthPad

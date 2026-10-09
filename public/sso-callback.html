@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Вход через authentik</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font: 16px/1.5 system-ui, sans-serif;
+        color: #1f1f1f;
+        background: #fafafa;
+        text-align: center;
+      }
+      main {
+        max-width: 32rem;
+        padding: 1.5rem;
+      }
+      .error {
+        color: #b3261e;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="status">Завершаем вход…</main>
+
+    <!--
+      Страница возврата OIDC-входа: Synapse (/ _synapse/client/oidc/callback) завершает
+      авторизацию в authentik и редиректит сюда с параметром loginToken. Токен нельзя
+      оставлять в адресной строке popup, поэтому сразу передаём его родительскому окну
+      через postMessage на тот же origin и закрываем окно.
+    -->
+    <script>
+      (function () {
+        var statusEl = document.getElementById("status");
+        var params = new URLSearchParams(window.location.search);
+        var loginToken = params.get("loginToken") || "";
+        var error = params.get("error") || params.get("error_description") || "";
+
+        function fail(message) {
+          statusEl.textContent = message;
+          statusEl.className = "error";
+        }
+
+        if (error) {
+          fail("IdP вернул ошибку: " + error);
+          return;
+        }
+
+        if (!loginToken) {
+          fail("Synapse не вернул loginToken: вход не завершён.");
+          return;
+        }
+
+        if (!window.opener) {
+          fail("Окно приложения закрыто: вернитесь в него и повторите вход.");
+          return;
+        }
+
+        window.opener.postMessage(
+          { type: "matrix-sso-login-token", loginToken: loginToken },
+          window.location.origin,
+        );
+        statusEl.textContent = "Вход выполнен, окно можно закрыть.";
+        window.close();
+      })();
+    </script>
+  </body>
+</html>
