@@ -848,6 +848,28 @@ function resolveHomeserverUrl(uriMatrix = "") {
 }
 
 /**
+ * Абсолютный адрес начала SSO-входа (legacy `m.login.sso`) на homeserver:
+ * `GET /_matrix/client/v3/login/sso/redirect/{idpId}?redirectUrl=…`.
+ *
+ * Путь строим сами (как `http.getUrl` в matrix-js-sdk: baseUrl + prefix + path), без
+ * `MatrixClient.getSsoLoginUrl`: SDK грузится динамически (`loadMatrixSdk`), а popup
+ * нужно открыть синхронно в обработчике клика — до первого await.
+ *
+ * @see https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3loginsso_redirect
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#getssologinurl
+ */
+function buildSsoLoginUrl({ uriMatrix, redirectUrl, idpId } = {}) {
+  if (!redirectUrl) throw new Error("Не задан адрес возврата SSO.");
+
+  const homeserverUrl = resolveHomeserverUrl(uriMatrix);
+  const path = typeof idpId === "string" && idpId.trim() ? `/login/sso/redirect/${encodeURIComponent(idpId.trim())}` : "/login/sso/redirect";
+  const url = new URL(`${homeserverUrl}/_matrix/client/v3${path}`);
+  url.searchParams.set("redirectUrl", redirectUrl);
+
+  return url.toString();
+}
+
+/**
  * Поднимает сессию по ответу `/login`: создаёт клиент, сохраняет сессию и запускает sync.
  * Один путь для входа по паролю и по login token (OIDC/SSO).
  *
@@ -995,6 +1017,7 @@ async function invalidateMatrixSession() {
 // Публичный доменный API — без SDK-объектов (MatrixClient / Room).
 export {
   acceptCurrentDeviceVerification,
+  buildSsoLoginUrl,
   cancelCurrentDeviceVerification,
   clearCurrentDeviceVerification,
   confirmCurrentDeviceVerification,

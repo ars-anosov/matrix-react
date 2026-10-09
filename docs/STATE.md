@@ -15,7 +15,7 @@
 ```mermaid
 flowchart LR
   subgraph UI["UI — компоненты"]
-    ViewAuth["AuthRest · AuthPad<br/>формы REST"]
+    ViewAuth["AuthRest · AuthOidc · AuthPad<br/>формы REST · OIDC"]
     ViewMtrx["MtrxReg · MtrxPad<br/>регистрация и чат"]
   end
   subgraph CT["Контейнеры — связь с Redux"]
@@ -24,12 +24,13 @@ flowchart LR
   end
   subgraph RX["Redux — actions и reducers"]
     AuthAct["authControlActions<br/>AUTHCTL_"]
-    AuthStore["authControlRdcr<br/>состояние REST"]
+    AuthStore["authControlRdcr<br/>состояние REST и OIDC"]
     MtrxAct["mtrxControlActions<br/>MTRXCTL_"]
     MtrxStore["mtrxControlRdcr<br/>индекс комнат"]
   end
   subgraph SV["Сервисы"]
     RestSvc["restAuth<br/>REST-авторизация · ky"]
+    OidcSvc["oidcAuth<br/>OIDC · authentik"]
     MtrxSvc["Matrix-сервисы<br/>matrixClient · matrixRooms · matrixMedia"]
   end
   subgraph ST["Хранилище"]
@@ -40,9 +41,12 @@ flowchart LR
   Bridge -->|dispatch| AuthAct
   AuthAct -->|доменный API| RestSvc
   RestSvc -->|ky · POST| RestRes["REST-сервис<br/>внешний блок"]
-  AuthAct -->|состояние REST| AuthStore
+  AuthAct -->|доменный API| OidcSvc
+  AuthAct -->|SSO-редирект · абсолютный адрес| MtrxSvc
+  AuthAct -->|состояние REST и OIDC| AuthStore
   AuthStore -->|useSelector| Bridge
   RestSvc -->|ключи REST| Ls
+  OidcSvc -->|uriOidcAuth · oidcIdpId| Ls
   ViewMtrx -->|события| MtrxCnt
   MtrxCnt -->|dispatch| MtrxAct
   MtrxAct -->|доменный API| MtrxSvc
@@ -52,7 +56,7 @@ flowchart LR
   MtrxSvc -->|токены и адрес| Ls
   Sdk -->|sync и crypto| Idb
   MtrxSvc -->|сообщения комнаты — мимо Redux| ViewMtrx
-  Bridge -->|мост: loginMatrix · logoutMatrix| MtrxAct
+  Bridge -->|мост: loginMatrix · logoutMatrix · loginToken| MtrxAct
 ```
 
 - Пунктирные области — слои: UI, контейнеры (связь со store), Redux (`actions` и `reducers`),
@@ -60,16 +64,20 @@ flowchart LR
 - Срезы `AUTHCTL_` и `MTRXCTL_` идут строками (суффикс в подписях узлов): состояние каждого —
   свой редьюсер (`authControlRdcr`, `mtrxControlRdcr`), а переход между срезами есть только в
   `AuthContainer` (мост); обратный поток (`authLost`, `mtrx_user_id`) идёт через тот же мост.
-- У каждого среза свой сервис и внешний ресурс: `AUTHCTL_` → `restAuth` → REST-сервис (`ky`),
-  `MTRXCTL_` → Matrix-сервисы → `matrix-js-sdk`; ключи приложения в `localStorage` пишут сервисы
-  обоих срезов, sync и crypto — в `IndexedDB`.
+- У каждого среза свой сервис и внешний ресурс: `AUTHCTL_` → `restAuth` (REST-сервис · `ky`) и
+  `oidcAuth` (authentik), `MTRXCTL_` → Matrix-сервисы → `matrix-js-sdk`; абсолютный адрес
+  SSO-редиректа для OIDC строит `matrixClient` — единственное касание Matrix-сервиса из
+  AUTH-слоя. Ключи приложения в `localStorage` пишут сервисы обоих срезов, sync и crypto — в
+  `IndexedDB`.
 - Thunk-и namespace-чистые: `AUTHCTL_` и `MTRXCTL_` не диспатчат чужой срез — мост между ними
   только в `AuthContainer`.
 - `matrix-js-sdk` грузится лениво: `import()` в `services/matrixSdk.js` даёт отдельный чанк
   `matrix-sdk`, активный клиент держит `services/matrixClientStore.js`; UI и Redux видят только
   доменный API сервисов, без SDK-объектов.
 - Сервисов авторизации два: `restAuth` (REST-сессия и матричная пара) и `oidcAuth` (вход через
-  OIDC/authentik, см. § 2); на диаграмме архитектуры узел `oidcAuth` пока не отрисован.
+  OIDC/authentik, см. § 2). OIDC — вход, общий для приложения, поэтому его форма, `uriOidcAuth`
+  и `oidcIdpId` живут в срезе `AUTHCTL_`; узел `oidcAuth` на диаграмме архитектуры связан с
+  `authAct`, `matrixClient` (SSO-редирект) и `localStorage`.
 
 ## 2. Старт и авторизация
 
@@ -144,35 +152,50 @@ sequenceDiagram
 
 ### Вход через OIDC (authentik)
 
-Отдельная ветка входа, которой пока нет на диаграмме выше (её источник истины —
-`archify/matrix-react-session-restore.sequence.json`, он эту ветку ещё не описывает). Поток
-ведёт `services/oidcAuth.js` и thunk `handleOidcLogin` (namespace `MTRXCTL_`):
+[Диаграмма](archify/matrix-react-oidc-login.html) · спека
+`archify/matrix-react-oidc-login.sequence.json`. Ветка отдельная от диаграммы § 2: она не
+восстанавливает сессию, а поднимает её через popup и `loginToken`. Токен добывает AUTH-срез
+(`services/oidcAuth.js`, thunk `handleOidcLogin`, namespace `AUTHCTL_`), сессию Matrix по нему
+поднимает `handleLoginWithToken` (`MTRXCTL_`), а шаги связывает мост `AuthContainer`:
 
 ```mermaid
 sequenceDiagram
   participant Form as AuthOidc
-  participant Act as mtrxControlActions
+  participant Br as AuthContainer
+  participant Act as authControlActions
+  participant RX as Redux
   participant Oidc as oidcAuth
+  participant MAct as mtrxControlActions
   participant Cl as matrixClient
   participant SSO as Synapse /login/sso
   participant AK as authentik
   participant CB as sso-callback.html
   Form->>Act: handleOidcLogin · uriOidcAuth
-  Act->>Oidc: startOidcLogin
+  Act->>RX: AUTHCTL_OIDC_REQUEST
+  Act->>Oidc: startOidcLogin (popup открыт в клике)
   Oidc->>SSO: popup /login/sso/redirect/oidc-authentik
   SSO->>AK: 302 authorize (код и PKCE делает Synapse)
   AK-->>SSO: код на /_synapse/client/oidc/callback
   SSO->>CB: redirect с ?loginToken
   CB->>Oidc: postMessage loginToken (тот же origin)
   Oidc-->>Act: loginToken
-  Act->>Cl: loginMatrixWithToken
+  Act-->>Br: loginToken
+  Br->>MAct: handleLoginWithToken
+  MAct->>Cl: loginMatrixWithToken
   Cl->>SSO: POST /login · m.login.token
   SSO-->>Cl: access_token · device_id
+  MAct->>RX: MTRXCTL_SUBMIT_SUCCESS
+  Br->>RX: AUTHCTL_OIDC_SUCCESS · display_name
+  RX-->>Br: useSelector: статус success → чат
 ```
 
 - Форма `AuthOidc` (модальный `Dialog`) собирает адрес ресурса IdP и запускает флоу; адрес
   (`uriOidcAuth`) и id провайдера (`oidcIdpId`) хранятся в `localStorage`, сохранённое значение
-  подставляет сид стора.
+  подставляет сид стора в срез `AUTHCTL_`.
+- Вход ведёт `AUTHCTL_`: `handleOidcLogin` доводит его только до `loginToken` и пишет статус формы
+  (`AUTHCTL_OIDC_REQUEST / SUCCESS / ERROR`). Matrix-сессию по токену поднимает `MTRXCTL_`
+  (`handleLoginWithToken`), поэтому `AUTHCTL_OIDC_SUCCESS` и ошибку подъёма сессии оформляет мост
+  `AuthContainer`.
 - Спаринг делает Synapse: SPA открывает `/_matrix/client/v3/login/sso/redirect/{idpId}`, а не
   ходит в authentik напрямую, — поэтому client secret и код в SPA не попадают.
 - Возврат токена идёт через `public/sso-callback.html` и `postMessage` с проверкой origin:
@@ -278,8 +301,8 @@ sequenceDiagram
   B->>RX: MTRXCTL_CLEAR
 ```
 
-- `AuthContainer` — единственный мост между срезами `AUTHCTL_` и `MTRXCTL_`; пароль REST в Matrix
-  Redux не попадает.
+- `AuthContainer` — единственный мост между срезами `AUTHCTL_` и `MTRXCTL_` (реквизиты REST,
+  тумблер и `loginToken` для OIDC); пароль REST в Matrix Redux не попадает.
 - Оба среза сходятся в Redux: `authControlRdcr` принимает `AUTHCTL_SUBMIT_SUCCESS`,
   `mtrxControlRdcr` — `MTRXCTL_SUBMIT_SUCCESS / ERROR` и `MTRXCTL_CLEAR`; цвета тумблера и
   реквизиты REST мост читает из них через `useSelector`.
@@ -338,6 +361,8 @@ stateDiagram-v2
 ## 6. Хранилища
 
 `localStorage` доступен только сервисам; ключи объявлены в `src/constants/storage.js`.
+Стартовые адреса `uriMatrix`, `uriRestAuth` и `uriOidcAuth` прописывает inline-скрипт
+`index.html` — до загрузки приложения; дальше эти ключи читают и пишут только сервисы.
 `matrixClient` хранит `uriMatrix`, `mtrxLogin`, `mtrxAccessToken`, `mtrxUserId`, `mtrxDeviceId` и
 `mtrxRefreshToken`; `restAuth` — `uriRestAuth` и `restLogin`; `oidcAuth` — `uriOidcAuth` и
 `oidcIdpId`.

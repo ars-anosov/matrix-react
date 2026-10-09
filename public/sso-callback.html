@@ -35,7 +35,7 @@
       через postMessage на тот же origin и закрываем окно.
     -->
     <script>
-      (function () {
+      (() => {
         var statusEl = document.getElementById("status");
         var params = new URLSearchParams(window.location.search);
         var loginToken = params.get("loginToken") || "";
@@ -47,7 +47,7 @@
         }
 
         if (error) {
-          fail("IdP вернул ошибку: " + error);
+          fail(`IdP вернул ошибку: ${error}`);
           return;
         }
 

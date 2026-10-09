@@ -1,6 +1,6 @@
 import { initialState as authControlInitialState } from "../reducers/authControlRdcr";
 import { initialState as mtrxControlInitialState } from "../reducers/mtrxControlRdcr";
-import { DEFAULT_OIDC_ISSUER, getStoredOidcIdpId, getStoredOidcIssuer } from "../services/oidcAuth";
+import { getStoredOidcIdpId, getStoredOidcIssuer } from "../services/oidcAuth";
 import { getStoredRestAuthUri } from "../services/restAuth";
 
 // Сид стора: чтение localStorage живёт в слое стора, а не внутри reducers.
@@ -11,12 +11,13 @@ export default function getPreloadedState() {
     authControlRdcr: {
       ...authControlInitialState,
       uriRestAuth: getStoredRestAuthUri(),
+      // OIDC-вход живёт в AUTH-срезе: адрес ресурса IdP задаёт index.html, id провайдера —
+      // сохранённое значение (или DEFAULT_OIDC_IDP_ID в сервисе)
+      uriOidcAuth: getStoredOidcIssuer(),
+      oidcIdpId: getStoredOidcIdpId(),
     },
-    // Срез Matrix собран целиком: поля OIDC дополнены значениями из localStorage
     mtrxControlRdcr: {
       ...mtrxControlInitialState,
-      uriOidcAuth: getStoredOidcIssuer() || DEFAULT_OIDC_ISSUER,
-      oidcIdpId: getStoredOidcIdpId(),
     },
   };
 }

@@ -16,3 +16,9 @@ export const AUTHCTL_SUBMIT_SUCCESS = "AUTHCTL_SUBMIT_SUCCESS";
 export const AUTHCTL_SUBMIT_ERROR = "AUTHCTL_SUBMIT_ERROR";
 export const AUTHCTL_CLEAR = "AUTHCTL_CLEAR";
 export const AUTHCTL_STORE_VALUE = "AUTHCTL_STORE_VALUE";
+// OIDC (OAuth 2.0) через authentik — вход, общий для приложения: AUTHCTL_ добывает
+// loginToken, сессию Matrix по нему поднимает MTRXCTL_ (мост — в AuthContainer)
+export const AUTHCTL_OIDC_REQUEST = "AUTHCTL_OIDC_REQUEST";
+export const AUTHCTL_OIDC_SUCCESS = "AUTHCTL_OIDC_SUCCESS";
+export const AUTHCTL_OIDC_ERROR = "AUTHCTL_OIDC_ERROR";
+export const AUTHCTL_OIDC_CLEAR = "AUTHCTL_OIDC_CLEAR";

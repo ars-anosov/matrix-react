@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Вход через OIDC (authentik)",
+    "quality_profile": "showcase",
+    "viewBox": [
+      2500,
+      1360
+    ],
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "Form",
+      "type": "frontend",
+      "label": "AuthOidc",
+      "sublabel": "форма входа OIDC"
+    },
+    {
+      "id": "UI",
+      "type": "frontend",
+      "label": "AuthContainer",
+      "sublabel": "AuthLinks · мост срезов"
+    },
+    {
+      "id": "Store",
+      "type": "database",
+      "label": "Redux",
+      "sublabel": "authControlRdcr · mtrxControlRdcr"
+    },
+    {
+      "id": "LS",
+      "type": "database",
+      "label": "localStorage",
+      "sublabel": "uriOidcAuth · oidcIdpId"
+    },
+    {
+      "id": "AuthAct",
+      "type": "backend",
+      "label": "authControlActions",
+      "sublabel": "handleOidcLogin · AUTHCTL_OIDC_*"
+    },
+    {
+      "id": "MtrxAct",
+      "type": "backend",
+      "label": "mtrxControlActions",
+      "sublabel": "handleLoginWithToken"
+    },
+    {
+      "id": "Oidc",
+      "type": "backend",
+      "label": "oidcAuth",
+      "sublabel": "popup · ожидание loginToken"
+    },
+    {
+      "id": "Cl",
+      "type": "backend",
+      "label": "matrixClient",
+      "sublabel": "loginMatrixWithToken"
+    },
+    {
+      "id": "Syn",
+      "type": "external",
+      "label": "Synapse",
+      "sublabel": "/login/sso · /login"
+    },
+    {
+      "id": "AK",
+      "type": "external",
+      "label": "authentik",
+      "sublabel": "authorize · consent"
+    },
+    {
+      "id": "CB",
+      "type": "external",
+      "label": "sso-callback.html",
+      "sublabel": "страница возврата popup"
+    }
+  ],
+  "segments": [
+    {
+      "from": 160,
+      "to": 680,
+      "label": "Открытие окна IdP"
+    },
+    {
+      "from": 700,
+      "to": 860,
+      "label": "Возврат loginToken"
+    },
+    {
+      "from": 880,
+      "to": 1300,
+      "label": "Сессия Matrix"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m01-ui-form",
+      "from": "UI",
+      "to": "Form",
+      "y": 180,
+      "label": "открыть форму OIDC"
+    },
+    {
+      "id": "m02-form-authact",
+      "from": "Form",
+      "to": "AuthAct",
+      "y": 240,
+      "label": "handleOidcLogin · uriOidcAuth",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m03-authact-store",
+      "from": "AuthAct",
+      "to": "Store",
+      "y": 300,
+      "label": "AUTHCTL_OIDC_REQUEST"
+    },
+    {
+      "id": "m04-authact-oidc",
+      "from": "AuthAct",
+      "to": "Oidc",
+      "y": 360,
+      "label": "startOidcLogin (popup открыт в клике)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m05-oidc-syn",
+      "from": "Oidc",
+      "to": "Syn",
+      "y": 420,
+      "label": "GET /_matrix/client/v3/login/sso/redirect/oidc-authentik"
+    },
+    {
+      "id": "m06-syn-ak",
+      "from": "Syn",
+      "to": "AK",
+      "y": 480,
+      "label": "302 authorize · PKCE делает Synapse"
+    },
+    {
+      "id": "m07-ak-syn",
+      "from": "AK",
+      "to": "Syn",
+      "y": 540,
+      "label": "код на /_synapse/client/oidc/callback",
+      "variant": "return"
+    },
+    {
+      "id": "m08-syn-cb",
+      "from": "Syn",
+      "to": "CB",
+      "y": 600,
+      "label": "redirect ?loginToken=…"
+    },
+    {
+      "id": "m09-cb-oidc",
+      "from": "CB",
+      "to": "Oidc",
+      "y": 660,
+      "label": "postMessage loginToken · проверка origin"
+    },
+    {
+      "id": "m10-oidc-ls",
+      "from": "Oidc",
+      "to": "LS",
+      "y": 720,
+      "label": "uriOidcAuth · oidcIdpId — после успеха"
+    },
+    {
+      "id": "m11-oidc-authact",
+      "from": "Oidc",
+      "to": "AuthAct",
+      "y": 780,
+      "label": "loginToken",
+      "variant": "return"
+    },
+    {
+      "id": "m12-authact-ui",
+      "from": "AuthAct",
+      "to": "UI",
+      "y": 840,
+      "label": "loginToken — мост поднимает сессию",
+      "variant": "return"
+    },
+    {
+      "id": "m13-ui-mtrxact",
+      "from": "UI",
+      "to": "MtrxAct",
+      "y": 900,
+      "label": "handleLoginWithToken · loginToken",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m14-mtrxact-cl",
+      "from": "MtrxAct",
+      "to": "Cl",
+      "y": 960,
+      "label": "loginMatrixWithToken",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m15-cl-syn",
+      "from": "Cl",
+      "to": "Syn",
+      "y": 1020,
+      "label": "POST /_matrix/client/v3/login · m.login.token"
+    },
+    {
+      "id": "m16-syn-cl",
+      "from": "Syn",
+      "to": "Cl",
+      "y": 1080,
+      "label": "access_token · device_id",
+      "variant": "return"
+    },
+    {
+      "id": "m17-mtrxact-store",
+      "from": "MtrxAct",
+      "to": "Store",
+      "y": 1140,
+      "label": "MTRXCTL_SUBMIT_SUCCESS"
+    },
+    {
+      "id": "m18-ui-store",
+      "from": "UI",
+      "to": "Store",
+      "y": 1200,
+      "label": "AUTHCTL_OIDC_SUCCESS · display_name"
+    },
+    {
+      "id": "m19-store-ui",
+      "from": "Store",
+      "to": "UI",
+      "y": 1260,
+      "label": "useSelector: статус success → чат",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Окно IdP открывает Synapse",
+      "items": [
+        "Форма AuthOidc отдаёт адрес ресурса IdP и id провайдера oidc-authentik",
+        "SPA открывает /login/sso/redirect/oidc-authentik в popup и уводит его в authentik",
+        "Код и PKCE обменивает Synapse: client secret в SPA не попадает"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Возврат токена",
+      "items": [
+        "authentik отдаёт код на /_synapse/client/oidc/callback, Synapse подставляет loginToken",
+        "sso-callback.html шлёт loginToken в основное окно через postMessage с проверкой origin",
+        "loginToken добывает AUTHCTL_, адрес IdP сервис сохраняет только после удачного входа"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Сессия Matrix",
+      "items": [
+        "loginMatrixWithToken меняет loginToken на сессию: POST /login с m.login.token",
+        "Сессию поднимает MTRXCTL_ — до токена AUTH-срез Matrix-логику не ведёт",
+        "MTRXCTL_SUBMIT_SUCCESS включает чат, AUTHCTL_OIDC_SUCCESS закрывает форму"
+      ]
+    }
+  ]
+}

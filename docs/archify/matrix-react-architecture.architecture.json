@@ -6,19 +6,26 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/ars-anosov/matrix-react",
-      "revision": "c323f65fc19d5446db86803700e53c64e115f7f5"
+      "revision": "5455bfb793ee753d3a2314168f61c24c429fe085"
     }
   },
   "components": [
     {
       "id": "viewAuth",
       "type": "frontend",
-      "label": "AuthRest · AuthPad",
+      "label": "AuthRest · AuthOidc · AuthPad",
       "sources": [
-        { "path": "src/components/AuthRest.jsx" },
-        { "path": "src/components/AuthPad.jsx" }
+        {
+          "path": "src/components/AuthRest.jsx"
+        },
+        {
+          "path": "src/components/AuthOidc.jsx"
+        },
+        {
+          "path": "src/components/AuthPad.jsx"
+        }
       ],
-      "sublabel": "формы REST",
+      "sublabel": "формы REST · OIDC",
       "tag": "AUTHCTL_",
       "pos": [
         40,
@@ -33,7 +40,11 @@
       "id": "bridge",
       "type": "frontend",
       "label": "AuthContainer",
-      "sources": [{ "path": "src/containers/AuthContainer.jsx" }],
+      "sources": [
+        {
+          "path": "src/containers/AuthContainer.jsx"
+        }
+      ],
       "sublabel": "мост AUTHCTL_ ↔ MTRXCTL_",
       "pos": [
         360,
@@ -48,7 +59,11 @@
       "id": "authAct",
       "type": "backend",
       "label": "authControlActions",
-      "sources": [{ "path": "src/actions/authControlActions.js" }],
+      "sources": [
+        {
+          "path": "src/actions/authControlActions.js"
+        }
+      ],
       "sublabel": "AUTHCTL_",
       "tag": "AUTHCTL_",
       "pos": [
@@ -64,8 +79,12 @@
       "id": "authStore",
       "type": "database",
       "label": "authControlRdcr",
-      "sources": [{ "path": "src/reducers/authControlRdcr.js" }],
-      "sublabel": "состояние REST",
+      "sources": [
+        {
+          "path": "src/reducers/authControlRdcr.js"
+        }
+      ],
+      "sublabel": "состояние REST и OIDC",
       "tag": "AUTHCTL_",
       "pos": [
         680,
@@ -80,7 +99,11 @@
       "id": "restSvc",
       "type": "backend",
       "label": "restAuth",
-      "sources": [{ "path": "src/services/restAuth.js" }],
+      "sources": [
+        {
+          "path": "src/services/restAuth.js"
+        }
+      ],
       "sublabel": "REST-авторизация · ky",
       "pos": [
         1040,
@@ -88,6 +111,26 @@
       ],
       "size": [
         240,
+        76
+      ]
+    },
+    {
+      "id": "oidcSvc",
+      "type": "backend",
+      "label": "oidcAuth",
+      "sources": [
+        {
+          "path": "src/services/oidcAuth.js"
+        }
+      ],
+      "sublabel": "OIDC · authentik",
+      "tag": "AUTHCTL_",
+      "pos": [
+        1040,
+        300
+      ],
+      "size": [
+        140,
         76
       ]
     },
@@ -109,7 +152,11 @@
       "id": "storage",
       "type": "database",
       "label": "localStorage",
-      "sources": [{ "path": "src/constants/storage.js" }],
+      "sources": [
+        {
+          "path": "src/constants/storage.js"
+        }
+      ],
       "sublabel": "ключи приложения",
       "pos": [
         1450,
@@ -139,8 +186,12 @@
       "type": "frontend",
       "label": "MtrxReg · MtrxPad",
       "sources": [
-        { "path": "src/components/MtrxReg.jsx" },
-        { "path": "src/components/MtrxPad.jsx" }
+        {
+          "path": "src/components/MtrxReg.jsx"
+        },
+        {
+          "path": "src/components/MtrxPad.jsx"
+        }
       ],
       "sublabel": "регистрация и чат",
       "pos": [
@@ -156,7 +207,11 @@
       "id": "mtrxCnt",
       "type": "frontend",
       "label": "MtrxContainer",
-      "sources": [{ "path": "src/containers/MtrxContainer.jsx" }],
+      "sources": [
+        {
+          "path": "src/containers/MtrxContainer.jsx"
+        }
+      ],
       "sublabel": "контейнер чата",
       "pos": [
         360,
@@ -171,7 +226,11 @@
       "id": "mtrxAct",
       "type": "backend",
       "label": "mtrxControlActions",
-      "sources": [{ "path": "src/actions/mtrxControlActions.js" }],
+      "sources": [
+        {
+          "path": "src/actions/mtrxControlActions.js"
+        }
+      ],
       "sublabel": "MTRXCTL_",
       "tag": "MTRXCTL_",
       "pos": [
@@ -187,7 +246,11 @@
       "id": "mtrxStore",
       "type": "database",
       "label": "mtrxControlRdcr",
-      "sources": [{ "path": "src/reducers/mtrxControlRdcr.js" }],
+      "sources": [
+        {
+          "path": "src/reducers/mtrxControlRdcr.js"
+        }
+      ],
       "sublabel": "индекс комнат",
       "tag": "MTRXCTL_",
       "pos": [
@@ -204,9 +267,18 @@
       "type": "backend",
       "label": "Matrix-сервисы",
       "sources": [
-        { "path": "src/services/matrixClient.js", "label": "клиент · sync · crypto" },
-        { "path": "src/services/matrixRooms.js", "label": "комнаты · сообщения" },
-        { "path": "src/services/matrixSdk.js", "label": "ленивый import SDK" }
+        {
+          "path": "src/services/matrixClient.js",
+          "label": "клиент · sync · crypto"
+        },
+        {
+          "path": "src/services/matrixRooms.js",
+          "label": "комнаты · сообщения"
+        },
+        {
+          "path": "src/services/matrixSdk.js",
+          "label": "ленивый import SDK"
+        }
       ],
       "sublabel": "matrixClient · matrixRooms · matrixMedia",
       "pos": [
@@ -265,6 +337,7 @@
       "label": "Сервисы",
       "wraps": [
         "restSvc",
+        "oidcSvc",
         "mtrxSvc"
       ]
     },
@@ -404,9 +477,30 @@
       "id": "bridge-mtrx",
       "from": "bridge",
       "to": "mtrxAct",
-      "label": "мост: loginMatrix · logoutMatrix",
+      "label": "мост: loginMatrix · logoutMatrix · loginToken",
       "fromSide": "bottom",
       "toSide": "top"
+    },
+    {
+      "from": "authAct",
+      "to": "oidcSvc",
+      "label": "доменный API"
+    },
+    {
+      "from": "oidcSvc",
+      "to": "storage",
+      "label": "uriOidcAuth · oidcIdpId",
+      "labelAt": [
+        1240,
+        300
+      ]
+    },
+    {
+      "from": "authAct",
+      "to": "mtrxSvc",
+      "label": "SSO-редирект · абсолютный адрес",
+      "fromSide": "right",
+      "toSide": "bottom"
     }
   ],
   "cards": [
@@ -414,7 +508,7 @@
       "dot": "cyan",
       "title": "Два среза",
       "items": [
-        "Строка AUTHCTL_ — REST-вход и сессия REST",
+        "Строка AUTHCTL_ — REST- и OIDC-вход",
         "Строка MTRXCTL_ — регистрация Matrix, чат и медиа",
         "Thunk-и не диспатчат чужой namespace"
       ]
@@ -433,7 +527,7 @@
       "title": "Мост",
       "items": [
         "AuthContainer — единственный переход между срезами",
-        "loginMatrix / logoutMatrix и authLost / mtrx_user_id",
+        "loginMatrix / logoutMatrix · loginToken (OIDC)",
         "Срезы видят друг друга только через мост"
       ]
     },

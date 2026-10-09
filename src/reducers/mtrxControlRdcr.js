@@ -16,7 +16,6 @@ import {
 export const initialState = {
   // --- UI ---
   displayReg: false,
-  displayOidc: false,
   displayPad: false,
   displayControl: true,
   // --- Auth ---
@@ -26,11 +25,6 @@ export const initialState = {
   // --- Stored matrix data ---
   uriMatrix: "",
   login: "",
-  // --- OIDC (OAuth 2.0) через authentik ---
-  // Адрес ресурса IdP: сохранённое значение подставляет сид стора (store/preloadedState.js)
-  uriOidcAuth: "",
-  // id провайдера на стороне Synapse (GET /login → m.login.sso.identity_providers[].id)
-  oidcIdpId: "",
   // --- Индекс комнат (данные — в SDK) ---
   roomIds: [],
   selectedRoomId: "",
@@ -81,8 +75,6 @@ export default function mtrxControlRdcr(state = initialState, action) {
         status: "success",
         authLost: false,
         displayReg: false,
-        // Форма OIDC — тоже модальное окно: на успешном входе её закрываем
-        displayOidc: false,
         displayPad: true,
         responseData: action.payload.responseData,
         ...emptyRooms,
@@ -113,7 +105,6 @@ export default function mtrxControlRdcr(state = initialState, action) {
         // «Выйти» в MtrxReg) и старт без сессии возвращают тумблер в исходное — откл.
         authLost: Boolean(action.payload?.authLost),
         displayReg: false,
-        displayOidc: false,
         displayPad: false,
         responseData: null,
         ...emptyRooms,

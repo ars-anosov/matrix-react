@@ -1,4 +1,4 @@
-import { Hub as IconHub, Key as IconKey } from "@mui/icons-material";
+import { AdminPanelSettings as IconAdminPanelSettings, Hub as IconHub, Key as IconKey } from "@mui/icons-material";
 import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
@@ -15,7 +15,7 @@ const iconButtonSx = {
   "&:hover": { borderColor: "primary.main", backgroundColor: "action.hover" },
 };
 
-function AuthLinks({ onOpenMtrx, onOpenOidc }) {
+function AuthLinks({ onOpenMtrx, onOpenOidc, onOpenRest }) {
   return (
     // flexGrow занимает свободное место окна, поэтому блок стоит по центру между
     // AppBar и футером (auto-отступ футера забирает остаток, только когда блока нет)
@@ -23,23 +23,23 @@ function AuthLinks({ onOpenMtrx, onOpenOidc }) {
       <Typography color="text.secondary">Войти</Typography>
 
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-        <Tooltip title="Использовать Matrix">
+        <Tooltip title="Войти в Matrix">
           <IconButton aria-label="Войти с учётной записью Matrix" onClick={onOpenMtrx} sx={iconButtonSx}>
             <IconHub />
           </IconButton>
         </Tooltip>
 
         <Tooltip title="Войти через authentik (OIDC)">
-          <IconButton aria-label="Войти через authentik по OIDC" onClick={onOpenOidc} sx={iconButtonSx}>
+          <IconButton aria-label="Войти через OAuth 2.0 / OIDC" onClick={onOpenOidc} sx={iconButtonSx}>
             <IconKey />
           </IconButton>
         </Tooltip>
 
-        {/* <Tooltip title="Получить атрибуты через REST">
+        <Tooltip title="Получить атрибуты через REST">
           <IconButton aria-label="Получить атрибуты через REST" onClick={onOpenRest} sx={iconButtonSx}>
-            <AdminPanelSettings />
+            <IconAdminPanelSettings />
           </IconButton>
-        </Tooltip> */}
+        </Tooltip>
       </Stack>
     </Stack>
   );

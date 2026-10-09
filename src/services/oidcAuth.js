@@ -1,4 +1,4 @@
-import { MTRX_OIDC_IDP_KEY, MTRX_OIDC_ISSUER_KEY } from "../constants/storage";
+import { OIDC_IDP_KEY, OIDC_ISSUER_KEY } from "../constants/storage";
 
 // Взаимодействие с IdP через legacy-схему Synapse `m.login.sso`: SPA открывает
 // `/_matrix/client/v3/login/sso/redirect/{idp}` в popup, Synapse уводит браузер в
@@ -7,10 +7,10 @@ import { MTRX_OIDC_IDP_KEY, MTRX_OIDC_ISSUER_KEY } from "../constants/storage";
 // сообщением в основное окно, а сессию поднимает `matrixClient.loginMatrixWithToken`.
 
 // Ресурс authentik с приложением, чей Authorization flow — explicit consent в сторону
-// `/_synapse/client/oidc/callback`. Это значение по умолчанию для поля формы.
+// `/_synapse/client/oidc/callback`. Адрес по умолчанию для поля формы задаёт inline-скрипт
+// index.html (localStorage `uriOidcAuth`), поэтому здесь его нет.
 // id провайдера на стороне Synapse: он же id в GET /_matrix/client/v3/login → m.login.sso
 export const DEFAULT_OIDC_IDP_ID = "oidc-authentik";
-export const DEFAULT_OIDC_ISSUER = "https://authentik.ars-dev.ru";
 
 // Страница возврата в popup: тот же origin, что у приложения, поэтому postMessage
 // можно проверять по origin. Файл лежит в корне статики (public/sso-callback.html).
@@ -59,19 +59,19 @@ function resolveOidcIssuerUrl(uriOidcAuth) {
 }
 
 function getStoredOidcIssuer() {
-  return localStorage.getItem(MTRX_OIDC_ISSUER_KEY) || "";
+  return localStorage.getItem(OIDC_ISSUER_KEY) || "";
 }
 
 function getStoredOidcIdpId() {
-  return localStorage.getItem(MTRX_OIDC_IDP_KEY) || DEFAULT_OIDC_IDP_ID;
+  return localStorage.getItem(OIDC_IDP_KEY) || DEFAULT_OIDC_IDP_ID;
 }
 
 function storeOidcIssuer(issuer) {
-  localStorage.setItem(MTRX_OIDC_ISSUER_KEY, issuer);
+  localStorage.setItem(OIDC_ISSUER_KEY, issuer);
 }
 
 function storeOidcIdpId(idpId) {
-  localStorage.setItem(MTRX_OIDC_IDP_KEY, idpId);
+  localStorage.setItem(OIDC_IDP_KEY, idpId);
 }
 
 // Адрес страницы возврата: базовый путь приложения сохраняем, query и hash — нет,
@@ -80,31 +80,32 @@ function buildSsoRedirectUrl(baseUrl) {
   return new URL(SSO_CALLBACK_FILE, baseUrl).toString();
 }
 
-// Ошибка с признаком: UI показывает текст errText как есть, отдельного кода не требует
-function oidcError(message) {
-  const error = new Error(message);
-  error.oidc = true;
-  return error;
-}
-
-// Ожидает сообщение страницы возврата. Резолвится loginToken'ом либо отклоняется,
-// если popup закрыли, не завершив вход.
-function waitForLoginToken(popup, appOrigin) {
+// Ожидает сообщение страницы возврата. Резолвится loginToken'ом либо отклоняется, если
+// popup закрыли или попытку отменили (закрытие формы → AbortSignal): молчаливый resolve
+// оставлял бы форму в вечном loading с недоступным крестиком.
+function waitForLoginToken(popup, appOrigin, signal) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const closeTimer = setInterval(() => {
       if (settled) return;
-      if (popup.closed) finish();
+      if (popup.closed) finish(new Error("Окно входа authentik закрыто: вход не завершён."));
     }, 500);
     const timeoutTimer = setTimeout(() => {
-      finish(oidcError("Вход через authentik не завершён. Повторите попытку."));
+      finish(new Error("Вход через authentik не завершён. Повторите попытку."));
     }, SSO_TIMEOUT_MS);
+
+    // Отмена (закрытие формы или новая попытка): окно закрываем сами, ожидание прекращаем
+    function handleAbort() {
+      popup.close?.();
+      finish(new Error("Вход через authentik отменён."));
+    }
 
     function cleanup() {
       settled = true;
       clearInterval(closeTimer);
       clearTimeout(timeoutTimer);
       window.removeEventListener("message", handleMessage);
+      signal?.removeEventListener("abort", handleAbort);
     }
 
     function finish(error, loginToken) {
@@ -121,32 +122,39 @@ function waitForLoginToken(popup, appOrigin) {
       if (event.origin !== appOrigin) return;
       if (event.data?.type !== SSO_MESSAGE_TYPE) return;
       if (typeof event.data.loginToken !== "string" || !event.data.loginToken) {
-        finish(oidcError("Synapse не вернул loginToken: вход не завершён."));
+        finish(new Error("Synapse не вернул loginToken: вход не завершён."));
         return;
       }
       finish(null, event.data.loginToken);
     }
 
+    if (signal?.aborted) {
+      handleAbort();
+      return;
+    }
+
+    signal?.addEventListener("abort", handleAbort, { once: true });
     window.addEventListener("message", handleMessage);
   });
 }
 
 /**
  * Открывает popup с редиректом Synapse в authentik и ждёт loginToken со страницы
- * возврата. Сессию Matrix по токену поднимает вызывающий код (см. actions/mtrxControlActions).
+ * возврата. Флоу ведёт слой AUTH (authControlActions.handleOidcLogin); сессию Matrix по
+ * токену поднимает MTRXCTL_ (handleLoginWithToken), шаги связывает мост AuthContainer.
  *
  * @param {object} params
  * @param {string} params.uriOidcAuth адрес ресурса authentik
  * @param {string} [params.idpId] id провайдера на стороне Synapse
- * @param {string} params.uriMatrix URL homeserver: из него строится редирект Synapse
  * @param {(redirectUrl: string, idpId: string) => string} params.buildSsoLoginUrl
+ *   абсолютный адрес SSO-редиректа на homeserver (его строит matrixClient)
+ * @param {AbortSignal} [params.signal] прерывает ожидание (закрытие формы, новая попытка)
  * @returns {Promise<{loginToken: string, issuer: string, idpId: string}>}
  */
-async function startOidcLogin({ uriOidcAuth, idpId, uriMatrix, buildSsoLoginUrl }) {
+async function startOidcLogin({ uriOidcAuth, idpId, buildSsoLoginUrl, signal }) {
   const issuer = resolveOidcIssuerUrl(uriOidcAuth);
   const resolvedIdpId = (typeof idpId === "string" ? idpId.trim() : "") || getStoredOidcIdpId();
 
-  if (!uriMatrix) throw new Error("Не задан URL homeserver Matrix.");
   if (typeof buildSsoLoginUrl !== "function") throw new Error("Не задан построитель SSO-редиректа.");
 
   const redirectUrl = buildSsoRedirectUrl(window.location.href);
@@ -156,12 +164,12 @@ async function startOidcLogin({ uriOidcAuth, idpId, uriMatrix, buildSsoLoginUrl 
   // пользовательского действия и блокирует окно
   const popup = window.open(ssoUrl, "matrix-sso-popup", SSO_POPUP_FEATURES);
   if (!popup) {
-    throw oidcError("Браузер заблокировал окно входа authentik. Разрешите всплывающие окна и повторите.");
+    throw new Error("Браузер заблокировал окно входа authentik. Разрешите всплывающие окна и повторите.");
   }
 
   popup.focus?.();
 
-  const loginToken = await waitForLoginToken(popup, window.location.origin);
+  const loginToken = await waitForLoginToken(popup, window.location.origin, signal);
 
   // Адрес ресурса и id провайдера запоминаем только после удачного входа
   storeOidcIssuer(issuer);

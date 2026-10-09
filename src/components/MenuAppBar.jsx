@@ -32,9 +32,10 @@ const MENU_ITEMS_MTRX = [
 ];
 
 const MENU_ITEMS_AUTH = [
-  { key: "displayControl", primary: "REST Кругляш", secondary: "AuthIco.jsx" },
+  { key: "displayControl", primary: "Auth Кругляш", secondary: "AuthIco.jsx" },
   { key: "displayRest", primary: "REST Авторизация", secondary: "AuthRest.jsx" },
-  { key: "displayAuthPad", primary: "Мост к сервисам", secondary: "AuthPad.jsx" },
+  { key: "displayAuthPad", primary: "Мост: REST - сервис", secondary: "AuthPad.jsx" },
+  { key: "displayOidc", primary: "OAuth OIDC Форма", secondary: "AuthOidc.jsx" },
 ];
 
 // Отступы строки меню. Горизонталь равна padding подзаголовков List, чтобы
@@ -145,7 +146,7 @@ function MenuAppBar(props) {
 
               <Divider sx={{ my: 1.5 }} />
 
-              <List disablePadding sx={{ px: 1 }} subheader={<ListSubheader {...LIST_SUBHEADER_PROPS}>Компоненты REST</ListSubheader>}>
+              <List disablePadding sx={{ px: 1 }} subheader={<ListSubheader {...LIST_SUBHEADER_PROPS}>Компоненты AUTH</ListSubheader>}>
                 {MENU_ITEMS_AUTH.map((item) => {
                   const isChecked = !!authControlRdcr[item.key];
                   const labelId = `checkbox-list-label-${item.key}`;

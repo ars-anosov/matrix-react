@@ -133,7 +133,7 @@ POST-запрос к серверу авторизации, ожидаемый �
 ```
 
 ## AuthOidc.jsx
-Вход через OAuth 2.0 / OIDC в [authentik](https://authentik.ars-dev.ru). Приложение уже
+Вход через OAuth 2.0 / OIDC в `uriOidcAuth`. Приложение authentik уже
 настроено на Synapse: его Authorization flow (`default-provider-authorization-explicit-consent`)
 возвращает код на `/_synapse/client/oidc/callback`.
 
@@ -146,9 +146,10 @@ POST-запрос к серверу авторизации, ожидаемый �
 4. Страница возврата отправляет `loginToken` в основное окно через `postMessage` и закрывается.
 5. SPA меняет токен на сессию: `POST /_matrix/client/v3/login` c `m.login.token`.
 
-Адрес ресурса IdP (`https://authentik.ars-dev.ru`) и id провайдера (`oidc-authentik`) хранятся
-в `localStorage` (`uriOidcAuth`, `oidcIdpId`); в dev-режиме адрес правится прямо в форме.
 Вход выполняется в popup, поэтому браузер должен разрешать всплывающие окна для приложения.
+
+Поток целиком: [Вход через OIDC (authentik)](docs/archify/matrix-react-oidc-login.html), узел
+`oidcAuth` — на [диаграмме архитектуры](docs/archify/matrix-react-architecture.html).
 
 ## AuthPad.jsx
 Тумблер активирует сервис.
@@ -162,6 +163,8 @@ POST-запрос к серверу авторизации, ожидаемый �
 [![Архитектура](docs/archify/matrix-react-architecture.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-architecture.html)
 
 [![Старт и авторизация](docs/archify/matrix-react-session-restore.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-session-restore.html)
+
+[![Вход через OIDC (authentik)](docs/archify/matrix-react-oidc-login.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-oidc-login.html)
 
 [![Чат](docs/archify/matrix-react-chat-flow.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-chat-flow.html)
 

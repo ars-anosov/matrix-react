@@ -18,25 +18,26 @@ import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
 // Вход через OIDC (OAuth 2.0) в authentik. Сама форма только собирает адрес ресурса IdP
-// и запускает флоу; popup, возврат loginToken и подъём сессии — в services/oidcAuth.js и
-// thunk-е handleOidcLogin. Форма — модальный Dialog, как AuthRest/MtrxReg.
+// и запускает флоу своего среза (AUTHCTL_); popup, возврат loginToken и подъём сессии —
+// в services/oidcAuth.js и thunk-ах authControlActions/mtrxControlActions, а связывает их
+// мост AuthContainer (props onLogin/onLogout). Форма — модальный Dialog, как AuthRest/MtrxReg.
 function AuthOidc(props) {
-  const { mtrxControlRdcr, mtrxControlActions } = props;
+  const { authControlRdcr, authControlActions, onLogin, onLogout, isMatrixUriMissing } = props;
 
-  const [uriOidcAuth, setUriOidcAuth] = useState(() => mtrxControlRdcr.uriOidcAuth || "");
+  const [uriOidcAuth, setUriOidcAuth] = useState(() => authControlRdcr.uriOidcAuth || "");
   // Ошибку, закрытую крестиком алерта, прячем локально: статус ошибки в Redux остаётся
   const [isErrDismissed, setIsErrDismissed] = useState(false);
 
-  const isLoading = mtrxControlRdcr.status === "loading";
-  const isError = mtrxControlRdcr.status === "error";
-  const isSuccess = mtrxControlRdcr.status === "success";
-  const errText = mtrxControlRdcr.errText || "";
+  const isLoading = authControlRdcr.oidcStatus === "loading";
+  const isError = authControlRdcr.oidcStatus === "error";
+  const isSuccess = authControlRdcr.oidcStatus === "success";
+  const errText = authControlRdcr.oidcErrText || "";
   const showError = isError && !isErrDismissed && Boolean(errText);
 
   // Синхронизируем адрес из глобального стора при его изменении
   useEffect(() => {
-    setUriOidcAuth(mtrxControlRdcr.uriOidcAuth || "");
-  }, [mtrxControlRdcr.uriOidcAuth]);
+    setUriOidcAuth(authControlRdcr.uriOidcAuth || "");
+  }, [authControlRdcr.uriOidcAuth]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -45,24 +46,22 @@ function AuthOidc(props) {
     if (isLoading || isSuccess) return;
     if (!uriOidcAuth.trim()) return;
 
-    mtrxControlActions.handleChangeStore("uriOidcAuth", uriOidcAuth.trim());
-    mtrxControlActions.handleOidcLogin({
-      uriOidcAuth,
-      uriMatrix: mtrxControlRdcr.uriMatrix,
-      idpId: mtrxControlRdcr.oidcIdpId,
-    });
+    authControlActions.handleChangeStore("uriOidcAuth", uriOidcAuth.trim());
+    onLogin({ uriOidcAuth });
   };
 
   const handleReset = () => {
-    setUriOidcAuth(mtrxControlRdcr.uriOidcAuth || "");
-    mtrxControlActions.handleRegClear();
+    setUriOidcAuth(authControlRdcr.uriOidcAuth || "");
+    onLogout();
   };
 
   const handleClose = () => {
-    mtrxControlActions.handleChangeStore("displayOidc", false);
+    // Закрытие прерывает незавершённое ожидание loginToken (handleOidcClear → abort),
+    // поэтому крестик доступен и во время входа
+    authControlActions.handleOidcClear();
   };
 
-  const isSubmitDisabled = isLoading || isSuccess || !uriOidcAuth.trim() || (import.meta.env.DEV && !mtrxControlRdcr.uriMatrix?.trim());
+  const isSubmitDisabled = isLoading || isSuccess || !uriOidcAuth.trim() || isMatrixUriMissing;
 
   // Paper — сам тег form: Enter в поле отправляет запрос, кнопки живут в DialogActions
   return (
@@ -82,7 +81,7 @@ function AuthOidc(props) {
         },
       }}
     >
-      <IconButton aria-label="Закрыть форму входа через authentik" onClick={handleClose} disabled={isLoading} sx={{ position: "absolute", top: 8, right: 8 }}>
+      <IconButton aria-label="Закрыть форму входа через authentik" onClick={handleClose} sx={{ position: "absolute", top: 8, right: 8 }}>
         <IconClose color="action" />
       </IconButton>
 
@@ -106,7 +105,7 @@ function AuthOidc(props) {
 
       <DialogContent>
         <DialogContentText id="oidcAuthSubtitle" variant="body2" sx={{ textAlign: "center", mb: 2.5 }}>
-          {isSuccess ? mtrxControlRdcr.responseData?.display_name || mtrxControlRdcr.responseData?.user_id || "" : "Вход по OIDC (OAuth 2.0)"}
+          {isSuccess ? authControlRdcr.oidcResponseData?.display_name || authControlRdcr.oidcResponseData?.user_id || "" : "Вход по OIDC (OAuth 2.0)"}
         </DialogContentText>
 
         <Stack spacing={2.5}>
@@ -179,23 +178,26 @@ function AuthOidc(props) {
 }
 
 AuthOidc.propTypes = {
-  mtrxControlRdcr: PropTypes.shape({
-    status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
-    uriMatrix: PropTypes.string,
+  authControlRdcr: PropTypes.shape({
+    displayOidc: PropTypes.bool,
     uriOidcAuth: PropTypes.string,
     oidcIdpId: PropTypes.string,
-    errText: PropTypes.string,
-    responseData: PropTypes.shape({
+    oidcStatus: PropTypes.oneOf(["idle", "loading", "success", "error"]),
+    oidcResponseData: PropTypes.shape({
       user_id: PropTypes.string,
       display_name: PropTypes.string,
       device_id: PropTypes.string,
     }),
+    oidcErrText: PropTypes.string,
   }).isRequired,
-  mtrxControlActions: PropTypes.shape({
-    handleOidcLogin: PropTypes.func.isRequired,
+  authControlActions: PropTypes.shape({
     handleChangeStore: PropTypes.func.isRequired,
-    handleRegClear: PropTypes.func.isRequired,
   }).isRequired,
+  // Мост к MTRXCTL_ живёт в AuthContainer: форма только просит вход и выход
+  onLogin: PropTypes.func.isRequired,
+  onLogout: PropTypes.func.isRequired,
+  // В DEV вход невозможен без адреса homeserver — его подставляет мост
+  isMatrixUriMissing: PropTypes.bool,
 };
 
 export default AuthOidc;

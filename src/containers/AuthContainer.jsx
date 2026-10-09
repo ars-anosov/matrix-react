@@ -23,8 +23,8 @@ const AuthContainer = () => {
   const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch]);
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { responseData, displayRest, displayAuthPad, status: authStatus } = authControlRdcr;
-  const { uriMatrix, status: mtrxStatus, authLost: mtrxAuthLost, displayOidc } = mtrxControlRdcr;
+  const { responseData, displayRest, displayAuthPad, displayOidc, oidcIdpId, oidcStatus, status: authStatus } = authControlRdcr;
+  const { uriMatrix, status: mtrxStatus, authLost: mtrxAuthLost } = mtrxControlRdcr;
 
   // Реквизиты Matrix из ответа REST (см. README → AuthRest.jsx)
   const mtrxLogin = responseData?.mtrx_login || "";
@@ -98,11 +98,43 @@ const AuthContainer = () => {
     mtrxControlActions.handleChangeStore("displayReg", true);
   };
 
-  // Вход через OIDC (authentik): форма собирает адрес ресурса IdP, флоу ведёт
-  // thunk handleOidcLogin — он пишет только в свой срез (MTRXCTL_)
+  // Вход через OIDC (authentik): форма AUTH-среза собирает адрес ресурса IdP и запускает
+  // флоу; открытие формы пишет только в свой срез
   const handleOpenOidc = () => {
-    mtrxControlActions.handleChangeStore("displayOidc", true);
+    authControlActions.handleChangeStore("displayOidc", true);
   };
+
+  // Мост к сервисам (AUTHCTL_ → MTRXCTL_): OIDC-вход AUTH-срез доводит только до loginToken,
+  // сессию Matrix по нему поднимает MTRXCTL_ — он же включает чат (MTRXCTL_SUBMIT_SUCCESS).
+  // Успех формы и ошибку подъёма сессии возвращаем в AUTHCTL_, где живёт форма.
+  const handleOidcLogin = async ({ uriOidcAuth }) => {
+    const loginToken = await authControlActions.handleOidcLogin({ uriOidcAuth, idpId: oidcIdpId, uriMatrix });
+    if (!loginToken) return;
+
+    try {
+      const session = await mtrxControlActions.handleLoginWithToken({ loginToken, uriMatrix });
+      if (!session) return;
+
+      authControlActions.handleOidcSuccess({ user_id: session.userId, display_name: session.displayName });
+    } catch (error) {
+      authControlActions.handleOidcError(error.message);
+    }
+  };
+
+  // «Выйти» на форме OIDC — тоже мост: выход из Matrix (MTRXCTL_) и сброс статуса
+  // OIDC-входа в своём срезе
+  const handleOidcLogout = () => {
+    authControlActions.handleOidcClear();
+    mtrxControlActions.handleRegClear();
+  };
+
+  // Мост к сервисам (MTRXCTL_ → AUTHCTL_): успех OIDC-входа действителен, пока активна
+  // Matrix-сессия. Иначе после выхода или потери сессии форма снова открылась бы с «Выйти»
+  // и чужим display_name (до переноса этот статус сбрасывал MTRXCTL_CLEAR).
+  useEffect(() => {
+    if (oidcStatus !== "success" || mtrxStatus === "success") return;
+    authControlActions.handleOidcClear();
+  }, [oidcStatus, mtrxStatus, authControlActions]);
 
   // Мост к сервисам (MTRXCTL_ → AUTHCTL_): AuthRestInfo читает матричный идентификатор.
   // Только в рамках активного REST-сеанса, иначе после REST-выхода responseData заполнится снова.
@@ -128,7 +160,15 @@ const AuthContainer = () => {
 
       {displayRest && <AuthRest authControlRdcr={authControlRdcr} authControlActions={authControlActions} />}
 
-      {displayOidc && <AuthOidc mtrxControlRdcr={mtrxControlRdcr} mtrxControlActions={mtrxControlActions} />}
+      {displayOidc && (
+        <AuthOidc
+          authControlRdcr={authControlRdcr}
+          authControlActions={authControlActions}
+          onLogin={handleOidcLogin}
+          onLogout={handleOidcLogout}
+          isMatrixUriMissing={import.meta.env.DEV && !uriMatrix.trim()}
+        />
+      )}
 
       {displayAuthPad && (
         <AuthPad

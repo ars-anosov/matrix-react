@@ -5,9 +5,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-architecture.html",
-    "sha256": "1fbe83c4596bb959b2ddd3a8ef36bbdbf92e438813a353e1b1a7af3b1e4a8b18",
-    "bytes": 659037
+    "path": "/home/ars/_git/matrix-react/docs/archify/matrix-react-oidc-login.html",
+    "sha256": "224c019e8a61a37f9876ca943368df35db334febf38f6e3b1c25a34e17b2bebf",
+    "bytes": 650210
   },
   "state": {
     "detail": "read",
@@ -89,7 +89,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-architecture.visual-check.1440x900.light.png"
+        "file": "matrix-react-oidc-login.visual-check.1440x900.light.png"
       },
       {
         "width": 1440,
@@ -103,7 +103,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-architecture.visual-check.1440x900.dark.png"
+        "file": "matrix-react-oidc-login.visual-check.1440x900.dark.png"
       },
       {
         "width": 2048,
@@ -117,7 +117,7 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "light",
-        "file": "matrix-react-architecture.visual-check.2048x1320.light.png"
+        "file": "matrix-react-oidc-login.visual-check.2048x1320.light.png"
       },
       {
         "width": 2048,
@@ -131,13 +131,13 @@
         "overflowY": false,
         "ok": true,
         "resolvedTheme": "dark",
-        "file": "matrix-react-architecture.visual-check.2048x1320.dark.png"
+        "file": "matrix-react-oidc-login.visual-check.2048x1320.dark.png"
       }
     ],
-    "contactSheet": "matrix-react-architecture.visual-check.html"
+    "contactSheet": "matrix-react-oidc-login.visual-check.html"
   },
   "sidecars": {
-    "receipt": "matrix-react-architecture.visual-check.json",
-    "contactSheet": "matrix-react-architecture.visual-check.html"
+    "receipt": "matrix-react-oidc-login.visual-check.json",
+    "contactSheet": "matrix-react-oidc-login.visual-check.html"
   }
 }

@@ -9,5 +9,5 @@ export const REST_URI_AUTH_KEY = "uriRestAuth";
 export const REST_LOGIN_KEY = "restLogin";
 
 // OIDC (OAuth 2.0) через authentik: адрес ресурса IdP и id провайдера Synapse
-export const MTRX_OIDC_ISSUER_KEY = "uriOidcAuth";
-export const MTRX_OIDC_IDP_KEY = "oidcIdpId";
+export const OIDC_ISSUER_KEY = "uriOidcAuth";
+export const OIDC_IDP_KEY = "oidcIdpId";
