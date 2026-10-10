@@ -1,30 +1,30 @@
-import { Close as IconClose, HowToReg as IconHowToReg, PersonOff as IconPersonOff } from "@mui/icons-material";
-import { Box, Button, Divider, IconButton, Paper, Snackbar, Stack, Switch, Tooltip, Typography } from "@mui/material";
+import { AdminPanelSettings as IconAdminPanelSettings, Close as IconClose } from "@mui/icons-material";
+import {
+  Box,
+  Button,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  Paper,
+  Radio,
+  RadioGroup,
+  Snackbar,
+  Stack,
+  Switch,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect } from "react";
+import { AUTH_SOURCE_OIDC } from "../constants/authSource.js";
 import { HEADER_BACKGROUND, PAPER_BACKGROUND } from "../theme.js";
-
-// Состояние REST-подключения для кнопки в подвале панели: статусы и иконки те же,
-// что у кнопок состояния в MtrxInfo (HowToReg — сессия есть, PersonOff — нет).
-// У подключённой сессии вместо слова «Подключено» — логин, под которым вошли
-function getRestConnectionConfig(status, restLogin) {
-  switch (status) {
-    case "loading":
-      return { label: "Авторизация…", color: "warning", icon: <IconPersonOff /> };
-    case "success":
-      // Логин может не прийти (сессия из хранилища без сохранённого логина)
-      return { label: restLogin || "Подключено", color: "success", icon: <IconHowToReg /> };
-    case "error":
-      return { label: "Ошибка авторизации", color: "error", icon: <IconPersonOff /> };
-    default:
-      return { label: "REST не подключено", color: "inherit", icon: <IconPersonOff /> };
-  }
-}
+import { getAuthSourceView } from "./utils/authSourceView.jsx";
 
 // Панель «Мост к сервисам». Сама ничего не диспатчит: все действия — колбэки
 // контейнера AuthContainer, который держит оба среза (AUTHCTL_ и MTRXCTL_).
 function AuthPad(props) {
-  const { authControlRdcr, mtrxControlRdcr, onToggleMtrx, onOpenRest, onClose } = props;
+  const { mtrxControlRdcr, sources, activeSourceKind, info, onSelectSource, onToggleMtrx, onOpenActiveAuth, onClose } = props;
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log("AuthPad MOUNT");
@@ -33,16 +33,13 @@ function AuthPad(props) {
     };
   }, []);
 
-  // mtrx_password нужен как признак полноты пары, в разметку не выводится
-  const mtrxLogin = authControlRdcr?.responseData?.mtrx_login || "";
-  const mtrxPassword = authControlRdcr?.responseData?.mtrx_password || "";
-  const hasMtrxData = Boolean(mtrxLogin && mtrxPassword);
-
-  // Подпись, цвет и иконка кнопки состояния REST в подвале панели
-  const restConnection = getRestConnectionConfig(authControlRdcr?.status, authControlRdcr?.responseData?.ad_login || "");
+  const activeSource = sources.find((source) => source.kind === activeSourceKind) || null;
+  const activeView = activeSource ? getAuthSourceView(activeSource) : null;
+  // Активного источника может не быть только на старте: подвал ведёт в форму REST, как раньше
+  const footerKind = activeSource?.kind || "rest";
 
   // Тумблер отражает состояние сессии Matrix:
-  //   откл           — сессии нет → клик запускает автоматическую авторизацию;
+  //   откл           — сессии нет → клик запускает авторизацию выбранным источником;
   //   зелёный        — авторизация успешна → клик сбрасывает сессию;
   //   красный        — авторизация не удалась (status === "error") или сессия потеряна
   //                    (authLost: принудительный logout / 401) → клик сбрасывает сессию.
@@ -61,25 +58,15 @@ function AuthPad(props) {
       ? "Сбросить неудачную авторизацию Matrix"
       : mtrxAuthorized
         ? "Отключить сессию Matrix"
-        : "Автоматическая авторизация Matrix";
+        : "Войти в Matrix выбранным источником";
 
-  // Тумблер — и индикатор состояния сессии, и действие (что делать, решает контейнер)
+  // Логин подставляем только по факту входа: до клика тумблера он ещё неизвестен
+  const sessionName = mtrxControlRdcr?.responseData?.display_name || mtrxControlRdcr?.responseData?.user_id || "";
+  const toggleLabel = sessionName ? `Вход в Matrix под ${sessionName}` : "Вход в Matrix";
+
   const handleToggleMtrx = () => {
     onToggleMtrx();
   };
-
-  // Информируем, если REST-авторизация не выполнена или не вернула матричную пару:
-  // без неё тумблер автозапуска не сработает
-  const missingFields = [];
-  if (!mtrxLogin) missingFields.push("mtrx_login");
-  if (!mtrxPassword) missingFields.push("mtrx_password");
-
-  let infoText = "";
-  if (authControlRdcr?.status !== "success") {
-    infoText = "Авторизуйтесь в REST чтобы получить Matrix-данные.";
-  } else if (missingFields.length > 0) {
-    infoText = `REST не вернул: ${missingFields.join(", ")}.`;
-  }
 
   return (
     // Панель — всплывающий Snackbar справа внизу: корень MUI позиционирован fixed и места
@@ -89,7 +76,7 @@ function AuthPad(props) {
       open
       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       sx={{
-        // Панель открывает модальную форму AuthRest, а zIndex.snackbar (1400) выше
+        // Панель открывает модальные формы входа, а zIndex.snackbar (1400) выше
         // zIndex.modal (1300) — опускаем панель под подложку диалога
         zIndex: (theme) => theme.zIndex.modal - 1,
         // Ширину задаёт корень Snackbar: у fixed-элемента дочерний width: "100%"
@@ -137,29 +124,69 @@ function AuthPad(props) {
 
         {/* Тело панели: padding переехал с Paper на тело, чтобы шапка легла вплотную к краям */}
         <Box sx={{ p: 1 }}>
-          <Stack spacing={1}>
-            <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
-              <Typography variant="body1" color="text.primary">
-                {`Вход в Matrix под ${mtrxLogin || "—"}`}
-              </Typography>
-              <Switch
-                checked={mtrxSwitchOn}
-                color={mtrxSwitchColor}
-                disabled={mtrxLoading || (!hasMtrxData && !mtrxSwitchOn)}
-                onChange={handleToggleMtrx}
-                slotProps={{
-                  input: { "aria-label": mtrxSwitchAria },
-                }}
-              />
-            </Stack>
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="body1" color="text.primary">
+              {toggleLabel}
+            </Typography>
+            <Switch
+              checked={mtrxSwitchOn}
+              color={mtrxSwitchColor}
+              disabled={mtrxLoading || (!activeSource?.ready && !mtrxSwitchOn)}
+              onChange={handleToggleMtrx}
+              slotProps={{
+                input: { "aria-label": mtrxSwitchAria },
+              }}
+            />
           </Stack>
 
-          {/* Отчерк и мелкая серая подпись по центру: REST-сеанса нет или в нём нет матричной пары */}
-          {infoText && (
+          {/* Источник матричных учётных данных выбирается явно: панель запускает сессию тем,
+              что отмечен. Неготовый источник выбрать можно — его подпись объясняет, чего ждём */}
+          <Divider sx={{ mt: 1 }} />
+          <FormControl component="fieldset" fullWidth>
+            <RadioGroup
+              aria-label="Источник матричных учётных данных"
+              name="mtrx-auth-source"
+              value={activeSourceKind || ""}
+              onChange={(event) => onSelectSource(event.target.value)}
+            >
+              {sources.map((source) => {
+                const view = getAuthSourceView(source);
+                const hint = source.detail ? `${source.label}: ${source.detail}` : source.label;
+
+                return (
+                  <FormControlLabel
+                    key={source.kind}
+                    value={source.kind}
+                    sx={{ mx: 0, alignItems: "center" }}
+                    control={<Radio size="small" color={view.color === "inherit" ? "default" : view.color} />}
+                    label={
+                      <Tooltip title={hint}>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ lineHeight: 1.3 }}>
+                            {source.label}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color={view.color === "inherit" ? "text.secondary" : `${view.color}.main`}
+                            sx={{ display: "block", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                          >
+                            {view.label}
+                          </Typography>
+                        </Box>
+                      </Tooltip>
+                    }
+                  />
+                );
+              })}
+            </RadioGroup>
+          </FormControl>
+
+          {/* Мелкая серая подпись по центру: чего не хватает для запуска сессии */}
+          {info?.text && (
             <>
               <Divider sx={{ mt: 1 }} />
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center" }}>
-                {infoText}
+              <Typography variant="caption" color={info.isError ? "error.main" : "text.secondary"} sx={{ display: "block", mt: 1, textAlign: "center" }}>
+                {info.text}
               </Typography>
             </>
           )}
@@ -167,8 +194,8 @@ function AuthPad(props) {
 
         <Divider />
 
-        {/* Подвал панели: слева состояние REST-сессии. Кнопка кликабельна — открывает
-            форму входа AuthRest, где видно сеанс и есть выход из него */}
+        {/* Подвал панели: активный источник матричных учётных данных. Кнопка кликабельна —
+            открывает форму соответствующего входа, где видно сеанс и есть выход из него */}
         <Stack
           direction="row"
           sx={{
@@ -178,22 +205,22 @@ function AuthPad(props) {
             bgcolor: HEADER_BACKGROUND,
           }}
         >
-          <Tooltip title="Открыть форму входа REST">
+          <Tooltip title={`Открыть форму входа ${footerKind === AUTH_SOURCE_OIDC ? "authentik" : "REST"}`}>
             {/* Стиль как у кнопок состояния в MtrxInfo: цветная иконка с подписью,
                 без подложки и рамки — остаётся только hover-подсветка MUI */}
             <Button
               size="small"
               variant="text"
-              color={restConnection.color}
-              startIcon={restConnection.icon}
-              onClick={onOpenRest}
-              aria-label={`REST: ${restConnection.label}. Открыть форму входа`}
+              color={activeView && activeView.color !== "inherit" ? activeView.color : "inherit"}
+              startIcon={activeView?.icon || <IconAdminPanelSettings />}
+              onClick={onOpenActiveAuth}
+              aria-label={`Источник входа: ${activeSource?.label || "REST"}. Открыть форму входа`}
               sx={{ maxWidth: "100%" }}
             >
-              {/* Длинный логин (почта, домен) не должен растягивать подвал:
+              {/* Длинный адрес ресурса не должен растягивать подвал:
                   многоточие работает только на flex-элементе с minWidth 0 */}
               <Box component="span" sx={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {restConnection.label}
+                {activeView ? `${activeSource.label}: ${activeView.label}` : "REST: не подключено"}
               </Box>
             </Button>
           </Tooltip>
@@ -204,22 +231,35 @@ function AuthPad(props) {
 }
 
 AuthPad.propTypes = {
-  authControlRdcr: PropTypes.shape({
-    status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
-    responseData: PropTypes.shape({
-      mtrx_login: PropTypes.string,
-      mtrx_password: PropTypes.string,
-      // Логин REST — подпись кнопки состояния в подвале панели
-      ad_login: PropTypes.string,
-    }),
-  }).isRequired,
   mtrxControlRdcr: PropTypes.shape({
     status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
     authLost: PropTypes.bool,
+    responseData: PropTypes.shape({
+      user_id: PropTypes.string,
+      display_name: PropTypes.string,
+    }),
   }).isRequired,
+  // Источники матричных учётных данных: готовность, состояние и принадлежность сессии
+  sources: PropTypes.arrayOf(
+    PropTypes.shape({
+      kind: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      detail: PropTypes.string,
+      state: PropTypes.string,
+      ready: PropTypes.bool,
+      session: PropTypes.bool,
+    }),
+  ).isRequired,
+  activeSourceKind: PropTypes.string,
+  // Подпись под тумблером: собранный контейнером текст и признак ошибки
+  info: PropTypes.shape({
+    text: PropTypes.string,
+    isError: PropTypes.bool,
+  }),
+  onSelectSource: PropTypes.func.isRequired,
   onToggleMtrx: PropTypes.func.isRequired,
-  // Клик по кнопке состояния в подвале — открыть форму входа REST (AuthRest)
-  onOpenRest: PropTypes.func.isRequired,
+  // Клик по кнопке подвала — открыть форму активного источника
+  onOpenActiveAuth: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 };
 

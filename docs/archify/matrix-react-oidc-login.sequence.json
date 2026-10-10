@@ -4,10 +4,7 @@
   "meta": {
     "title": "Вход через OIDC (authentik)",
     "quality_profile": "showcase",
-    "viewBox": [
-      2500,
-      1360
-    ],
+    "viewBox": [2500, 1360],
     "column_fit": "spread"
   },
   "participants": [
@@ -21,7 +18,13 @@
       "id": "UI",
       "type": "frontend",
       "label": "AuthContainer",
-      "sublabel": "AuthLinks · мост срезов"
+      "sublabel": "AuthLinks · AuthPad · мост срезов"
+    },
+    {
+      "id": "Boot",
+      "type": "frontend",
+      "label": "старт приложения",
+      "sublabel": "store/bootstrap.js"
     },
     {
       "id": "Store",
@@ -39,7 +42,7 @@
       "id": "AuthAct",
       "type": "backend",
       "label": "authControlActions",
-      "sublabel": "handleOidcLogin · AUTHCTL_OIDC_*"
+      "sublabel": "handleOidcRedirect · handleOidcReturn"
     },
     {
       "id": "MtrxAct",
@@ -51,7 +54,7 @@
       "id": "Oidc",
       "type": "backend",
       "label": "oidcAuth",
-      "sublabel": "popup · ожидание loginToken"
+      "sublabel": "beginOidcRedirect · takeOidcReturn"
     },
     {
       "id": "Cl",
@@ -70,27 +73,21 @@
       "type": "external",
       "label": "authentik",
       "sublabel": "authorize · consent"
-    },
-    {
-      "id": "CB",
-      "type": "external",
-      "label": "sso-callback.html",
-      "sublabel": "страница возврата popup"
     }
   ],
   "segments": [
     {
       "from": 160,
-      "to": 680,
-      "label": "Открытие окна IdP"
+      "to": 620,
+      "label": "Уход в authentik"
     },
     {
-      "from": 700,
-      "to": 860,
-      "label": "Возврат loginToken"
+      "from": 640,
+      "to": 920,
+      "label": "Возврат токена"
     },
     {
-      "from": 880,
+      "from": 940,
       "to": 1300,
       "label": "Сессия Matrix"
     }
@@ -108,7 +105,7 @@
       "from": "Form",
       "to": "AuthAct",
       "y": 240,
-      "label": "handleOidcLogin · uriOidcAuth",
+      "label": "handleOidcRedirect · uriOidcAuth",
       "variant": "emphasis"
     },
     {
@@ -123,139 +120,141 @@
       "from": "AuthAct",
       "to": "Oidc",
       "y": 360,
-      "label": "startOidcLogin (popup открыт в клике)",
+      "label": "beginOidcRedirect · полностранично, без popup",
       "variant": "emphasis"
     },
     {
-      "id": "m05-oidc-syn",
+      "id": "m05-oidc-ls",
       "from": "Oidc",
-      "to": "Syn",
+      "to": "LS",
       "y": 420,
-      "label": "GET /_matrix/client/v3/login/sso/redirect/oidc-authentik"
+      "label": "uriOidcAuth · oidcIdpId — до перехода"
     },
     {
-      "id": "m06-syn-ak",
+      "id": "m06-oidc-syn",
+      "from": "Oidc",
+      "to": "Syn",
+      "y": 480,
+      "label": "location.assign /login/sso/redirect/oidc-authentik"
+    },
+    {
+      "id": "m07-syn-ak",
       "from": "Syn",
       "to": "AK",
-      "y": 480,
+      "y": 540,
       "label": "302 authorize · PKCE делает Synapse"
     },
     {
-      "id": "m07-ak-syn",
+      "id": "m08-ak-syn",
       "from": "AK",
       "to": "Syn",
-      "y": 540,
+      "y": 600,
       "label": "код на /_synapse/client/oidc/callback",
       "variant": "return"
     },
     {
-      "id": "m08-syn-cb",
+      "id": "m09-syn-boot",
       "from": "Syn",
-      "to": "CB",
-      "y": 600,
-      "label": "redirect ?loginToken=…"
-    },
-    {
-      "id": "m09-cb-oidc",
-      "from": "CB",
-      "to": "Oidc",
+      "to": "Boot",
       "y": 660,
-      "label": "postMessage loginToken · проверка origin"
+      "label": "302 <адрес SPA>?loginToken=…",
+      "variant": "return"
     },
     {
-      "id": "m10-oidc-ls",
-      "from": "Oidc",
-      "to": "LS",
-      "y": 720,
-      "label": "uriOidcAuth · oidcIdpId — после успеха"
-    },
-    {
-      "id": "m11-oidc-authact",
-      "from": "Oidc",
+      "id": "m10-boot-authact",
+      "from": "Boot",
       "to": "AuthAct",
-      "y": 780,
-      "label": "loginToken",
-      "variant": "return"
-    },
-    {
-      "id": "m12-authact-ui",
-      "from": "AuthAct",
-      "to": "UI",
-      "y": 840,
-      "label": "loginToken — мост поднимает сессию",
-      "variant": "return"
-    },
-    {
-      "id": "m13-ui-mtrxact",
-      "from": "UI",
-      "to": "MtrxAct",
-      "y": 900,
-      "label": "handleLoginWithToken · loginToken",
+      "y": 720,
+      "label": "handleOidcReturn",
       "variant": "emphasis"
     },
     {
-      "id": "m14-mtrxact-cl",
+      "id": "m11-authact-oidc",
+      "from": "AuthAct",
+      "to": "Oidc",
+      "y": 780,
+      "label": "takeOidcReturn · replaceState"
+    },
+    {
+      "id": "m12-oidc-store",
+      "from": "Oidc",
+      "to": "Store",
+      "y": 840,
+      "label": "AUTHCTL_OIDC_READY · токен в модуле сервиса",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m13-store-ui",
+      "from": "Store",
+      "to": "UI",
+      "y": 900,
+      "label": "useSelector: тумблер активен, источник authentik",
+      "variant": "return"
+    },
+    {
+      "id": "m14-ui-mtrxact",
+      "from": "UI",
+      "to": "MtrxAct",
+      "y": 960,
+      "label": "handleLoginWithToken · клик тумблера",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m15-mtrxact-cl",
       "from": "MtrxAct",
       "to": "Cl",
-      "y": 960,
+      "y": 1020,
       "label": "loginMatrixWithToken",
       "variant": "emphasis"
     },
     {
-      "id": "m15-cl-syn",
+      "id": "m16-cl-syn",
       "from": "Cl",
       "to": "Syn",
-      "y": 1020,
+      "y": 1080,
       "label": "POST /_matrix/client/v3/login · m.login.token"
     },
     {
-      "id": "m16-syn-cl",
+      "id": "m17-syn-cl",
       "from": "Syn",
       "to": "Cl",
-      "y": 1080,
+      "y": 1140,
       "label": "access_token · device_id",
       "variant": "return"
     },
     {
-      "id": "m17-mtrxact-store",
+      "id": "m18-mtrxact-store",
       "from": "MtrxAct",
       "to": "Store",
-      "y": 1140,
+      "y": 1200,
       "label": "MTRXCTL_SUBMIT_SUCCESS"
     },
     {
-      "id": "m18-ui-store",
+      "id": "m19-ui-store",
       "from": "UI",
       "to": "Store",
-      "y": 1200,
-      "label": "AUTHCTL_OIDC_SUCCESS · display_name"
-    },
-    {
-      "id": "m19-store-ui",
-      "from": "Store",
-      "to": "UI",
       "y": 1260,
-      "label": "useSelector: статус success → чат",
+      "label": "AUTHCTL_OIDC_SUCCESS · токен израсходован",
       "variant": "return"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "Окно IdP открывает Synapse",
+      "title": "Уход в authentik",
       "items": [
         "Форма AuthOidc отдаёт адрес ресурса IdP и id провайдера oidc-authentik",
-        "SPA открывает /login/sso/redirect/oidc-authentik в popup и уводит его в authentik",
+        "SPA уводит браузер на /login/sso/redirect/oidc-authentik?redirectUrl=<адрес SPA>",
         "Код и PKCE обменивает Synapse: client secret в SPA не попадает"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Возврат токена",
+      "title": "Возврат и готовый токен",
       "items": [
-        "authentik отдаёт код на /_synapse/client/oidc/callback, Synapse подставляет loginToken",
-        "sso-callback.html шлёт loginToken в основное окно через postMessage с проверкой origin",
-        "loginToken добывает AUTHCTL_, адрес IdP сервис сохраняет только после удачного входа"
+        "authentik отдаёт код на /_synapse/client/oidc/callback, Synapse возвращает браузер с loginToken",
+        "store/bootstrap.js разбирает параметры до отрисовки: токен остаётся в модуле oidcAuth, адресная строка чистится",
+        "AUTHCTL_OIDC_READY открывает AuthPad: источник authentik, сессию поднимает клик тумблера"
       ]
     },
     {
@@ -264,7 +263,7 @@
       "items": [
         "loginMatrixWithToken меняет loginToken на сессию: POST /login с m.login.token",
         "Сессию поднимает MTRXCTL_ — до токена AUTH-срез Matrix-логику не ведёт",
-        "MTRXCTL_SUBMIT_SUCCESS включает чат, AUTHCTL_OIDC_SUCCESS закрывает форму"
+        "MTRXCTL_SUBMIT_SUCCESS включает чат, AUTHCTL_OIDC_SUCCESS помечает токен израсходованным"
       ]
     }
   ]

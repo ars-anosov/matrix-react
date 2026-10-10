@@ -1,74 +1,62 @@
-import IconAdminPanelSettings from "@mui/icons-material/AdminPanelSettings";
-import IconHowToReg from "@mui/icons-material/HowToReg";
-import IconPersonOff from "@mui/icons-material/PersonOff";
-import IconSync from "@mui/icons-material/Sync";
-import { alpha, IconButton, keyframes, Tooltip, useTheme } from "@mui/material";
+import { alpha, Box, IconButton, keyframes, Tooltip, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect, useMemo } from "react";
+import { getAuthSourceView } from "./utils/authSourceView.jsx";
 
 // Пульс берёт цвет из --status-pulse, который задаёт сам индикатор: на белой шапке
 // прежнее белое свечение было не видно.
 const pulse = keyframes`
   0% { box-shadow: 0 0 0 0 var(--status-pulse); transform: scale(1); }
   70% { box-shadow: 0 0 0 8px rgba(0, 0, 0, 0); transform: scale(1.04); }
-  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); transform: scale(1); }
+  100% { box-shadow: 0 0 0 0 var(--status-pulse); transform: scale(1); }
 `;
 
-// Индикатор состояния REST-сессии: цвет иконки и подложки задаёт статус,
-// подпись дублирует его в tooltip и aria-label.
-function RestIco({ authControlRdcr }) {
+// Индикатор авторизации: статусов теперь два (REST и authentik), а кругляш один — цвет и
+// иконку задаёт активный источник, подписи обоих собраны в tooltip. Подпись дублирует
+// статус в aria-label.
+function AuthIco({ sources, activeSourceKind }) {
   const theme = useTheme();
-  const status = authControlRdcr?.status;
+
+  // Активный источник — тот, чьи данные панель предлагает запустить, либо чья сессия жива
+  const activeSource = sources?.find((source) => source.kind === activeSourceKind) || sources?.[0] || null;
+  const activeView = getAuthSourceView(activeSource);
+
+  // Кэшируем конфигурацию стиля, чтобы не пересчитывать при каждом рендере
+  const cfg = useMemo(() => {
+    const color = activeView.color === "inherit" ? theme.palette.text.secondary : theme.palette[activeView.color].main;
+
+    return {
+      icon: activeView.icon,
+      color,
+      pulse: activeSource?.state === "loading",
+      label: `${activeSource?.label || "авторизация"}: ${activeView.label}`,
+    };
+  }, [activeView, activeSource, theme]);
+
+  const { icon, color, pulse: isPulsing, label } = cfg;
+
+  // Оба статуса рядом: один кругляш не должен скрывать состояние второго источника
+  const tooltip = (sources || []).map((source) => `${source.kind === activeSourceKind ? "▸ " : ""}${source.label}: ${getAuthSourceView(source).label}`);
 
   // Логирование монтирования только для разработки
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.log("RestIco MOUNT");
-      return () => console.log("RestIco UNMOUNT");
+      console.log("AuthIco MOUNT");
+      return () => console.log("AuthIco UNMOUNT");
     }
   }, []);
 
-  // Кэшируем конфигурацию стиля, чтобы не пересчитывать при каждом рендере
-  const cfg = useMemo(() => {
-    switch (status) {
-      case "loading":
-        return {
-          icon: <IconSync />,
-          color: theme.palette.warning.dark,
-          pulse: true,
-          label: "REST: авторизация…",
-        };
-      case "success":
-        return {
-          icon: <IconHowToReg />,
-          color: theme.palette.success.main,
-          pulse: false,
-          label: "REST: сессия активна",
-        };
-      case "error":
-        return {
-          icon: <IconPersonOff />,
-          color: theme.palette.error.main,
-          pulse: false,
-          label: "REST: ошибка авторизации",
-        };
-      default:
-        return {
-          icon: <IconAdminPanelSettings />,
-          color: theme.palette.text.secondary,
-          pulse: false,
-          label: "REST: не подключено",
-        };
-    }
-  }, [status, theme]);
-
-  const { icon, color, pulse: isPulsing, label } = cfg;
-
   return (
-    <Tooltip title={label}>
+    <Tooltip
+      title={
+        <Box component="span" sx={{ whiteSpace: "pre-line" }}>
+          {tooltip.join("\n")}
+        </Box>
+      }
+    >
       <IconButton
         size="small"
-        aria-label={label}
+        aria-label={tooltip.join(". ") || label}
         sx={{
           width: 42,
           height: 42,
@@ -96,10 +84,18 @@ function RestIco({ authControlRdcr }) {
   );
 }
 
-RestIco.propTypes = {
-  authControlRdcr: PropTypes.shape({
-    status: PropTypes.oneOf(["idle", "loading", "success", "error"]),
-  }).isRequired,
+AuthIco.propTypes = {
+  // Источники матричных учётных данных: состояние, готовность и принадлежность сессии
+  sources: PropTypes.arrayOf(
+    PropTypes.shape({
+      kind: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      state: PropTypes.string,
+      ready: PropTypes.bool,
+      session: PropTypes.bool,
+    }),
+  ).isRequired,
+  activeSourceKind: PropTypes.string,
 };
 
-export default RestIco;
+export default AuthIco;

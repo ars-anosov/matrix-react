@@ -154,52 +154,58 @@ sequenceDiagram
 
 [Диаграмма](archify/matrix-react-oidc-login.html) · спека
 `archify/matrix-react-oidc-login.sequence.json`. Ветка отдельная от диаграммы § 2: она не
-восстанавливает сессию, а поднимает её через popup и `loginToken`. Токен добывает AUTH-срез
-(`services/oidcAuth.js`, thunk `handleOidcLogin`, namespace `AUTHCTL_`), сессию Matrix по нему
-поднимает `handleLoginWithToken` (`MTRXCTL_`), а шаги связывает мост `AuthContainer`:
+восстанавливает сессию, а добывает `loginToken` полностраничным переходом в authentik и поднимает
+сессию по клику тумблера. Токен добывает AUTH-срез (`services/oidcAuth.js`, thunk-и
+`handleOidcRedirect` / `handleOidcReturn`, namespace `AUTHCTL_`), сессию Matrix по нему поднимает
+`handleLoginWithToken` (`MTRXCTL_`), а шаги связывает мост `AuthContainer`:
 
 ```mermaid
 sequenceDiagram
   participant Form as AuthOidc
   participant Br as AuthContainer
   participant Act as authControlActions
+  participant Boot as старт приложения
   participant RX as Redux
   participant Oidc as oidcAuth
   participant MAct as mtrxControlActions
   participant Cl as matrixClient
   participant SSO as Synapse /login/sso
   participant AK as authentik
-  participant CB as sso-callback.html
-  Form->>Act: handleOidcLogin · uriOidcAuth
-  Act->>RX: AUTHCTL_OIDC_REQUEST
-  Act->>Oidc: startOidcLogin (popup открыт в клике)
-  Oidc->>SSO: popup /login/sso/redirect/oidc-authentik
+  Form->>Act: handleOidcRedirect · uriOidcAuth
+  Act->>Oidc: beginOidcRedirect (адрес SPA — redirectUrl)
+  Oidc->>SSO: location.assign /login/sso/redirect/oidc-authentik
   SSO->>AK: 302 authorize (код и PKCE делает Synapse)
   AK-->>SSO: код на /_synapse/client/oidc/callback
-  SSO->>CB: redirect с ?loginToken
-  CB->>Oidc: postMessage loginToken (тот же origin)
-  Oidc-->>Act: loginToken
-  Act-->>Br: loginToken
-  Br->>MAct: handleLoginWithToken
+  SSO-->>Boot: 302 <адрес SPA>?loginToken=…
+  Boot->>Act: handleOidcReturn
+  Act->>Oidc: takeOidcReturn · replaceState
+  Oidc-->>RX: AUTHCTL_OIDC_READY (токен — в модуле сервиса)
+  RX-->>Br: useSelector: тумблер активен, источник authentik
+  Br->>MAct: handleLoginWithToken (клик тумблера)
   MAct->>Cl: loginMatrixWithToken
   Cl->>SSO: POST /login · m.login.token
   SSO-->>Cl: access_token · device_id
   MAct->>RX: MTRXCTL_SUBMIT_SUCCESS
-  Br->>RX: AUTHCTL_OIDC_SUCCESS · display_name
-  RX-->>Br: useSelector: статус success → чат
+  Br->>RX: AUTHCTL_OIDC_SUCCESS · токен израсходован
 ```
 
-- Форма `AuthOidc` (модальный `Dialog`) собирает адрес ресурса IdP и запускает флоу; адрес
-  (`uriOidcAuth`) и id провайдера (`oidcIdpId`) хранятся в `localStorage`, сохранённое значение
-  подставляет сид стора в срез `AUTHCTL_`.
-- Вход ведёт `AUTHCTL_`: `handleOidcLogin` доводит его только до `loginToken` и пишет статус формы
-  (`AUTHCTL_OIDC_REQUEST / SUCCESS / ERROR`). Matrix-сессию по токену поднимает `MTRXCTL_`
-  (`handleLoginWithToken`), поэтому `AUTHCTL_OIDC_SUCCESS` и ошибку подъёма сессии оформляет мост
-  `AuthContainer`.
-- Спаринг делает Synapse: SPA открывает `/_matrix/client/v3/login/sso/redirect/{idpId}`, а не
+- Форма `AuthOidc` (модальный `Dialog`) собирает адрес ресурса IdP и просит мост запустить переход;
+  адрес (`uriOidcAuth`) и id провайдера (`oidcIdpId`) хранятся в `localStorage`, сохранённое значение
+  подставляет сид стора в срез `AUTHCTL_`. Сервис сохраняет их **до** перехода: на возврате память
+  страницы уже новая.
+- Вход ведёт `AUTHCTL_`: `handleOidcRedirect` уводит браузер, `handleOidcReturn` разбирает возврат
+  (`AUTHCTL_OIDC_READY / ERROR`). Сам `loginToken` в стор не попадает — он лежит в модуле
+  `services/oidcAuth.js` (одноразовый, DEV-логгер печатает payload'ы экшенов), а готовность
+  источника видна по `oidcStatus`.
+- Matrix-сессию по токену поднимает `MTRXCTL_` (`handleLoginWithToken`) — но не автоматически, а по
+  клику тумблера `AuthPad`: запуск сервиса всегда идёт через мост, а источник (пара REST или токен
+  authentik) выбирается в панели явно. Успех и ошибку подъёма мост возвращает в `AUTHCTL_`.
+- Токен одноразовый и живёт на стороне Synapse 2 минуты, поэтому после возврата сессию поднимают
+  сразу; `AUTHCTL_OIDC_SUCCESS` помечает токен израсходованным, и повторный запуск им невозможен.
+- Спаринг делает Synapse: SPA уходит на `/_matrix/client/v3/login/sso/redirect/{idpId}`, а не
   ходит в authentik напрямую, — поэтому client secret и код в SPA не попадают.
-- Возврат токена идёт через `public/sso-callback.html` и `postMessage` с проверкой origin:
-  `loginToken` не остаётся в адресной строке приложения.
+- Возврат идёт на адрес самого приложения: `oidcAuth` чистит `?loginToken`/`?error` через
+  `history.replaceState` ещё до отрисовки, поэтому токен не остаётся в адресной строке и истории.
 - Сессию поднимает `loginMatrixWithToken` (`m.login.token`) тем же путём, что и вход по паролю:
   `activateMatrixSession` создаёт клиент, сохраняет сессию и запускает sync; refresh-токен
   password-сессии не используется.
@@ -372,6 +378,11 @@ Storage живут только в памяти сессии. Вместе с т
 SDK (`sync` и `crypto`). `IndexedDB` принадлежит `matrix-js-sdk`; в `localStorage` он пишет свои
 служебные ключи (например, id фильтра sync), а очередь неотправленных событий попадает туда только
 при `pendingEventOrdering: Detached`, который приложение не задаёт.
+
+Отдельно от `localStorage`: `loginToken` возврата из authentik вообще не пишется в хранилище — он
+живёт в модуле `services/oidcAuth.js` до клика тумблера, а `sessionStorage` (`oidcLoginPending`)
+хранит только признак «ушли в authentik и разбора возврата ещё не было» — по нему приложение
+показывает «вход не завершён» после страницы ошибки Synapse.
 
 ## 7. Документация archify: первичный источник
 

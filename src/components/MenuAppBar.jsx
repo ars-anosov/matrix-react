@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import Copyright from "../Copyright";
 import { HEADER_BACKGROUND } from "../theme.js";
 import AuthIco from "./AuthIco";
+import AuthOidcInfo from "./AuthOidcInfo";
 import AuthRestInfo from "./AuthRestInfo";
 import MtrxIco from "./MtrxIco";
 import MtrxInfo from "./MtrxInfo";
@@ -33,8 +34,8 @@ const MENU_ITEMS_MTRX = [
 
 const MENU_ITEMS_AUTH = [
   { key: "displayControl", primary: "Auth Кругляш", secondary: "AuthIco.jsx" },
+  { key: "displayAuthPad", primary: "Auth Мост", secondary: "AuthPad.jsx" },
   { key: "displayRest", primary: "REST Авторизация", secondary: "AuthRest.jsx" },
-  { key: "displayAuthPad", primary: "Мост: REST - сервис", secondary: "AuthPad.jsx" },
   { key: "displayOidc", primary: "OAuth OIDC Форма", secondary: "AuthOidc.jsx" },
 ];
 
@@ -53,7 +54,7 @@ const LIST_SUBHEADER_PROPS = {
 const STATUS_STACK_SX = { cursor: "pointer", alignItems: "center" };
 
 function MenuAppBar(props) {
-  const { mtrxControlRdcr, mtrxControlActions, authControlRdcr, authControlActions } = props;
+  const { mtrxControlRdcr, mtrxControlActions, authControlRdcr, authControlActions, authSources, activeSourceKind, authCaption } = props;
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log("MenuAppBar MOUNT");
@@ -195,9 +196,9 @@ function MenuAppBar(props) {
           {authControlRdcr.displayControl && (
             <Stack direction="row" spacing={1} sx={STATUS_STACK_SX} onClick={(e) => setAnchorEl_restControl(e.currentTarget)}>
               <Typography variant="caption" sx={{ pl: 1 }}>
-                {authControlRdcr?.responseData?.ad_login}
+                {authCaption}
               </Typography>
-              <AuthIco authControlRdcr={authControlRdcr} />
+              <AuthIco sources={authSources} activeSourceKind={activeSourceKind} />
             </Stack>
           )}
         </Toolbar>
@@ -230,6 +231,11 @@ function MenuAppBar(props) {
           <Typography variant="body2">{authControlRdcr.uriRestAuth}</Typography>
           <Divider />
           <AuthRestInfo authControlRdcr={authControlRdcr} authControlActions={authControlActions} showFull={false} />
+          {/* Второй источник матричных учётных данных: у него свой блок и своя форма входа */}
+          <Divider />
+          <Typography variant="body2">{authControlRdcr.uriOidcAuth}</Typography>
+          <Divider />
+          <AuthOidcInfo authControlRdcr={authControlRdcr} mtrxControlRdcr={mtrxControlRdcr} authControlActions={authControlActions} showFull={false} />
         </Box>
       </Popover>
     </Box>
@@ -241,6 +247,11 @@ MenuAppBar.propTypes = {
   mtrxControlActions: PropTypes.object.isRequired,
   authControlRdcr: PropTypes.object,
   authControlActions: PropTypes.object,
+  // Два источника матричных учётных данных и активный из них: считает MenuAppContainer
+  authSources: PropTypes.array,
+  activeSourceKind: PropTypes.string,
+  // Подпись у кругляша: логин активного источника либо имя из живой Matrix-сессии
+  authCaption: PropTypes.string,
 };
 
 export default MenuAppBar;

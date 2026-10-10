@@ -2,15 +2,17 @@ import {
   AUTHCTL_CLEAR,
   AUTHCTL_OIDC_CLEAR,
   AUTHCTL_OIDC_ERROR,
+  AUTHCTL_OIDC_READY,
   AUTHCTL_OIDC_REQUEST,
   AUTHCTL_OIDC_SUCCESS,
+  AUTHCTL_SELECT_AUTH_SOURCE,
   AUTHCTL_STORE_VALUE,
   AUTHCTL_SUBMIT_ERROR,
   AUTHCTL_SUBMIT_REQUEST,
   AUTHCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
 import { buildSsoLoginUrl } from "../services/matrixClient";
-import { DEFAULT_OIDC_IDP_ID, startOidcLogin } from "../services/oidcAuth";
+import { beginOidcRedirect, clearOidcCredentials, DEFAULT_OIDC_IDP_ID, takeOidcReturn } from "../services/oidcAuth";
 import * as restAuth from "../services/restAuth";
 import { getApiErrorMessage } from "./utils/kyError";
 
@@ -76,60 +78,73 @@ const handleChangeStore = (storeDataKey, storeDataValue) => (dispatch) => {
   });
 };
 
-// Текст ошибки входа через authentik: у ошибок сервиса (адрес ресурса, popup, таймаут)
+// Явный выбор источника запуска в панели AuthPad: 'rest' — матричная пара из REST-ответа,
+// 'oidc' — готовый loginToken authentik
+const handleSelectAuthSource = (source) => (dispatch) => {
+  dispatch({
+    type: AUTHCTL_SELECT_AUTH_SOURCE,
+    payload: { source },
+  });
+};
+
+// Текст ошибки входа через authentik: у ошибок сервиса (адрес ресурса, возврат без токена)
 // причина в message, отдельного кода UI не разбирает
 function getOidcErrorMessage(error) {
   const message = typeof error?.message === "string" ? error.message.trim() : "";
   return message || "Не удалось войти через authentik.";
 }
 
-// Активная попытка OIDC: закрытие формы или новая попытка должны прервать ожидание
-// loginToken, иначе форма осталась бы в вечном loading с недоступным крестиком
-let oidcAttempt = null;
-
-// OIDC — вход, общий для приложения, поэтому его ведёт AUTHCTL_: здесь добывается
-// loginToken (popup → Synapse → authentik). Сессию Matrix по токену поднимает MTRXCTL_
-// (handleLoginWithToken), а связывает шаги мост — AuthContainer.
+// OIDC — вход, общий для приложения, поэтому его ведёт AUTHCTL_: здесь браузер уходит на
+// SSO-редирект Synapse (полностранично, без popup). Сессию Matrix по полученному токену
+// поднимает MTRXCTL_ (handleLoginWithToken), а связывает шаги мост — AuthContainer.
 // Абсолютный адрес SSO-редиректа строит matrixClient: Matrix-URL — зона services/.
-const handleOidcLogin =
+const handleOidcRedirect =
   (formData = {}) =>
-  async (dispatch) => {
+  (dispatch) => {
     const uriOidcAuth = typeof formData.uriOidcAuth === "string" ? formData.uriOidcAuth.trim() : "";
     const uriMatrix = typeof formData.uriMatrix === "string" ? formData.uriMatrix.trim() : "";
     const idpId = typeof formData.idpId === "string" && formData.idpId.trim() ? formData.idpId.trim() : DEFAULT_OIDC_IDP_ID;
 
-    oidcAttempt?.abort();
-    const controller = new AbortController();
-    oidcAttempt = controller;
-
     dispatch({ type: AUTHCTL_OIDC_REQUEST });
 
     try {
-      // startOidcLogin открывает popup синхронно, поэтому вызов идёт до первого await
-      const { loginToken } = await startOidcLogin({
+      // Успешный вызов уводит браузер в authentik: дальше приложение стартует заново
+      beginOidcRedirect({
         uriOidcAuth,
         idpId,
-        signal: controller.signal,
         buildSsoLoginUrl: (redirectUrl, ssoIdpId) => buildSsoLoginUrl({ uriMatrix, redirectUrl, idpId: ssoIdpId }),
       });
-      return loginToken;
     } catch (error) {
-      // Отмена (закрытие формы или новая попытка) — не ошибка: статус сбрасывает инициатор
-      if (controller.signal.aborted) return null;
       dispatchOidcError(dispatch, getOidcErrorMessage(error));
-      return null;
-    } finally {
-      if (oidcAttempt === controller) oidcAttempt = null;
     }
   };
 
+// Возврат из authentik разбирается до первой отрисовки (main.jsx → store/bootstrap.js):
+// токен остаётся в services/oidcAuth.js, сюда приходит только результат разбора
+const handleOidcReturn = () => (dispatch) => {
+  const result = takeOidcReturn();
+
+  if (result.kind === "token") {
+    // Токен готов, но сессию поднимает клик тумблера в панели — это мост в AuthContainer
+    dispatch({ type: AUTHCTL_OIDC_READY });
+    return;
+  }
+
+  if (result.kind === "error") {
+    dispatchOidcError(dispatch, result.errorText);
+    return;
+  }
+
+  if (result.kind === "pending") {
+    // Вернулись без токена: Synapse отдал свою страницу ошибки либо пользователь нажал «назад»
+    dispatchOidcError(dispatch, "Вход через authentik не завершён: выполните вход заново.");
+  }
+};
+
 // Успех OIDC оформляет мост (AuthContainer) — уже после того, как MTRXCTL_ поднял сессию:
-// форма показывает её display_name, а факт входа подтверждает MTRXCTL_SUBMIT_SUCCESS
-const handleOidcSuccess = (responseData) => (dispatch) => {
-  dispatch({
-    type: AUTHCTL_OIDC_SUCCESS,
-    payload: { responseData },
-  });
+// статус говорит, что токен израсходован и повторно им сессию не поднять
+const handleOidcSuccess = () => (dispatch) => {
+  dispatch({ type: AUTHCTL_OIDC_SUCCESS });
 };
 
 // Ошибку подъёма сессии по loginToken приносит мост: показать её должна форма OIDC
@@ -137,11 +152,22 @@ const handleOidcError = (errText) => (dispatch) => {
   dispatchOidcError(dispatch, errText || "Не удалось войти через authentik.");
 };
 
-const handleOidcClear = () => (dispatch) => {
-  // Закрытие формы или «Выйти»: незавершённое ожидание loginToken прерываем
-  oidcAttempt?.abort();
-  oidcAttempt = null;
+const handleOidcClear = () => (dispatch, getState) => {
+  // Готовый токен закрытие формы не отменяет: окно могли открыть только чтобы посмотреть
+  // статус источника. Израсходованный или ошибочный токен при закрытии забываем
+  if (getState().authControlRdcr.oidcStatus !== "ready") clearOidcCredentials();
+
   dispatch({ type: AUTHCTL_OIDC_CLEAR });
 };
 
-export { handleChangeStore, handleOidcClear, handleOidcError, handleOidcLogin, handleOidcSuccess, handleRestAuthClear, handleRestRegister };
+export {
+  handleChangeStore,
+  handleOidcClear,
+  handleOidcError,
+  handleOidcRedirect,
+  handleOidcReturn,
+  handleOidcSuccess,
+  handleRestAuthClear,
+  handleRestRegister,
+  handleSelectAuthSource,
+};

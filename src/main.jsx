@@ -26,9 +26,13 @@ window.addEventListener("unhandledrejection", (event) => {
 
 // Redux
 import { Provider } from "react-redux";
+import bootstrapStore from "./store/bootstrap";
 import configureStore from "./store/configureStore";
 
 const store = configureStore();
+
+// Возврат из authentik разбираем до отрисовки: токен уходит из URL, панель видит готовый источник
+bootstrapStore(store);
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);

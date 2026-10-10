@@ -137,22 +137,29 @@ POST-запрос к серверу авторизации, ожидаемый �
 настроено на Synapse: его Authorization flow (`default-provider-authorization-explicit-consent`)
 возвращает код на `/_synapse/client/oidc/callback`.
 
-Используется legacy-схема Synapse `m.login.sso`:
+Используется legacy-схема Synapse `m.login.sso`, вход полностраничный (без popup):
 
-1. SPA открывает popup с `/_matrix/client/v3/login/sso/redirect/oidc-authentik?redirectUrl=…`;
+1. SPA уводит браузер на `/_matrix/client/v3/login/sso/redirect/oidc-authentik?redirectUrl=…`;
    Synapse редиректит его в authentik (Authorization Code + PKCE делает Synapse, не SPA).
 2. Пользователь подтверждает доступ; authentik отдаёт код на `/_synapse/client/oidc/callback`.
-3. Synapse редиректит popup на `public/sso-callback.html` с `?loginToken=…`.
-4. Страница возврата отправляет `loginToken` в основное окно через `postMessage` и закрывается.
-5. SPA меняет токен на сессию: `POST /_matrix/client/v3/login` c `m.login.token`.
+3. Synapse возвращает браузер в приложение с `?loginToken=…`.
+4. На старте `store/bootstrap.js` разбирает параметры (`services/oidcAuth.js`): токен остаётся
+   в модуле сервиса, адресная строка очищается через `history.replaceState`, панель AuthPad
+   открывается с готовым источником authentik.
+5. Сессию поднимает клик тумблера в AuthPad (мост `AuthContainer` → `MTRXCTL_`):
+   `POST /_matrix/client/v3/login` c `m.login.token`.
 
-Вход выполняется в popup, поэтому браузер должен разрешать всплывающие окна для приложения.
+Токен одноразовый и живёт на стороне Synapse 2 минуты, поэтому сессию нужно поднять сразу
+после возврата. `redirectUrl` должен попадать в `sso.client_whitelist` по префиксу, иначе
+Synapse сначала покажет свою страницу подтверждения.
 
 Поток целиком: [Вход через OIDC (authentik)](docs/archify/matrix-react-oidc-login.html), узел
 `oidcAuth` — на [диаграмме архитектуры](docs/archify/matrix-react-architecture.html).
 
 ## AuthPad.jsx
-Тумблер активирует сервис.
+Тумблер моста активирует сервис Matrix — сессию поднимает клик, источник матричных учётных
+данных выбирается явно: матричная пара из ответа REST либо полученный `loginToken` authentik.
+
 
 ![component_AuthPad.png](img/component_AuthPad.png)
 

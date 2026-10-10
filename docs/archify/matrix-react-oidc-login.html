@@ -4909,11 +4909,11 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Time Segments -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="160" width="2404" height="520" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="0" x="48" y="160" width="2404" height="460" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="700" width="2404" height="160" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="1" x="48" y="640" width="2404" height="280" rx="10" class="c-lane" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="880" width="2404" height="420" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="segment" data-composition-frame-id="2" x="48" y="940" width="2404" height="360" rx="10" class="c-lane" stroke-width="1"/>
 
         <!-- Lifelines -->
         <path d="M 157 142 L 157 1295" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
@@ -4940,162 +4940,162 @@
         </g>
         </g>
 
-        <g data-edge-from="Form" data-edge-to="AuthAct" data-edge-label="handleOidcLogin · uriOidcAuth" data-edge-key="1" data-edge-id="m02-form-authact">
-          <path data-composition-edge-from="Form" data-composition-edge-to="AuthAct" data-composition-edge-id="m02-form-authact" data-composition-points="164,240;1033.2,240" d="M 164 240 L 1033.2 240" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="Form" data-edge-to="AuthAct" data-edge-label="handleOidcRedirect · uriOidcAuth" data-edge-key="1" data-edge-id="m02-form-authact">
+          <path data-composition-edge-from="Form" data-composition-edge-to="AuthAct" data-composition-edge-id="m02-form-authact" data-composition-points="164,240;1254,240" d="M 164 240 L 1254 240" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="517.2" y="220" width="162.8" height="16" rx="3" class="c-mask"/>
-          <text x="598.6" y="230" class="t-backend" font-size="9" text-anchor="middle">handleOidcLogin · uriOidcAuth</text>
+          <rect x="619.8" y="220" width="178.4" height="16" rx="3" class="c-mask"/>
+          <text x="709" y="230" class="t-backend" font-size="9" text-anchor="middle">handleOidcRedirect · uriOidcAuth</text>
         </g>
         </g>
 
         <g data-edge-from="AuthAct" data-edge-to="Store" data-edge-label="AUTHCTL_OIDC_REQUEST" data-edge-key="2" data-edge-id="m03-authact-store">
-          <path data-composition-edge-from="AuthAct" data-composition-edge-to="Store" data-composition-edge-id="m03-authact-store" data-composition-points="1033.2,300;605.6,300" d="M 1033.2 300 L 605.6 300" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+          <path data-composition-edge-from="AuthAct" data-composition-edge-to="Store" data-composition-edge-id="m03-authact-store" data-composition-points="1254,300;826.4000000000001,300" d="M 1254 300 L 826.4000000000001 300" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="761.4000000000001" y="280" width="116" height="16" rx="3" class="c-mask"/>
-          <text x="819.4000000000001" y="290" class="t-backend" font-size="9" text-anchor="middle">AUTHCTL_OIDC_REQUEST</text>
+          <rect x="982.2" y="280" width="116" height="16" rx="3" class="c-mask"/>
+          <text x="1040.2" y="290" class="t-backend" font-size="9" text-anchor="middle">AUTHCTL_OIDC_REQUEST</text>
         </g>
         </g>
 
-        <g data-edge-from="AuthAct" data-edge-to="Oidc" data-edge-label="startOidcLogin (popup открыт в клике)" data-edge-key="3" data-edge-id="m04-authact-oidc">
-          <path data-composition-edge-from="AuthAct" data-composition-edge-to="Oidc" data-composition-edge-id="m04-authact-oidc" data-composition-points="1047.2,360;1474.8000000000002,360" d="M 1047.2 360 L 1474.8000000000002 360" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="AuthAct" data-edge-to="Oidc" data-edge-label="beginOidcRedirect · полностранично, без popup" data-edge-key="3" data-edge-id="m04-authact-oidc">
+          <path data-composition-edge-from="AuthAct" data-composition-edge-to="Oidc" data-composition-edge-id="m04-authact-oidc" data-composition-points="1268,360;1695.6000000000001,360" d="M 1268 360 L 1695.6000000000001 360" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="1158.8" y="340" width="204.4" height="16" rx="3" class="c-mask"/>
-          <text x="1261" y="350" class="t-backend" font-size="9" text-anchor="middle">startOidcLogin (popup открыт в клике)</text>
+          <rect x="1358.8000000000002" y="340" width="246" height="16" rx="3" class="c-mask"/>
+          <text x="1481.8000000000002" y="350" class="t-backend" font-size="9" text-anchor="middle">beginOidcRedirect · полностранично, без popup</text>
         </g>
         </g>
 
-        <g data-edge-from="Oidc" data-edge-to="Syn" data-edge-label="GET /_matrix/client/v3/login/sso/redirect/oidc-authentik" data-edge-key="4" data-edge-id="m05-oidc-syn">
-          <path data-composition-edge-from="Oidc" data-composition-edge-to="Syn" data-composition-edge-id="m05-oidc-syn" data-composition-points="1488.8000000000002,420;1916.4,420" d="M 1488.8000000000002 420 L 1916.4 420" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="Oidc" data-edge-to="LS" data-edge-label="uriOidcAuth · oidcIdpId — до перехода" data-edge-key="4" data-edge-id="m05-oidc-ls">
+          <path data-composition-edge-from="Oidc" data-composition-edge-to="LS" data-composition-edge-id="m05-oidc-ls" data-composition-points="1695.6000000000001,420;1047.2,420" d="M 1695.6000000000001 420 L 1047.2 420" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="1551.0000000000002" y="400" width="303.2" height="16" rx="3" class="c-mask"/>
-          <text x="1702.6000000000001" y="410" class="t-backend" font-size="9" text-anchor="middle">GET /_matrix/client/v3/login/sso/redirect/oidc-authentik</text>
+          <rect x="1269.2" y="400" width="204.4" height="16" rx="3" class="c-mask"/>
+          <text x="1371.4" y="410" class="t-backend" font-size="9" text-anchor="middle">uriOidcAuth · oidcIdpId — до перехода</text>
         </g>
         </g>
 
-        <g data-edge-from="Syn" data-edge-to="AK" data-edge-label="302 authorize · PKCE делает Synapse" data-edge-key="5" data-edge-id="m06-syn-ak">
-          <path data-composition-edge-from="Syn" data-composition-edge-to="AK" data-composition-edge-id="m06-syn-ak" data-composition-points="1930.4,480;2137.2,480" d="M 1930.4 480 L 2137.2 480" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="Oidc" data-edge-to="Syn" data-edge-label="location.assign /login/sso/redirect/oidc-authentik" data-edge-key="5" data-edge-id="m06-oidc-syn">
+          <path data-composition-edge-from="Oidc" data-composition-edge-to="Syn" data-composition-edge-id="m06-oidc-syn" data-composition-points="1709.6000000000001,480;2137.2,480" d="M 1709.6000000000001 480 L 2137.2 480" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="1936.8" y="460" width="194" height="16" rx="3" class="c-mask"/>
-          <text x="2033.8" y="470" class="t-backend" font-size="9" text-anchor="middle">302 authorize · PKCE делает Synapse</text>
+          <rect x="1787.4" y="460" width="272" height="16" rx="3" class="c-mask"/>
+          <text x="1923.4" y="470" class="t-backend" font-size="9" text-anchor="middle">location.assign /login/sso/redirect/oidc-authentik</text>
         </g>
         </g>
 
-        <g data-edge-from="AK" data-edge-to="Syn" data-edge-label="код на /_synapse/client/oidc/callback" data-edge-key="6" data-edge-id="m07-ak-syn">
-          <path data-composition-edge-from="AK" data-composition-edge-to="Syn" data-composition-edge-id="m07-ak-syn" data-composition-points="2137.2,540;1930.4,540" d="M 2137.2 540 L 1930.4 540" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="Syn" data-edge-to="AK" data-edge-label="302 authorize · PKCE делает Synapse" data-edge-key="6" data-edge-id="m07-syn-ak">
+          <path data-composition-edge-from="Syn" data-composition-edge-to="AK" data-composition-edge-id="m07-syn-ak" data-composition-points="2151.2,540;2358,540" d="M 2151.2 540 L 2358 540" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="1931.6" y="520" width="204.4" height="16" rx="3" class="c-mask"/>
-          <text x="2033.8" y="530" class="t-muted" font-size="9" text-anchor="middle">код на /_synapse/client/oidc/callback</text>
+          <rect x="2157.6" y="520" width="194" height="16" rx="3" class="c-mask"/>
+          <text x="2254.6" y="530" class="t-backend" font-size="9" text-anchor="middle">302 authorize · PKCE делает Synapse</text>
         </g>
         </g>
 
-        <g data-edge-from="Syn" data-edge-to="CB" data-edge-label="redirect ?loginToken=…" data-edge-key="7" data-edge-id="m08-syn-cb">
-          <path data-composition-edge-from="Syn" data-composition-edge-to="CB" data-composition-edge-id="m08-syn-cb" data-composition-points="1930.4,600;2358,600" d="M 1930.4 600 L 2358 600" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="AK" data-edge-to="Syn" data-edge-label="код на /_synapse/client/oidc/callback" data-edge-key="7" data-edge-id="m08-ak-syn">
+          <path data-composition-edge-from="AK" data-composition-edge-to="Syn" data-composition-edge-id="m08-ak-syn" data-composition-points="2358,600;2151.2,600" d="M 2358 600 L 2151.2 600" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="2081" y="580" width="126.4" height="16" rx="3" class="c-mask"/>
-          <text x="2144.2" y="590" class="t-backend" font-size="9" text-anchor="middle">redirect ?loginToken=…</text>
+          <rect x="2152.4" y="580" width="204.4" height="16" rx="3" class="c-mask"/>
+          <text x="2254.6" y="590" class="t-muted" font-size="9" text-anchor="middle">код на /_synapse/client/oidc/callback</text>
         </g>
         </g>
 
-        <g data-edge-from="CB" data-edge-to="Oidc" data-edge-label="postMessage loginToken · проверка origin" data-edge-key="8" data-edge-id="m09-cb-oidc">
-          <path data-composition-edge-from="CB" data-composition-edge-to="Oidc" data-composition-edge-id="m09-cb-oidc" data-composition-points="2358,660;1488.8000000000002,660" d="M 2358 660 L 1488.8000000000002 660" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="Syn" data-edge-to="Boot" data-edge-label="302 &lt;адрес SPA&gt;?loginToken=…" data-edge-key="8" data-edge-id="m09-syn-boot">
+          <path data-composition-edge-from="Syn" data-composition-edge-to="Boot" data-composition-edge-id="m09-syn-boot" data-composition-points="2137.2,660;605.6,660" d="M 2137.2 660 L 605.6 660" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="1813.4" y="640" width="220" height="16" rx="3" class="c-mask"/>
-          <text x="1923.4" y="650" class="t-backend" font-size="9" text-anchor="middle">postMessage loginToken · проверка origin</text>
+          <rect x="1292.6" y="640" width="157.6" height="16" rx="3" class="c-mask"/>
+          <text x="1371.3999999999999" y="650" class="t-muted" font-size="9" text-anchor="middle">302 &lt;адрес SPA&gt;?loginToken=…</text>
         </g>
         </g>
 
-        <g data-edge-from="Oidc" data-edge-to="LS" data-edge-label="uriOidcAuth · oidcIdpId — после успеха" data-edge-key="9" data-edge-id="m10-oidc-ls">
-          <path data-composition-edge-from="Oidc" data-composition-edge-to="LS" data-composition-edge-id="m10-oidc-ls" data-composition-points="1474.8000000000002,720;826.4000000000001,720" d="M 1474.8000000000002 720 L 826.4000000000001 720" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="Boot" data-edge-to="AuthAct" data-edge-label="handleOidcReturn" data-edge-key="9" data-edge-id="m10-boot-authact">
+          <path data-composition-edge-from="Boot" data-composition-edge-to="AuthAct" data-composition-edge-id="m10-boot-authact" data-composition-points="605.6,720;1254,720" d="M 605.6 720 L 1254 720" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="1045.8000000000002" y="700" width="209.6" height="16" rx="3" class="c-mask"/>
-          <text x="1150.6000000000001" y="710" class="t-backend" font-size="9" text-anchor="middle">uriOidcAuth · oidcIdpId — после успеха</text>
+          <rect x="882.1999999999999" y="700" width="95.2" height="16" rx="3" class="c-mask"/>
+          <text x="929.8" y="710" class="t-backend" font-size="9" text-anchor="middle">handleOidcReturn</text>
         </g>
         </g>
 
-        <g data-edge-from="Oidc" data-edge-to="AuthAct" data-edge-label="loginToken" data-edge-key="10" data-edge-id="m11-oidc-authact">
-          <path data-composition-edge-from="Oidc" data-composition-edge-to="AuthAct" data-composition-edge-id="m11-oidc-authact" data-composition-points="1474.8000000000002,780;1047.2,780" d="M 1474.8000000000002 780 L 1047.2 780" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="AuthAct" data-edge-to="Oidc" data-edge-label="takeOidcReturn · replaceState" data-edge-key="10" data-edge-id="m11-authact-oidc">
+          <path data-composition-edge-from="AuthAct" data-composition-edge-to="Oidc" data-composition-edge-id="m11-authact-oidc" data-composition-points="1268,780;1695.6000000000001,780" d="M 1268 780 L 1695.6000000000001 780" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="1229" y="760" width="64" height="16" rx="3" class="c-mask"/>
-          <text x="1261" y="770" class="t-muted" font-size="9" text-anchor="middle">loginToken</text>
+          <rect x="1400.4" y="760" width="162.8" height="16" rx="3" class="c-mask"/>
+          <text x="1481.8000000000002" y="770" class="t-backend" font-size="9" text-anchor="middle">takeOidcReturn · replaceState</text>
         </g>
         </g>
 
-        <g data-edge-from="AuthAct" data-edge-to="UI" data-edge-label="loginToken — мост поднимает сессию" data-edge-key="11" data-edge-id="m12-authact-ui">
-          <path data-composition-edge-from="AuthAct" data-composition-edge-to="UI" data-composition-edge-id="m12-authact-ui" data-composition-points="1033.2,840;384.8,840" d="M 1033.2 840 L 384.8 840" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="Oidc" data-edge-to="Store" data-edge-label="AUTHCTL_OIDC_READY · токен в модуле сервиса" data-edge-key="11" data-edge-id="m12-oidc-store">
+          <path data-composition-edge-from="Oidc" data-composition-edge-to="Store" data-composition-edge-id="m12-oidc-store" data-composition-points="1695.6000000000001,840;826.4000000000001,840" d="M 1695.6000000000001 840 L 826.4000000000001 840" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="614.6" y="820" width="188.8" height="16" rx="3" class="c-mask"/>
-          <text x="709" y="830" class="t-muted" font-size="9" text-anchor="middle">loginToken — мост поднимает сессию</text>
+          <rect x="1143.2" y="820" width="235.6" height="16" rx="3" class="c-mask"/>
+          <text x="1261" y="830" class="t-backend" font-size="9" text-anchor="middle">AUTHCTL_OIDC_READY · токен в модуле сервиса</text>
         </g>
         </g>
 
-        <g data-edge-from="UI" data-edge-to="MtrxAct" data-edge-label="handleLoginWithToken · loginToken" data-edge-key="12" data-edge-id="m13-ui-mtrxact">
-          <path data-composition-edge-from="UI" data-composition-edge-to="MtrxAct" data-composition-edge-id="m13-ui-mtrxact" data-composition-points="384.8,900;1254,900" d="M 384.8 900 L 1254 900" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="Store" data-edge-to="UI" data-edge-label="useSelector: тумблер активен, источник authentik" data-edge-key="12" data-edge-id="m13-store-ui">
+          <path data-composition-edge-from="Store" data-composition-edge-to="UI" data-composition-edge-id="m13-store-ui" data-composition-points="812.4000000000001,900;384.8,900" d="M 812.4000000000001 900 L 384.8 900" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="727.6" y="880" width="183.6" height="16" rx="3" class="c-mask"/>
-          <text x="819.4" y="890" class="t-backend" font-size="9" text-anchor="middle">handleLoginWithToken · loginToken</text>
+          <rect x="467.8" y="880" width="261.6" height="16" rx="3" class="c-mask"/>
+          <text x="598.6" y="890" class="t-muted" font-size="9" text-anchor="middle">useSelector: тумблер активен, источник authentik</text>
         </g>
         </g>
 
-        <g data-edge-from="MtrxAct" data-edge-to="Cl" data-edge-label="loginMatrixWithToken" data-edge-key="13" data-edge-id="m14-mtrxact-cl">
-          <path data-composition-edge-from="MtrxAct" data-composition-edge-to="Cl" data-composition-edge-id="m14-mtrxact-cl" data-composition-points="1268,960;1695.6000000000001,960" d="M 1268 960 L 1695.6000000000001 960" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <g data-edge-from="UI" data-edge-to="MtrxAct" data-edge-label="handleLoginWithToken · клик тумблера" data-edge-key="13" data-edge-id="m14-ui-mtrxact">
+          <path data-composition-edge-from="UI" data-composition-edge-to="MtrxAct" data-composition-edge-id="m14-ui-mtrxact" data-composition-points="384.8,960;1474.8000000000002,960" d="M 384.8 960 L 1474.8000000000002 960" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="1423.8000000000002" y="940" width="116" height="16" rx="3" class="c-mask"/>
-          <text x="1481.8000000000002" y="950" class="t-backend" font-size="9" text-anchor="middle">loginMatrixWithToken</text>
+          <rect x="830.2" y="940" width="199.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="929.8000000000001" y="950" class="t-backend" font-size="9" text-anchor="middle">handleLoginWithToken · клик тумблера</text>
         </g>
         </g>
 
-        <g data-edge-from="Cl" data-edge-to="Syn" data-edge-label="POST /_matrix/client/v3/login · m.login.token" data-edge-key="14" data-edge-id="m15-cl-syn">
-          <path data-composition-edge-from="Cl" data-composition-edge-to="Syn" data-composition-edge-id="m15-cl-syn" data-composition-points="1709.6000000000001,1020;1916.4,1020" d="M 1709.6000000000001 1020 L 1916.4 1020" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="MtrxAct" data-edge-to="Cl" data-edge-label="loginMatrixWithToken" data-edge-key="14" data-edge-id="m15-mtrxact-cl">
+          <path data-composition-edge-from="MtrxAct" data-composition-edge-to="Cl" data-composition-edge-id="m15-mtrxact-cl" data-composition-points="1488.8000000000002,1020;1916.4,1020" d="M 1488.8000000000002 1020 L 1916.4 1020" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="1690" y="1000" width="246" height="16" rx="3" class="c-mask"/>
-          <text x="1813" y="1010" class="t-backend" font-size="9" text-anchor="middle">POST /_matrix/client/v3/login · m.login.token</text>
+          <rect x="1644.6000000000001" y="1000" width="116" height="16" rx="3" class="c-mask"/>
+          <text x="1702.6000000000001" y="1010" class="t-backend" font-size="9" text-anchor="middle">loginMatrixWithToken</text>
         </g>
         </g>
 
-        <g data-edge-from="Syn" data-edge-to="Cl" data-edge-label="access_token · device_id" data-edge-key="15" data-edge-id="m16-syn-cl">
-          <path data-composition-edge-from="Syn" data-composition-edge-to="Cl" data-composition-edge-id="m16-syn-cl" data-composition-points="1916.4,1080;1709.6000000000001,1080" d="M 1916.4 1080 L 1709.6000000000001 1080" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="Cl" data-edge-to="Syn" data-edge-label="POST /_matrix/client/v3/login · m.login.token" data-edge-key="15" data-edge-id="m16-cl-syn">
+          <path data-composition-edge-from="Cl" data-composition-edge-to="Syn" data-composition-edge-id="m16-cl-syn" data-composition-points="1930.4,1080;2137.2,1080" d="M 1930.4 1080 L 2137.2 1080" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="1744.6" y="1060" width="136.8" height="16" rx="3" class="c-mask"/>
-          <text x="1813" y="1070" class="t-muted" font-size="9" text-anchor="middle">access_token · device_id</text>
+          <rect x="1910.8" y="1060" width="246" height="16" rx="3" class="c-mask"/>
+          <text x="2033.8" y="1070" class="t-backend" font-size="9" text-anchor="middle">POST /_matrix/client/v3/login · m.login.token</text>
         </g>
         </g>
 
-        <g data-edge-from="MtrxAct" data-edge-to="Store" data-edge-label="MTRXCTL_SUBMIT_SUCCESS" data-edge-key="16" data-edge-id="m17-mtrxact-store">
-          <path data-composition-edge-from="MtrxAct" data-composition-edge-to="Store" data-composition-edge-id="m17-mtrxact-store" data-composition-points="1254,1140;605.6,1140" d="M 1254 1140 L 605.6 1140" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="Syn" data-edge-to="Cl" data-edge-label="access_token · device_id" data-edge-key="16" data-edge-id="m17-syn-cl">
+          <path data-composition-edge-from="Syn" data-composition-edge-to="Cl" data-composition-edge-id="m17-syn-cl" data-composition-points="2137.2,1140;1930.4,1140" d="M 2137.2 1140 L 1930.4 1140" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="866.5999999999999" y="1120" width="126.4" height="16" rx="3" class="c-mask"/>
-          <text x="929.8" y="1130" class="t-backend" font-size="9" text-anchor="middle">MTRXCTL_SUBMIT_SUCCESS</text>
+          <rect x="1965.3999999999999" y="1120" width="136.8" height="16" rx="3" class="c-mask"/>
+          <text x="2033.8" y="1130" class="t-muted" font-size="9" text-anchor="middle">access_token · device_id</text>
         </g>
         </g>
 
-        <g data-edge-from="UI" data-edge-to="Store" data-edge-label="AUTHCTL_OIDC_SUCCESS · display_name" data-edge-key="17" data-edge-id="m18-ui-store">
-          <path data-composition-edge-from="UI" data-composition-edge-to="Store" data-composition-edge-id="m18-ui-store" data-composition-points="384.8,1200;591.6,1200" d="M 384.8 1200 L 591.6 1200" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="MtrxAct" data-edge-to="Store" data-edge-label="MTRXCTL_SUBMIT_SUCCESS" data-edge-key="17" data-edge-id="m18-mtrxact-store">
+          <path data-composition-edge-from="MtrxAct" data-composition-edge-to="Store" data-composition-edge-id="m18-mtrxact-store" data-composition-points="1474.8000000000002,1200;826.4000000000001,1200" d="M 1474.8000000000002 1200 L 826.4000000000001 1200" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="391.20000000000005" y="1180" width="194" height="16" rx="3" class="c-mask"/>
-          <text x="488.20000000000005" y="1190" class="t-backend" font-size="9" text-anchor="middle">AUTHCTL_OIDC_SUCCESS · display_name</text>
+          <rect x="1087.4" y="1180" width="126.4" height="16" rx="3" class="c-mask"/>
+          <text x="1150.6000000000001" y="1190" class="t-backend" font-size="9" text-anchor="middle">MTRXCTL_SUBMIT_SUCCESS</text>
         </g>
         </g>
 
-        <g data-edge-from="Store" data-edge-to="UI" data-edge-label="useSelector: статус success → чат" data-edge-key="18" data-edge-id="m19-store-ui">
-          <path data-composition-edge-from="Store" data-composition-edge-to="UI" data-composition-edge-id="m19-store-ui" data-composition-points="591.6,1260;384.8,1260" d="M 591.6 1260 L 384.8 1260" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <g data-edge-from="UI" data-edge-to="Store" data-edge-label="AUTHCTL_OIDC_SUCCESS · токен израсходован" data-edge-key="18" data-edge-id="m19-ui-store">
+          <path data-composition-edge-from="UI" data-composition-edge-to="Store" data-composition-edge-id="m19-ui-store" data-composition-points="384.8,1260;812.4000000000001,1260" d="M 384.8 1260 L 812.4000000000001 1260" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="396.40000000000003" y="1240" width="183.6" height="16" rx="3" class="c-mask"/>
-          <text x="488.20000000000005" y="1250" class="t-muted" font-size="9" text-anchor="middle">useSelector: статус success → чат</text>
+          <rect x="486" y="1240" width="225.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="598.6" y="1250" class="t-muted" font-size="9" text-anchor="middle">AUTHCTL_OIDC_SUCCESS · токен израсходован</text>
         </g>
         </g>
 
         <!-- Segment Labels -->
         <g data-graph-role="segment-label" data-segment-id="0">
-          <rect x="56" y="138" width="102.4" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="151" class="t-dim" font-size="9" font-weight="600">Открытие окна IdP</text>
+          <rect x="56" y="138" width="97.2" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="151" class="t-dim" font-size="9" font-weight="600">Уход в authentik</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="1">
-          <rect x="56" y="678" width="107.60000000000001" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="691" class="t-dim" font-size="9" font-weight="600">Возврат loginToken</text>
+          <rect x="56" y="618" width="86.8" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="631" class="t-dim" font-size="9" font-weight="600">Возврат токена</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="2">
-          <rect x="56" y="858" width="81.60000000000001" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="871" class="t-dim" font-size="9" font-weight="600">Сессия Matrix</text>
+          <rect x="56" y="918" width="81.60000000000001" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="931" class="t-dim" font-size="9" font-weight="600">Сессия Matrix</text>
         </g>
 
         <!-- Participants -->
@@ -5113,8 +5113,8 @@
           <text data-detail="context" x="157" y="111" class="t-muted" font-size="7" text-anchor="middle">форма входа OIDC</text>
         </g>
 
-        <g id="node-UI" data-node-id="UI" data-node-label="AuthContainer" tabindex="0" role="button" aria-label="Focus AuthContainer, AuthLinks · мост срезов, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="AuthLinks · мост срезов" data-node-context="Sequence participant">
-          <title>AuthContainer · AuthLinks · мост срезов · Sequence participant</title>
+        <g id="node-UI" data-node-id="UI" data-node-label="AuthContainer" tabindex="0" role="button" aria-label="Focus AuthContainer, AuthLinks · AuthPad · мост срезов, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="AuthLinks · AuthPad · мост срезов" data-node-context="Sequence participant">
+          <title>AuthContainer · AuthLinks · AuthPad · мост срезов · Sequence participant</title>
           <rect x="282.8" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="282.8" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(288.8 78) scale(0.6875)">
@@ -5124,111 +5124,113 @@
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-detail-anchor x="377.8" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AuthContainer</text>
-          <text data-detail="context" x="377.8" y="111" class="t-muted" font-size="7" text-anchor="middle">AuthLinks · мост срезов</text>
+          <text data-detail="context" x="377.8" y="111" class="t-muted" font-size="7" text-anchor="middle">AuthLinks · AuthPad · мост срезов</text>
+        </g>
+
+        <g id="node-Boot" data-node-id="Boot" data-node-label="старт приложения" tabindex="0" role="button" aria-label="Focus старт приложения, store/bootstrap.js, Sequence participant" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="store/bootstrap.js" data-node-context="Sequence participant">
+          <title>старт приложения · store/bootstrap.js · Sequence participant</title>
+          <rect x="503.6" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="503.6" y="72" width="190" height="54" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(509.6 78) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text data-detail-anchor x="598.6" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">старт приложения</text>
+          <text data-detail="context" x="598.6" y="111" class="t-muted" font-size="7" text-anchor="middle">store/bootstrap.js</text>
         </g>
 
         <g id="node-Store" data-node-id="Store" data-node-label="Redux" tabindex="0" role="button" aria-label="Focus Redux, authControlRdcr · mtrxControlRdcr, Sequence participant" aria-pressed="false" data-node-kind="database" data-node-sublabel="authControlRdcr · mtrxControlRdcr" data-node-context="Sequence participant">
           <title>Redux · authControlRdcr · mtrxControlRdcr · Sequence participant</title>
-          <rect x="503.6" y="72" width="190" height="54" rx="6" class="c-mask"/>
-          <rect x="503.6" y="72" width="190" height="54" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(509.6 78) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <text data-detail-anchor x="598.6" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Redux</text>
-          <text data-detail="context" x="598.6" y="111" class="t-muted" font-size="7" text-anchor="middle">authControlRdcr · mtrxControlRdcr</text>
-        </g>
-
-        <g id="node-LS" data-node-id="LS" data-node-label="localStorage" tabindex="0" role="button" aria-label="Focus localStorage, uriOidcAuth · oidcIdpId, Sequence participant" aria-pressed="false" data-node-kind="database" data-node-sublabel="uriOidcAuth · oidcIdpId" data-node-context="Sequence participant">
-          <title>localStorage · uriOidcAuth · oidcIdpId · Sequence participant</title>
           <rect x="724.4000000000001" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="724.4000000000001" y="72" width="190" height="54" rx="6" class="c-database" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(730.4000000000001 78) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
-          <text data-detail-anchor x="819.4000000000001" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">localStorage</text>
-          <text data-detail="context" x="819.4000000000001" y="111" class="t-muted" font-size="7" text-anchor="middle">uriOidcAuth · oidcIdpId</text>
+          <text data-detail-anchor x="819.4000000000001" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Redux</text>
+          <text data-detail="context" x="819.4000000000001" y="111" class="t-muted" font-size="7" text-anchor="middle">authControlRdcr · mtrxControlRdcr</text>
         </g>
 
-        <g id="node-AuthAct" data-node-id="AuthAct" data-node-label="authControlActions" tabindex="0" role="button" aria-label="Focus authControlActions, handleOidcLogin · AUTHCTL_OIDC_*, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="handleOidcLogin · AUTHCTL_OIDC_*" data-node-context="Sequence participant">
-          <title>authControlActions · handleOidcLogin · AUTHCTL_OIDC_* · Sequence participant</title>
+        <g id="node-LS" data-node-id="LS" data-node-label="localStorage" tabindex="0" role="button" aria-label="Focus localStorage, uriOidcAuth · oidcIdpId, Sequence participant" aria-pressed="false" data-node-kind="database" data-node-sublabel="uriOidcAuth · oidcIdpId" data-node-context="Sequence participant">
+          <title>localStorage · uriOidcAuth · oidcIdpId · Sequence participant</title>
           <rect x="945.2" y="72" width="190" height="54" rx="6" class="c-mask"/>
-          <rect x="945.2" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(951.2 78) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          <rect x="945.2" y="72" width="190" height="54" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(951.2 78) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
-          <text data-detail-anchor x="1040.2" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">authControlActions</text>
-          <text data-detail="context" x="1040.2" y="111" class="t-muted" font-size="7" text-anchor="middle">handleOidcLogin · AUTHCTL_OIDC_*</text>
+          <text data-detail-anchor x="1040.2" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">localStorage</text>
+          <text data-detail="context" x="1040.2" y="111" class="t-muted" font-size="7" text-anchor="middle">uriOidcAuth · oidcIdpId</text>
         </g>
 
-        <g id="node-MtrxAct" data-node-id="MtrxAct" data-node-label="mtrxControlActions" tabindex="0" role="button" aria-label="Focus mtrxControlActions, handleLoginWithToken, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="handleLoginWithToken" data-node-context="Sequence participant">
-          <title>mtrxControlActions · handleLoginWithToken · Sequence participant</title>
+        <g id="node-AuthAct" data-node-id="AuthAct" data-node-label="authControlActions" tabindex="0" role="button" aria-label="Focus authControlActions, handleOidcRedirect · handleOidcReturn, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="handleOidcRedirect · handleOidcReturn" data-node-context="Sequence participant">
+          <title>authControlActions · handleOidcRedirect · handleOidcReturn · Sequence participant</title>
           <rect x="1166" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="1166" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1172 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1261" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">mtrxControlActions</text>
-          <text data-detail="context" x="1261" y="111" class="t-muted" font-size="7" text-anchor="middle">handleLoginWithToken</text>
+          <text data-detail-anchor x="1261" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">authControlActions</text>
+          <text data-detail="context" x="1261" y="111" class="t-muted" font-size="7" text-anchor="middle">handleOidcRedirect · handleOidcReturn</text>
         </g>
 
-        <g id="node-Oidc" data-node-id="Oidc" data-node-label="oidcAuth" tabindex="0" role="button" aria-label="Focus oidcAuth, popup · ожидание loginToken, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="popup · ожидание loginToken" data-node-context="Sequence participant">
-          <title>oidcAuth · popup · ожидание loginToken · Sequence participant</title>
+        <g id="node-MtrxAct" data-node-id="MtrxAct" data-node-label="mtrxControlActions" tabindex="0" role="button" aria-label="Focus mtrxControlActions, handleLoginWithToken, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="handleLoginWithToken" data-node-context="Sequence participant">
+          <title>mtrxControlActions · handleLoginWithToken · Sequence participant</title>
           <rect x="1386.8000000000002" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="1386.8000000000002" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1392.8000000000002 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1481.8000000000002" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">oidcAuth</text>
-          <text data-detail="context" x="1481.8000000000002" y="111" class="t-muted" font-size="7" text-anchor="middle">popup · ожидание loginToken</text>
+          <text data-detail-anchor x="1481.8000000000002" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">mtrxControlActions</text>
+          <text data-detail="context" x="1481.8000000000002" y="111" class="t-muted" font-size="7" text-anchor="middle">handleLoginWithToken</text>
         </g>
 
-        <g id="node-Cl" data-node-id="Cl" data-node-label="matrixClient" tabindex="0" role="button" aria-label="Focus matrixClient, loginMatrixWithToken, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="loginMatrixWithToken" data-node-context="Sequence participant">
-          <title>matrixClient · loginMatrixWithToken · Sequence participant</title>
+        <g id="node-Oidc" data-node-id="Oidc" data-node-label="oidcAuth" tabindex="0" role="button" aria-label="Focus oidcAuth, beginOidcRedirect · takeOidcReturn, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="beginOidcRedirect · takeOidcReturn" data-node-context="Sequence participant">
+          <title>oidcAuth · beginOidcRedirect · takeOidcReturn · Sequence participant</title>
           <rect x="1607.6000000000001" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="1607.6000000000001" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1613.6000000000001 78) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1702.6000000000001" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">matrixClient</text>
-          <text data-detail="context" x="1702.6000000000001" y="111" class="t-muted" font-size="7" text-anchor="middle">loginMatrixWithToken</text>
+          <text data-detail-anchor x="1702.6000000000001" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">oidcAuth</text>
+          <text data-detail="context" x="1702.6000000000001" y="111" class="t-muted" font-size="7" text-anchor="middle">beginOidcRedirect · takeOidcReturn</text>
+        </g>
+
+        <g id="node-Cl" data-node-id="Cl" data-node-label="matrixClient" tabindex="0" role="button" aria-label="Focus matrixClient, loginMatrixWithToken, Sequence participant" aria-pressed="false" data-node-kind="backend" data-node-sublabel="loginMatrixWithToken" data-node-context="Sequence participant">
+          <title>matrixClient · loginMatrixWithToken · Sequence participant</title>
+          <rect x="1828.4" y="72" width="190" height="54" rx="6" class="c-mask"/>
+          <rect x="1828.4" y="72" width="190" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1834.4 78) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-detail-anchor x="1923.4" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">matrixClient</text>
+          <text data-detail="context" x="1923.4" y="111" class="t-muted" font-size="7" text-anchor="middle">loginMatrixWithToken</text>
         </g>
 
         <g id="node-Syn" data-node-id="Syn" data-node-label="Synapse" tabindex="0" role="button" aria-label="Focus Synapse, /login/sso · /login, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="/login/sso · /login" data-node-context="Sequence participant">
           <title>Synapse · /login/sso · /login · Sequence participant</title>
-          <rect x="1828.4" y="72" width="190" height="54" rx="6" class="c-mask"/>
-          <rect x="1828.4" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1834.4 78) scale(0.6875)">
-            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
-            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
-          </g>
-          <text data-detail-anchor x="1923.4" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Synapse</text>
-          <text data-detail="context" x="1923.4" y="111" class="t-muted" font-size="7" text-anchor="middle">/login/sso · /login</text>
-        </g>
-
-        <g id="node-AK" data-node-id="AK" data-node-label="authentik" tabindex="0" role="button" aria-label="Focus authentik, authorize · consent, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="authorize · consent" data-node-context="Sequence participant">
-          <title>authentik · authorize · consent · Sequence participant</title>
           <rect x="2049.2" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="2049.2" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(2055.2 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-detail-anchor x="2144.2" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">authentik</text>
-          <text data-detail="context" x="2144.2" y="111" class="t-muted" font-size="7" text-anchor="middle">authorize · consent</text>
+          <text data-detail-anchor x="2144.2" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Synapse</text>
+          <text data-detail="context" x="2144.2" y="111" class="t-muted" font-size="7" text-anchor="middle">/login/sso · /login</text>
         </g>
 
-        <g id="node-CB" data-node-id="CB" data-node-label="sso-callback.html" tabindex="0" role="button" aria-label="Focus sso-callback.html, страница возврата popup, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="страница возврата popup" data-node-context="Sequence participant">
-          <title>sso-callback.html · страница возврата popup · Sequence participant</title>
+        <g id="node-AK" data-node-id="AK" data-node-label="authentik" tabindex="0" role="button" aria-label="Focus authentik, authorize · consent, Sequence participant" aria-pressed="false" data-node-kind="external" data-node-sublabel="authorize · consent" data-node-context="Sequence participant">
+          <title>authentik · authorize · consent · Sequence participant</title>
           <rect x="2270" y="72" width="190" height="54" rx="6" class="c-mask"/>
           <rect x="2270" y="72" width="190" height="54" rx="6" class="c-external" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(2276 78) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-detail-anchor x="2365" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">sso-callback.html</text>
-          <text data-detail="context" x="2365" y="111" class="t-muted" font-size="7" text-anchor="middle">страница возврата popup</text>
+          <text data-detail-anchor x="2365" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">authentik</text>
+          <text data-detail="context" x="2365" y="111" class="t-muted" font-size="7" text-anchor="middle">authorize · consent</text>
         </g>
 
         <!-- Legend -->
@@ -5433,11 +5435,11 @@
       <div class="card">
         <div class="card-header">
           <div class="card-dot cyan"></div>
-          <h3>Окно IdP открывает Synapse</h3>
+          <h3>Уход в authentik</h3>
         </div>
         <ul>
           <li>&bull; Форма AuthOidc отдаёт адрес ресурса IdP и id провайдера oidc-authentik</li>
-          <li>&bull; SPA открывает /login/sso/redirect/oidc-authentik в popup и уводит его в authentik</li>
+          <li>&bull; SPA уводит браузер на /login/sso/redirect/oidc-authentik?redirectUrl=&lt;адрес SPA&gt;</li>
           <li>&bull; Код и PKCE обменивает Synapse: client secret в SPA не попадает</li>
         </ul>
       </div>
@@ -5445,12 +5447,12 @@
       <div class="card">
         <div class="card-header">
           <div class="card-dot emerald"></div>
-          <h3>Возврат токена</h3>
+          <h3>Возврат и готовый токен</h3>
         </div>
         <ul>
-          <li>&bull; authentik отдаёт код на /_synapse/client/oidc/callback, Synapse подставляет loginToken</li>
-          <li>&bull; sso-callback.html шлёт loginToken в основное окно через postMessage с проверкой origin</li>
-          <li>&bull; loginToken добывает AUTHCTL_, адрес IdP сервис сохраняет только после удачного входа</li>
+          <li>&bull; authentik отдаёт код на /_synapse/client/oidc/callback, Synapse возвращает браузер с loginToken</li>
+          <li>&bull; store/bootstrap.js разбирает параметры до отрисовки: токен остаётся в модуле oidcAuth, адресная строка чистится</li>
+          <li>&bull; AUTHCTL_OIDC_READY открывает AuthPad: источник authentik, сессию поднимает клик тумблера</li>
         </ul>
       </div>
 
@@ -5462,7 +5464,7 @@
         <ul>
           <li>&bull; loginMatrixWithToken меняет loginToken на сессию: POST /login с m.login.token</li>
           <li>&bull; Сессию поднимает MTRXCTL_ — до токена AUTH-срез Matrix-логику не ведёт</li>
-          <li>&bull; MTRXCTL_SUBMIT_SUCCESS включает чат, AUTHCTL_OIDC_SUCCESS закрывает форму</li>
+          <li>&bull; MTRXCTL_SUBMIT_SUCCESS включает чат, AUTHCTL_OIDC_SUCCESS помечает токен израсходованным</li>
         </ul>
       </div>
     </div>

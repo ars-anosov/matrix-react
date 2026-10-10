@@ -1,10 +1,13 @@
 import { OIDC_IDP_KEY, OIDC_ISSUER_KEY } from "../constants/storage";
 
-// Взаимодействие с IdP через legacy-схему Synapse `m.login.sso`: SPA открывает
-// `/_matrix/client/v3/login/sso/redirect/{idp}` в popup, Synapse уводит браузер в
-// authentik, а после consent'а получает код на своём `/_synapse/client/oidc/callback`
-// и редиректит popup на нашу страницу возврата с `loginToken`. Токен приходит
-// сообщением в основное окно, а сессию поднимает `matrixClient.loginMatrixWithToken`.
+// Взаимодействие с IdP через legacy-схему Synapse `m.login.sso`: SPA уводит браузер на
+// `/_matrix/client/v3/login/sso/redirect/{idp}`, Synapse сам проводит Authorization Code +
+// PKCE в authentik, получает код на своём `/_synapse/client/oidc/callback` и возвращает
+// браузер в приложение с `loginToken`. Токен ждёт здесь, в модуле, до клика тумблера
+// AuthPad, а сессию по нему поднимает мост AuthContainer → MTRXCTL_ (`m.login.token`).
+//
+// Вход полностраничный: popup и страница возврата не нужны, разбором `?loginToken`
+// на старте занимается takeOidcReturn.
 
 // Ресурс authentik с приложением, чей Authorization flow — explicit consent в сторону
 // `/_synapse/client/oidc/callback`. Адрес по умолчанию для поля формы задаёт inline-скрипт
@@ -12,15 +15,13 @@ import { OIDC_IDP_KEY, OIDC_ISSUER_KEY } from "../constants/storage";
 // id провайдера на стороне Synapse: он же id в GET /_matrix/client/v3/login → m.login.sso
 export const DEFAULT_OIDC_IDP_ID = "oidc-authentik";
 
-// Страница возврата в popup: тот же origin, что у приложения, поэтому postMessage
-// можно проверять по origin. Файл лежит в корне статики (public/sso-callback.html).
-const SSO_CALLBACK_FILE = "sso-callback.html";
-// Тип сообщения страницы возврата — по нему отбираем loginToken среди прочих событий
-const SSO_MESSAGE_TYPE = "matrix-sso-login-token";
-// Попытка входа в authentik не должна висеть бесконечно: страница возврата шлёт
-// единственное сообщение сразу после ответа Synapse
-const SSO_TIMEOUT_MS = 5 * 60 * 1000;
-const SSO_POPUP_FEATURES = "popup=yes,width=520,height=680";
+// loginToken живёт только здесь: он одноразовый и короткоживущий (по умолчанию 2 минуты
+// на стороне Synapse), а DEV-логгер Redux печатает payload'ы экшенов — в стор его не кладём
+let pendingLoginToken = "";
+
+// Признак «ушли в authentik и разбора возврата ещё не было»: после редиректа память
+// страницы теряется, поэтому о незавершённой попытке может сказать только sessionStorage
+const OIDC_PENDING_KEY = "oidcLoginPending";
 
 // Петлевые адреса разрешены только в DEV — как у restAuth, для локальных проверок
 function isLoopbackHost(hostname) {
@@ -74,84 +75,48 @@ function storeOidcIdpId(idpId) {
   localStorage.setItem(OIDC_IDP_KEY, idpId);
 }
 
-// Адрес страницы возврата: базовый путь приложения сохраняем, query и hash — нет,
-// иначе в redirectUrl попали бы чужие параметры текущего экрана (HashRouter)
-function buildSsoRedirectUrl(baseUrl) {
-  return new URL(SSO_CALLBACK_FILE, baseUrl).toString();
+function markOidcPending(isPending) {
+  if (isPending) {
+    sessionStorage.setItem(OIDC_PENDING_KEY, "1");
+    return;
+  }
+
+  sessionStorage.removeItem(OIDC_PENDING_KEY);
 }
 
-// Ожидает сообщение страницы возврата. Резолвится loginToken'ом либо отклоняется, если
-// popup закрыли или попытку отменили (закрытие формы → AbortSignal): молчаливый resolve
-// оставлял бы форму в вечном loading с недоступным крестиком.
-function waitForLoginToken(popup, appOrigin, signal) {
-  return new Promise((resolve, reject) => {
-    let settled = false;
-    const closeTimer = setInterval(() => {
-      if (settled) return;
-      if (popup.closed) finish(new Error("Окно входа authentik закрыто: вход не завершён."));
-    }, 500);
-    const timeoutTimer = setTimeout(() => {
-      finish(new Error("Вход через authentik не завершён. Повторите попытку."));
-    }, SSO_TIMEOUT_MS);
+function isOidcPending() {
+  return sessionStorage.getItem(OIDC_PENDING_KEY) === "1";
+}
 
-    // Отмена (закрытие формы или новая попытка): окно закрываем сами, ожидание прекращаем
-    function handleAbort() {
-      popup.close?.();
-      finish(new Error("Вход через authentik отменён."));
-    }
+// Адрес возврата — корень приложения: Synapse дописывает к нему loginToken, а разбирает
+// параметры takeOidcReturn. Query и hash текущего экрана не переносим (HashRouter)
+function buildSsoRedirectUrl(baseUrl) {
+  return new URL(".", baseUrl).toString();
+}
 
-    function cleanup() {
-      settled = true;
-      clearInterval(closeTimer);
-      clearTimeout(timeoutTimer);
-      window.removeEventListener("message", handleMessage);
-      signal?.removeEventListener("abort", handleAbort);
-    }
+// Параметры возврата убираем из адресной строки и истории: loginToken не должен
+// оставаться в URL, попадать в закладки и в Referer при загрузке ресурсов приложения
+function clearOidcReturnParams() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("loginToken");
+  url.searchParams.delete("error");
+  url.searchParams.delete("error_description");
 
-    function finish(error, loginToken) {
-      if (settled) return;
-      cleanup();
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(loginToken);
-    }
-
-    function handleMessage(event) {
-      if (event.origin !== appOrigin) return;
-      if (event.data?.type !== SSO_MESSAGE_TYPE) return;
-      if (typeof event.data.loginToken !== "string" || !event.data.loginToken) {
-        finish(new Error("Synapse не вернул loginToken: вход не завершён."));
-        return;
-      }
-      finish(null, event.data.loginToken);
-    }
-
-    if (signal?.aborted) {
-      handleAbort();
-      return;
-    }
-
-    signal?.addEventListener("abort", handleAbort, { once: true });
-    window.addEventListener("message", handleMessage);
-  });
+  window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 /**
- * Открывает popup с редиректом Synapse в authentik и ждёт loginToken со страницы
- * возврата. Флоу ведёт слой AUTH (authControlActions.handleOidcLogin); сессию Matrix по
- * токену поднимает MTRXCTL_ (handleLoginWithToken), шаги связывает мост AuthContainer.
+ * Уводит браузер на SSO-редирект Synapse: дальше Synapse сам проведёт вход в authentik и
+ * вернёт браузер в приложение с `loginToken`, который подберёт takeOidcReturn на старте.
  *
  * @param {object} params
  * @param {string} params.uriOidcAuth адрес ресурса authentik
  * @param {string} [params.idpId] id провайдера на стороне Synapse
  * @param {(redirectUrl: string, idpId: string) => string} params.buildSsoLoginUrl
  *   абсолютный адрес SSO-редиректа на homeserver (его строит matrixClient)
- * @param {AbortSignal} [params.signal] прерывает ожидание (закрытие формы, новая попытка)
- * @returns {Promise<{loginToken: string, issuer: string, idpId: string}>}
+ * @returns {{issuer: string, idpId: string}} что сохранено перед переходом
  */
-async function startOidcLogin({ uriOidcAuth, idpId, buildSsoLoginUrl, signal }) {
+function beginOidcRedirect({ uriOidcAuth, idpId, buildSsoLoginUrl }) {
   const issuer = resolveOidcIssuerUrl(uriOidcAuth);
   const resolvedIdpId = (typeof idpId === "string" ? idpId.trim() : "") || getStoredOidcIdpId();
 
@@ -160,22 +125,74 @@ async function startOidcLogin({ uriOidcAuth, idpId, buildSsoLoginUrl, signal }) 
   const redirectUrl = buildSsoRedirectUrl(window.location.href);
   const ssoUrl = buildSsoLoginUrl(redirectUrl, resolvedIdpId);
 
-  // Popup открываем синхронно, до первого await: иначе браузер теряет признак
-  // пользовательского действия и блокирует окно
-  const popup = window.open(ssoUrl, "matrix-sso-popup", SSO_POPUP_FEATURES);
-  if (!popup) {
-    throw new Error("Браузер заблокировал окно входа authentik. Разрешите всплывающие окна и повторите.");
-  }
-
-  popup.focus?.();
-
-  const loginToken = await waitForLoginToken(popup, window.location.origin, signal);
-
-  // Адрес ресурса и id провайдера запоминаем только после удачного входа
+  // Адрес ресурса и id провайдера сохраняем до перехода: на возврате память страницы новая
   storeOidcIssuer(issuer);
   storeOidcIdpId(resolvedIdpId);
+  markOidcPending(true);
 
-  return { loginToken, issuer, idpId: resolvedIdpId };
+  window.location.assign(ssoUrl);
+
+  return { issuer, idpId: resolvedIdpId };
 }
 
-export { buildSsoRedirectUrl, getStoredOidcIdpId, getStoredOidcIssuer, resolveOidcIssuerUrl, startOidcLogin, storeOidcIdpId, storeOidcIssuer };
+/**
+ * Разбирает параметры возврата из authentik на старте приложения. Токен остаётся в модуле
+ * (не в сторе), а параметры сразу убираются из адресной строки.
+ *
+ * @param {string} [search] query-строка возврата
+ * @returns {{kind: "token"|"error"|"pending"|"none", errorText?: string}}
+ */
+function takeOidcReturn(search = window.location.search) {
+  const params = new URLSearchParams(search);
+  const loginToken = params.get("loginToken") || "";
+  const error = params.get("error") || "";
+  const errorDescription = params.get("error_description") || "";
+
+  if (!loginToken && !error) {
+    // Вернулись, но Synapse не довёл вход: страница ошибки Synapse или «назад».
+    // Признак попытки снимаем — сообщение о незавершённом входе показываем один раз
+    if (!isOidcPending()) return { kind: "none" };
+
+    markOidcPending(false);
+    return { kind: "pending" };
+  }
+
+  clearOidcReturnParams();
+  markOidcPending(false);
+
+  if (error) {
+    return { kind: "error", errorText: `authentik вернул ошибку: ${errorDescription || error}` };
+  }
+
+  pendingLoginToken = loginToken;
+
+  return { kind: "token" };
+}
+
+// Токен одноразовый: мост забирает его ровно один раз
+function consumeLoginToken() {
+  const loginToken = pendingLoginToken;
+  pendingLoginToken = "";
+
+  return loginToken;
+}
+
+// Сброс готовности (закрытие формы или разбор ошибки): израсходованный или просроченный
+// токен больше не предлагаем запускать
+function clearOidcCredentials() {
+  pendingLoginToken = "";
+  markOidcPending(false);
+}
+
+export {
+  beginOidcRedirect,
+  buildSsoRedirectUrl,
+  clearOidcCredentials,
+  consumeLoginToken,
+  getStoredOidcIdpId,
+  getStoredOidcIssuer,
+  resolveOidcIssuerUrl,
+  storeOidcIdpId,
+  storeOidcIssuer,
+  takeOidcReturn,
+};
