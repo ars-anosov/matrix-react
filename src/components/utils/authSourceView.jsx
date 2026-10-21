@@ -12,7 +12,7 @@ function getRestSourceView(source) {
     case "loading":
       return { label: "Авторизация…", color: "warning", icon: <Sync /> };
     case "success":
-      if (!source.ready) return { label: "Нет матричной пары", color: "warning", icon: <PersonOff /> };
+      if (!source.ready) return { label: "Нет пары matrix login/pass", color: "warning", icon: <PersonOff /> };
       return source.session
         ? { label: "Сессия Matrix активна", color: "success", icon: <HowToReg /> }
         : { label: "Данные получены", color: "success", icon: <HowToReg /> };
@@ -23,18 +23,18 @@ function getRestSourceView(source) {
   }
 }
 
-// authentik: ready — токен получен и ждёт запуска, success — сессия по токену поднята
-// (токен израсходован), success без сессии — токен потратили, вход нужно повторять
+// MAS: ready — токены получены и ждут запуска, success — сессия по ним поднята
+// (токены израсходованы), success без сессии — токены потратили, вход нужно повторять
 function getOidcSourceView(source) {
   switch (source.state) {
     case "loading":
-      return { label: "Переход в authentik…", color: "warning", icon: <Sync /> };
+      return { label: "Переход в MAS…", color: "warning", icon: <Sync /> };
     case "ready":
-      return { label: "Токен получен", color: "success", icon: <VpnKey /> };
+      return { label: "Токены получены", color: "success", icon: <VpnKey /> };
     case "success":
       return source.session
         ? { label: "Сессия Matrix активна", color: "success", icon: <HowToReg /> }
-        : { label: "Токен использован", color: "warning", icon: <VpnKey /> };
+        : { label: "Токены использованы", color: "warning", icon: <VpnKey /> };
     case "error":
       return { label: "Ошибка входа", color: "error", icon: <PersonOff /> };
     default:

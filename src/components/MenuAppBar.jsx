@@ -233,7 +233,7 @@ function MenuAppBar(props) {
           <AuthRestInfo authControlRdcr={authControlRdcr} authControlActions={authControlActions} showFull={false} />
           {/* Второй источник матричных учётных данных: у него свой блок и своя форма входа */}
           <Divider />
-          <Typography variant="body2">{authControlRdcr.uriOidcAuth}</Typography>
+          <Typography variant="body2">{authControlRdcr.oidcIssuer}</Typography>
           <Divider />
           <AuthOidcInfo authControlRdcr={authControlRdcr} mtrxControlRdcr={mtrxControlRdcr} authControlActions={authControlActions} showFull={false} />
         </Box>

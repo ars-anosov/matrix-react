@@ -34,8 +34,11 @@ Node.js 24, Vite 8, React 19, Material UI 9 + Emotion, Redux 5, `matrix-js-sdk`,
 - Action types — в `constants/redux.js`. Thunk-и `AUTHCTL_` и `MTRXCTL_` не диспатчат чужой
   namespace: мост между ними только в `AuthContainer`. Он владеет формами авторизации и
   `AuthLinks`, а `MtrxContainer` — регистрацией Matrix и чатом. OIDC — вход, общий для
-  приложения: форма, `uriOidcAuth`/`oidcIdpId` и получение `loginToken` живут в `AUTHCTL_`
-  (`oidcAuth`), а сессию Matrix по токену поднимает `MTRXCTL_` (`handleLoginWithToken`).
+  приложения: форма, discovery MAS (`auth_metadata`), динамическая регистрация клиента, PKCE
+  и обмен кода на токены живут в `AUTHCTL_` (`masAuth`), а сессию Matrix по токенам поднимает
+  `MTRXCTL_` (`handleLoginWithOAuth`). Access token MAS — обычный Matrix-токен, `/login` с
+  `m.login.token` больше не используется; refresh идёт на `token_endpoint` MAS, выход —
+  через `revocation_endpoint`.
   Без активной сессии стартовый экран показывает только `AuthLinks`; REST-сессия открывает
   `AuthPad`, Matrix-сессия — чат.
 

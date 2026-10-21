@@ -16,13 +16,13 @@ export const AUTHCTL_SUBMIT_SUCCESS = "AUTHCTL_SUBMIT_SUCCESS";
 export const AUTHCTL_SUBMIT_ERROR = "AUTHCTL_SUBMIT_ERROR";
 export const AUTHCTL_CLEAR = "AUTHCTL_CLEAR";
 export const AUTHCTL_STORE_VALUE = "AUTHCTL_STORE_VALUE";
-// OIDC (OAuth 2.0) через authentik — вход, общий для приложения: AUTHCTL_ получает
-// loginToken, сессию Matrix по нему поднимает MTRXCTL_ (мост — в AuthContainer).
-// READY — токен получен и ждёт запуска, SUCCESS — сессия по нему поднята (токен израсходован)
+// OIDC (OAuth 2.0) через MAS — вход, общий для приложения: AUTHCTL_ получает токены,
+// сессию Matrix по ним поднимает MTRXCTL_ (мост — в AuthContainer).
+// READY — токены получены и ждут запуска, SUCCESS — сессия по ним поднята (токены израсходованы)
 export const AUTHCTL_OIDC_REQUEST = "AUTHCTL_OIDC_REQUEST";
 export const AUTHCTL_OIDC_READY = "AUTHCTL_OIDC_READY";
 export const AUTHCTL_OIDC_SUCCESS = "AUTHCTL_OIDC_SUCCESS";
 export const AUTHCTL_OIDC_ERROR = "AUTHCTL_OIDC_ERROR";
 export const AUTHCTL_OIDC_CLEAR = "AUTHCTL_OIDC_CLEAR";
-// Явный выбор источника матричных учётных данных (REST-пара или loginToken authentik)
+// Явный выбор источника матричных учётных данных (REST-пара или OAuth-токены MAS)
 export const AUTHCTL_SELECT_AUTH_SOURCE = "AUTHCTL_SELECT_AUTH_SOURCE";

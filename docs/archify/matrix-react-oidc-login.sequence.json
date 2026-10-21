@@ -2,9 +2,12 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "Вход через OIDC (authentik)",
+    "title": "Вход через MAS (OIDC)",
     "quality_profile": "showcase",
-    "viewBox": [2500, 1360],
+    "viewBox": [
+      2500,
+      1360
+    ],
     "column_fit": "spread"
   },
   "participants": [
@@ -12,7 +15,7 @@
       "id": "Form",
       "type": "frontend",
       "label": "AuthOidc",
-      "sublabel": "форма входа OIDC"
+      "sublabel": "форма входа MAS"
     },
     {
       "id": "UI",
@@ -36,7 +39,7 @@
       "id": "LS",
       "type": "database",
       "label": "localStorage",
-      "sublabel": "uriOidcAuth · oidcIdpId"
+      "sublabel": "ключи MAS · pending в sessionStorage"
     },
     {
       "id": "AuthAct",
@@ -45,50 +48,50 @@
       "sublabel": "handleOidcRedirect · handleOidcReturn"
     },
     {
+      "id": "MasAuth",
+      "type": "backend",
+      "label": "masAuth",
+      "sublabel": "discovery · регистрация · PKCE · token"
+    },
+    {
       "id": "MtrxAct",
       "type": "backend",
       "label": "mtrxControlActions",
-      "sublabel": "handleLoginWithToken"
-    },
-    {
-      "id": "Oidc",
-      "type": "backend",
-      "label": "oidcAuth",
-      "sublabel": "beginOidcRedirect · takeOidcReturn"
+      "sublabel": "handleLoginWithOAuth"
     },
     {
       "id": "Cl",
       "type": "backend",
       "label": "matrixClient",
-      "sublabel": "loginMatrixWithToken"
+      "sublabel": "loginMatrixWithOAuth · refresh · revoke"
     },
     {
-      "id": "Syn",
+      "id": "HS",
       "type": "external",
-      "label": "Synapse",
-      "sublabel": "/login/sso · /login"
+      "label": "homeserver",
+      "sublabel": "auth_metadata · whoami · sync"
     },
     {
-      "id": "AK",
+      "id": "MAS",
       "type": "external",
-      "label": "authentik",
-      "sublabel": "authorize · consent"
+      "label": "MAS",
+      "sublabel": "registration · authorize · token"
     }
   ],
   "segments": [
     {
       "from": 160,
-      "to": 620,
-      "label": "Уход в authentik"
+      "to": 560,
+      "label": "Уход в MAS"
     },
     {
-      "from": 640,
-      "to": 920,
-      "label": "Возврат токена"
+      "from": 580,
+      "to": 900,
+      "label": "Возврат и токены"
     },
     {
-      "from": 940,
-      "to": 1300,
+      "from": 920,
+      "to": 1240,
       "label": "Сессия Matrix"
     }
   ],
@@ -98,172 +101,218 @@
       "from": "UI",
       "to": "Form",
       "y": 180,
-      "label": "открыть форму OIDC"
+      "label": "открыть форму MAS"
     },
     {
       "id": "m02-form-authact",
       "from": "Form",
       "to": "AuthAct",
-      "y": 240,
-      "label": "handleOidcRedirect · uriOidcAuth",
+      "y": 220,
+      "label": "handleOidcRedirect · uriMatrix",
       "variant": "emphasis"
     },
     {
       "id": "m03-authact-store",
       "from": "AuthAct",
       "to": "Store",
-      "y": 300,
+      "y": 260,
       "label": "AUTHCTL_OIDC_REQUEST"
     },
     {
-      "id": "m04-authact-oidc",
+      "id": "m04-authact-mas",
       "from": "AuthAct",
-      "to": "Oidc",
-      "y": 360,
-      "label": "beginOidcRedirect · полностранично, без popup",
+      "to": "MasAuth",
+      "y": 300,
+      "label": "beginMasRedirect",
       "variant": "emphasis"
     },
     {
-      "id": "m05-oidc-ls",
-      "from": "Oidc",
-      "to": "LS",
+      "id": "m05-mas-hs",
+      "from": "MasAuth",
+      "to": "HS",
+      "y": 340,
+      "label": "GET auth_metadata (MSC2965)"
+    },
+    {
+      "id": "m06-hs-mas",
+      "from": "HS",
+      "to": "MasAuth",
+      "y": 380,
+      "label": "issuer · endpoints · registration_endpoint",
+      "variant": "return"
+    },
+    {
+      "id": "m07-mas-mas",
+      "from": "MasAuth",
+      "to": "MAS",
       "y": 420,
-      "label": "uriOidcAuth · oidcIdpId — до перехода"
+      "label": "POST /oauth2/registration (MSC2966)"
     },
     {
-      "id": "m06-oidc-syn",
-      "from": "Oidc",
-      "to": "Syn",
-      "y": 480,
-      "label": "location.assign /login/sso/redirect/oidc-authentik"
+      "id": "m08-mas-mas",
+      "from": "MAS",
+      "to": "MasAuth",
+      "y": 460,
+      "label": "client_id",
+      "variant": "return"
     },
     {
-      "id": "m07-syn-ak",
-      "from": "Syn",
-      "to": "AK",
+      "id": "m09-mas-ls",
+      "from": "MasAuth",
+      "to": "LS",
+      "y": 500,
+      "label": "state · PKCE-verifier · metadata"
+    },
+    {
+      "id": "m10-mas-mas",
+      "from": "MasAuth",
+      "to": "MAS",
       "y": 540,
-      "label": "302 authorize · PKCE делает Synapse"
+      "label": "location.assign /authorize · PKCE",
+      "variant": "emphasis"
     },
     {
-      "id": "m08-ak-syn",
-      "from": "AK",
-      "to": "Syn",
-      "y": 600,
-      "label": "код на /_synapse/client/oidc/callback",
-      "variant": "return"
-    },
-    {
-      "id": "m09-syn-boot",
-      "from": "Syn",
+      "id": "m11-mas-boot",
+      "from": "MAS",
       "to": "Boot",
-      "y": 660,
-      "label": "302 <адрес SPA>?loginToken=…",
+      "y": 600,
+      "label": "302 <адрес SPA>?code=…&state=…",
       "variant": "return"
     },
     {
-      "id": "m10-boot-authact",
+      "id": "m12-boot-authact",
       "from": "Boot",
       "to": "AuthAct",
-      "y": 720,
+      "y": 640,
       "label": "handleOidcReturn",
       "variant": "emphasis"
     },
     {
-      "id": "m11-authact-oidc",
+      "id": "m13-authact-mas",
       "from": "AuthAct",
-      "to": "Oidc",
-      "y": 780,
-      "label": "takeOidcReturn · replaceState"
+      "to": "MasAuth",
+      "y": 680,
+      "label": "takeMasReturn · replaceState"
     },
     {
-      "id": "m12-oidc-store",
-      "from": "Oidc",
+      "id": "m14-authact-mas",
+      "from": "AuthAct",
+      "to": "MasAuth",
+      "y": 720,
+      "label": "completeMasAuth · code + verifier",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m15-mas-mas",
+      "from": "MasAuth",
+      "to": "MAS",
+      "y": 760,
+      "label": "POST /oauth2/token"
+    },
+    {
+      "id": "m16-mas-mas",
+      "from": "MAS",
+      "to": "MasAuth",
+      "y": 800,
+      "label": "access_token · refresh_token",
+      "variant": "return"
+    },
+    {
+      "id": "m17-mas-store",
+      "from": "MasAuth",
       "to": "Store",
       "y": 840,
-      "label": "AUTHCTL_OIDC_READY · токен в модуле сервиса",
+      "label": "AUTHCTL_OIDC_READY · токены в модуле сервиса",
       "variant": "emphasis"
     },
     {
-      "id": "m13-store-ui",
+      "id": "m18-store-ui",
       "from": "Store",
       "to": "UI",
-      "y": 900,
-      "label": "useSelector: тумблер активен, источник authentik",
+      "y": 880,
+      "label": "useSelector: тумблер активен, источник MAS",
       "variant": "return"
     },
     {
-      "id": "m14-ui-mtrxact",
+      "id": "m19-ui-mtrxact",
       "from": "UI",
       "to": "MtrxAct",
-      "y": 960,
-      "label": "handleLoginWithToken · клик тумблера",
+      "y": 940,
+      "label": "handleLoginWithOAuth · клик тумблера",
       "variant": "emphasis"
     },
     {
-      "id": "m15-mtrxact-cl",
+      "id": "m20-mtrxact-cl",
       "from": "MtrxAct",
       "to": "Cl",
-      "y": 1020,
-      "label": "loginMatrixWithToken",
+      "y": 980,
+      "label": "loginMatrixWithOAuth",
       "variant": "emphasis"
     },
     {
-      "id": "m16-cl-syn",
+      "id": "m21-cl-hs",
       "from": "Cl",
-      "to": "Syn",
-      "y": 1080,
-      "label": "POST /_matrix/client/v3/login · m.login.token"
+      "to": "HS",
+      "y": 1020,
+      "label": "GET /account/whoami"
     },
     {
-      "id": "m17-syn-cl",
-      "from": "Syn",
+      "id": "m22-hs-cl",
+      "from": "HS",
       "to": "Cl",
-      "y": 1140,
-      "label": "access_token · device_id",
+      "y": 1060,
+      "label": "user_id · device_id",
       "variant": "return"
     },
     {
-      "id": "m18-mtrxact-store",
+      "id": "m23-cl-hs",
+      "from": "Cl",
+      "to": "HS",
+      "y": 1100,
+      "label": "createClient + startClient → /sync"
+    },
+    {
+      "id": "m24-mtrxact-store",
       "from": "MtrxAct",
       "to": "Store",
-      "y": 1200,
+      "y": 1140,
       "label": "MTRXCTL_SUBMIT_SUCCESS"
     },
     {
-      "id": "m19-ui-store",
+      "id": "m25-ui-store",
       "from": "UI",
       "to": "Store",
-      "y": 1260,
-      "label": "AUTHCTL_OIDC_SUCCESS · токен израсходован",
+      "y": 1180,
+      "label": "AUTHCTL_OIDC_SUCCESS · токены израсходованы",
       "variant": "return"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "Уход в authentik",
+      "title": "Уход в MAS",
       "items": [
-        "Форма AuthOidc отдаёт адрес ресурса IdP и id провайдера oidc-authentik",
-        "SPA уводит браузер на /login/sso/redirect/oidc-authentik?redirectUrl=<адрес SPA>",
-        "Код и PKCE обменивает Synapse: client secret в SPA не попадает"
+        "AuthOidc больше не вводит адрес IdP: issuer и endpoints приходят из auth_metadata homeserver",
+        "masAuth регистрирует public-клиент динамически (MSC2966; client_id кэшируется) и строит authorize с PKCE и state",
+        "state, PKCE-verifier и метаданные перехода лежат в sessionStorage; issuer и client_id — в localStorage"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Возврат и готовый токен",
+      "title": "Возврат и токены",
       "items": [
-        "authentik отдаёт код на /_synapse/client/oidc/callback, Synapse возвращает браузер с loginToken",
-        "store/bootstrap.js разбирает параметры до отрисовки: токен остаётся в модуле oidcAuth, адресная строка чистится",
-        "AUTHCTL_OIDC_READY открывает AuthPad: источник authentik, сессию поднимает клик тумблера"
+        "MAS возвращает браузер с ?code&state; bootstrap.js чистит адресную строку до отрисовки",
+        "completeMasAuth меняет код на токены в token_endpoint; токены остаются в модуле masAuth, не в Redux",
+        "AUTHCTL_OIDC_READY открывает AuthPad: источник MAS, сессию поднимает клик тумблера"
       ]
     },
     {
       "dot": "violet",
       "title": "Сессия Matrix",
       "items": [
-        "loginMatrixWithToken меняет loginToken на сессию: POST /login с m.login.token",
-        "Сессию поднимает MTRXCTL_ — до токена AUTH-срез Matrix-логику не ведёт",
-        "MTRXCTL_SUBMIT_SUCCESS включает чат, AUTHCTL_OIDC_SUCCESS помечает токен израсходованным"
+        "loginMatrixWithOAuth проверяет access token через whoami и получает user_id и device_id",
+        "Access token MAS — обычный Matrix-токен: m.login.token больше не используется",
+        "Refresh идёт на token_endpoint MAS, выход отзывает токены на revocation_endpoint"
       ]
     }
   ]

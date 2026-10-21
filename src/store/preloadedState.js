@@ -1,6 +1,6 @@
 import { initialState as authControlInitialState } from "../reducers/authControlRdcr";
 import { initialState as mtrxControlInitialState } from "../reducers/mtrxControlRdcr";
-import { getStoredOidcIdpId, getStoredOidcIssuer } from "../services/oidcAuth";
+import { getStoredMasIssuer } from "../services/masAuth";
 import { getStoredRestAuthUri } from "../services/restAuth";
 
 // Сид стора: чтение localStorage живёт в слое стора, а не внутри reducers.
@@ -11,10 +11,9 @@ export default function getPreloadedState() {
     authControlRdcr: {
       ...authControlInitialState,
       uriRestAuth: getStoredRestAuthUri(),
-      // OIDC-вход живёт в AUTH-срезе: адрес ресурса IdP задаёт index.html, id провайдера —
-      // сохранённое значение (или DEFAULT_OIDC_IDP_ID в сервисе)
-      uriOidcAuth: getStoredOidcIssuer(),
-      oidcIdpId: getStoredOidcIdpId(),
+      // OIDC-вход живёт в AUTH-срезе: issuer MAS узнаётся из auth_metadata homeserver,
+      // а сохранённое значение нужно только для подписи источника до первого входа
+      oidcIssuer: getStoredMasIssuer(),
     },
     mtrxControlRdcr: {
       ...mtrxControlInitialState,

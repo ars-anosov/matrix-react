@@ -11,7 +11,7 @@ const pulse = keyframes`
   100% { box-shadow: 0 0 0 0 var(--status-pulse); transform: scale(1); }
 `;
 
-// Индикатор авторизации: статусов теперь два (REST и authentik), а кругляш один — цвет и
+// Индикатор авторизации: статусов теперь два (REST и MAS), а кругляш один — цвет и
 // иконку задаёт активный источник, подписи обоих собраны в tooltip. Подпись дублирует
 // статус в aria-label.
 function AuthIco({ sources, activeSourceKind }) {

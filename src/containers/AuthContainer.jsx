@@ -8,7 +8,7 @@ import AuthOidc from "../components/AuthOidc.jsx";
 import AuthPad from "../components/AuthPad.jsx";
 import AuthRest from "../components/AuthRest.jsx";
 import { AUTH_SOURCE_OIDC } from "../constants/authSource.js";
-import { consumeLoginToken } from "../services/oidcAuth.js";
+import { consumeMasTokens } from "../services/masAuth.js";
 import { buildMtrxAuthInfo, buildMtrxAuthSources, pickActiveAuthSource } from "./utils/authSources.js";
 
 // Ключ пары матричных реквизитов: защищает от повторных dispatch на каждый ререндер
@@ -26,7 +26,7 @@ const AuthContainer = () => {
   const authControlActions = useMemo(() => bindActionCreators(authActions, dispatch), [dispatch]);
   const mtrxControlActions = useMemo(() => bindActionCreators(mtrxActions, dispatch), [dispatch]);
 
-  const { responseData, displayRest, displayAuthPad, displayOidc, oidcIdpId, oidcStatus, status: authStatus, activeAuthSource } = authControlRdcr;
+  const { responseData, displayRest, displayAuthPad, displayOidc, oidcStatus, status: authStatus, activeAuthSource } = authControlRdcr;
   const { uriMatrix, status: mtrxStatus, authLost: mtrxAuthLost } = mtrxControlRdcr;
 
   // Реквизиты Matrix из ответа REST (см. README → AuthRest.jsx)
@@ -73,12 +73,18 @@ const AuthContainer = () => {
     authControlActions.handleChangeStore("displayAuthPad", true);
   }, [mtrxAuthLost, authControlActions]);
 
-  // Мост к сервисам (AUTHCTL_ → MTRXCTL_): сессию по loginToken поднимает MTRXCTL_, а
+  // Мост к сервисам (AUTHCTL_ → MTRXCTL_): сессию по токенам MAS поднимает MTRXCTL_, а
   // AUTHCTL_ узнаёт об успехе — там живёт форма и статус источника. Ошибку подъёма
-  // возвращаем туда же: токен израсходован, вход нужно повторить.
-  const startOidcSession = async (loginToken) => {
+  // возвращаем туда же: токены израсходованы, вход нужно повторить.
+  const startOidcSession = async () => {
+    const pending = consumeMasTokens();
+    if (!pending) {
+      authControlActions.handleOidcError("Данные входа MAS утеряны: войдите заново.");
+      return;
+    }
+
     try {
-      const session = await mtrxControlActions.handleLoginWithToken({ loginToken, uriMatrix });
+      const session = await mtrxControlActions.handleLoginWithOAuth({ ...pending, uriMatrix });
       if (!session) return;
 
       authControlActions.handleOidcSuccess();
@@ -90,7 +96,7 @@ const AuthContainer = () => {
   // Мост к сервисам: тумблер AuthPad — индикатор состояния сессии Matrix и действие.
   // Красный (authLost / status === "error") и зелёный (авторизован) — клик сбрасывает
   // текущую сессию. Откл (сессии нет) — клик поднимает сессию выбранным источником:
-  // матричной парой REST либо готовым loginToken authentik.
+  // матричной парой REST либо токенами MAS.
   const handleToggleMtrx = () => {
     if (mtrxAuthLost || mtrxStatus === "success" || mtrxStatus === "error") {
       mtrxControlActions.handleRegClear();
@@ -102,13 +108,7 @@ const AuthContainer = () => {
     if (!activeSource?.ready) return;
 
     if (activeSource.kind === AUTH_SOURCE_OIDC) {
-      const loginToken = consumeLoginToken();
-      if (!loginToken) {
-        authControlActions.handleOidcError("Токен входа authentik утерян: войдите заново.");
-        return;
-      }
-
-      startOidcSession(loginToken);
+      startOidcSession();
       return;
     }
 
@@ -134,16 +134,16 @@ const AuthContainer = () => {
     mtrxControlActions.handleChangeStore("displayReg", true);
   };
 
-  // Вход через OIDC (authentik): форма AUTH-среза собирает адрес ресурса IdP и уводит
-  // браузер на SSO-редирект Synapse; открытие формы пишет только в свой срез
+  // Вход через MAS: форма AUTH-среза уводит браузер на authorization_endpoint MAS;
+  // discovery и регистрация клиента живут в сервисе, форма пишет только в свой срез
   const handleOpenOidc = () => {
     authControlActions.handleChangeStore("displayOidc", true);
   };
 
   // Мост к сервисам (AUTHCTL_ → MTRXCTL_): OIDC-вход AUTH-срез доводит только до
-  // готовности токена, сессию по нему поднимает MTRXCTL_ — он же включает чат.
-  const handleOidcRedirect = ({ uriOidcAuth }) => {
-    authControlActions.handleOidcRedirect({ uriOidcAuth, idpId: oidcIdpId, uriMatrix });
+  // готовности токенов, сессию по ним поднимает MTRXCTL_ — он же включает чат.
+  const handleOidcRedirect = () => {
+    authControlActions.handleOidcRedirect({ uriMatrix });
   };
 
   // Выбор источника для запуска сессии (радио в AuthPad) — состояние своего среза
@@ -174,7 +174,7 @@ const AuthContainer = () => {
   }, [authStatus, mtrxStatus, mtrxUserId, responseData, authControlActions]);
 
   // Стартовый экран — ссылки на формы, пока нет ни сессии Matrix, ни готового источника:
-  // успех REST открывает мост AuthPad, готовый токен authentik — тоже
+  // успех REST открывает мост AuthPad, готовые токены MAS — тоже
   const showAuthLinks = authStatus !== "success" && mtrxStatus !== "success" && oidcStatus !== "ready";
 
   // Оба блока AUTH-домена: формы входа (displayRest, displayOidc) и мост к сервисам

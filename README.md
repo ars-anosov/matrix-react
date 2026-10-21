@@ -133,32 +133,42 @@ POST-запрос к серверу авторизации, ожидаемый �
 ```
 
 ## AuthOidc.jsx
-Вход через OAuth 2.0 / OIDC в `uriOidcAuth`. Приложение authentik уже
-настроено на Synapse: его Authorization flow (`default-provider-authorization-explicit-consent`)
-возвращает код на `/_synapse/client/oidc/callback`.
+Вход через Matrix Authentication Service (MAS) по OAuth 2.0 / MSC2965. Приложение не ходит
+в authentik напрямую: MAS — сервер авторизации, а authentik подключён к нему как upstream
+SSO-провайдер. Адрес и endpoints MAS приходят из `GET /auth_metadata` homeserver (MSC2965;
+SDK выбирает стабильный `/v1` или unstable-префикс по `/versions`), а
+`m.authentication.issuer` в `.well-known/matrix/client` указывает на `https://mas.ars-dev.ru/`.
+Клиент регистрируется динамически (MSC2966) и использует Authorization Code + PKCE — без
+client secret.
 
-Используется legacy-схема Synapse `m.login.sso`, вход полностраничный (без popup):
+Вход полностраничный (без popup):
 
-1. SPA уводит браузер на `/_matrix/client/v3/login/sso/redirect/oidc-authentik?redirectUrl=…`;
-   Synapse редиректит его в authentik (Authorization Code + PKCE делает Synapse, не SPA).
-2. Пользователь подтверждает доступ; authentik отдаёт код на `/_synapse/client/oidc/callback`.
-3. Synapse возвращает браузер в приложение с `?loginToken=…`.
-4. На старте `store/bootstrap.js` разбирает параметры (`services/oidcAuth.js`): токен остаётся
-   в модуле сервиса, адресная строка очищается через `history.replaceState`, панель AuthPad
-   открывается с готовым источником authentik.
-5. Сессию поднимает клик тумблера в AuthPad (мост `AuthContainer` → `MTRXCTL_`):
-   `POST /_matrix/client/v3/login` c `m.login.token`.
+1. `services/masAuth.js` читает auth_metadata, регистрирует public-клиент и уводит браузер на
+   `authorization_endpoint` MAS с PKCE, `state` и scope устройства.
+2. Пользователь входит в MAS паролем MAS или через «Continue with authentik»; MAS возвращает
+   браузер в приложение с `?code=…&state=…`.
+3. На старте `store/bootstrap.js` разбирает возврат (`takeMasReturn`), сразу чистит адресную
+   строку и меняет код на токены в `token_endpoint` (`completeMasAuth`).
+4. Панель AuthPad открывается с готовым источником MAS; сессию поднимает клик тумблера
+   (мост `AuthContainer` → `MTRXCTL_` → `loginMatrixWithOAuth`): `whoami` подтверждает access
+   token, после чего клиент запускает sync.
+5. Refresh идёт на `token_endpoint` MAS (`refresh_token` grant), а выход отзывает токены на
+   `revocation_endpoint`: compat-эндпоинт `/logout` для OAuth-сессии не подходит.
 
-Токен одноразовый и живёт на стороне Synapse 2 минуты, поэтому сессию нужно поднять сразу
-после возврата. `redirectUrl` должен попадать в `sso.client_whitelist` по префиксу, иначе
-Synapse сначала покажет свою страницу подтверждения.
+Access token MAS — обычный Matrix-токен: Synapse проверяет его через introspection. Поэтому
+`m.login.token` и `loginToken` больше не используются, а legacy-схема Synapse `m.login.sso` с
+`redirectUrl` не подходит: на сервере с MAS возврат ограничен известными клиентами.
 
-Поток целиком: [Вход через OIDC (authentik)](docs/archify/matrix-react-oidc-login.html), узел
-`oidcAuth` — на [диаграмме архитектуры](docs/archify/matrix-react-architecture.html).
+В DEV приложение открыто на `http://localhost:3000`, а MAS не принимает http в `client_uri`.
+`masAuth` поэтому регистрирует native-клиент с публичным `client_uri`, оставляя redirect_uri
+петлевым; на проде регистрируется web-клиент с текущим https-адресом.
+
+Поток целиком: [Вход через MAS](docs/archify/matrix-react-oidc-login.html), узел `masAuth` —
+на [диаграмме архитектуры](docs/archify/matrix-react-architecture.html).
 
 ## AuthPad.jsx
 Тумблер моста активирует сервис Matrix — сессию поднимает клик, источник матричных учётных
-данных выбирается явно: матричная пара из ответа REST либо полученный `loginToken` authentik.
+данных выбирается явно: матричная пара из ответа REST либо OAuth-токены MAS.
 
 
 ![component_AuthPad.png](img/component_AuthPad.png)
@@ -171,7 +181,7 @@ Synapse сначала покажет свою страницу подтверж
 
 [![Старт и авторизация](docs/archify/matrix-react-session-restore.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-session-restore.html)
 
-[![Вход через OIDC (authentik)](docs/archify/matrix-react-oidc-login.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-oidc-login.html)
+[![Вход через MAS](docs/archify/matrix-react-oidc-login.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-oidc-login.html)
 
 [![Чат](docs/archify/matrix-react-chat-flow.visual-check.2048x1320.light.png)](https://ars-anosov.github.io/matrix-react/archify/matrix-react-chat-flow.html)
 

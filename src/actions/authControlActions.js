@@ -11,8 +11,7 @@ import {
   AUTHCTL_SUBMIT_REQUEST,
   AUTHCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
-import { buildSsoLoginUrl } from "../services/matrixClient";
-import { beginOidcRedirect, clearOidcCredentials, DEFAULT_OIDC_IDP_ID, takeOidcReturn } from "../services/oidcAuth";
+import { beginMasRedirect, clearMasCredentials, completeMasAuth, takeMasReturn } from "../services/masAuth";
 import * as restAuth from "../services/restAuth";
 import { getApiErrorMessage } from "./utils/kyError";
 
@@ -79,7 +78,7 @@ const handleChangeStore = (storeDataKey, storeDataValue) => (dispatch) => {
 };
 
 // Явный выбор источника запуска в панели AuthPad: 'rest' — матричная пара из REST-ответа,
-// 'oidc' — готовый loginToken authentik
+// 'oidc' — токены, полученные от MAS в браузере
 const handleSelectAuthSource = (source) => (dispatch) => {
   dispatch({
     type: AUTHCTL_SELECT_AUTH_SOURCE,
@@ -87,46 +86,49 @@ const handleSelectAuthSource = (source) => (dispatch) => {
   });
 };
 
-// Текст ошибки входа через authentik: у ошибок сервиса (адрес ресурса, возврат без токена)
-// причина в message, отдельного кода UI не разбирает
+// Текст ошибки входа через MAS: у OAuth-ошибок причина в error_description, у сервиса
+// (discovery, регистрация, возврат без кода) — в message. Отдельного кода UI не разбирает.
 function getOidcErrorMessage(error) {
+  const description = typeof error?.error_description === "string" ? error.error_description.trim() : "";
   const message = typeof error?.message === "string" ? error.message.trim() : "";
-  return message || "Не удалось войти через authentik.";
+  return description || message || "Не удалось войти через MAS.";
 }
 
 // OIDC — вход, общий для приложения, поэтому его ведёт AUTHCTL_: здесь браузер уходит на
-// SSO-редирект Synapse (полностранично, без popup). Сессию Matrix по полученному токену
-// поднимает MTRXCTL_ (handleLoginWithToken), а связывает шаги мост — AuthContainer.
-// Абсолютный адрес SSO-редиректа строит matrixClient: Matrix-URL — зона services/.
+// authorization_endpoint MAS (полностранично, без popup). Discovery и PKCE — в
+// services/masAuth.js, сессию Matrix по полученным токенам поднимает MTRXCTL_
+// (handleLoginWithOAuth), а связывает шаги мост — AuthContainer.
 const handleOidcRedirect =
   (formData = {}) =>
-  (dispatch) => {
-    const uriOidcAuth = typeof formData.uriOidcAuth === "string" ? formData.uriOidcAuth.trim() : "";
+  async (dispatch) => {
     const uriMatrix = typeof formData.uriMatrix === "string" ? formData.uriMatrix.trim() : "";
-    const idpId = typeof formData.idpId === "string" && formData.idpId.trim() ? formData.idpId.trim() : DEFAULT_OIDC_IDP_ID;
 
     dispatch({ type: AUTHCTL_OIDC_REQUEST });
 
     try {
-      // Успешный вызов уводит браузер в authentik: дальше приложение стартует заново
-      beginOidcRedirect({
-        uriOidcAuth,
-        idpId,
-        buildSsoLoginUrl: (redirectUrl, ssoIdpId) => buildSsoLoginUrl({ uriMatrix, redirectUrl, idpId: ssoIdpId }),
-      });
+      // Успешный вызов уводит браузер в MAS: дальше приложение стартует заново.
+      // Issuer сохраняется в localStorage и подставится сидом стора на возврате.
+      await beginMasRedirect({ uriMatrix });
     } catch (error) {
       dispatchOidcError(dispatch, getOidcErrorMessage(error));
     }
   };
 
-// Возврат из authentik разбирается до первой отрисовки (main.jsx → store/bootstrap.js):
-// токен остаётся в services/oidcAuth.js, сюда приходит только результат разбора
-const handleOidcReturn = () => (dispatch) => {
-  const result = takeOidcReturn();
+// Возврат из MAS разбирается до первой отрисовки (main.jsx → store/bootstrap.js):
+// обмен кода на токены идёт здесь, токены остаются в services/masAuth.js.
+const handleOidcReturn = () => async (dispatch) => {
+  const result = takeMasReturn();
 
-  if (result.kind === "token") {
-    // Токен готов, но сессию поднимает клик тумблера в панели — это мост в AuthContainer
-    dispatch({ type: AUTHCTL_OIDC_READY });
+  if (result.kind === "code") {
+    dispatch({ type: AUTHCTL_OIDC_REQUEST });
+
+    try {
+      const { oauth } = await completeMasAuth({ code: result.code, state: result.state });
+      // Токены готовы, но сессию поднимает клик тумблера в панели — это мост в AuthContainer
+      dispatch({ type: AUTHCTL_OIDC_READY, payload: { issuer: oauth.issuer } });
+    } catch (error) {
+      dispatchOidcError(dispatch, getOidcErrorMessage(error));
+    }
     return;
   }
 
@@ -136,26 +138,26 @@ const handleOidcReturn = () => (dispatch) => {
   }
 
   if (result.kind === "pending") {
-    // Вернулись без токена: Synapse отдал свою страницу ошибки либо пользователь нажал «назад»
-    dispatchOidcError(dispatch, "Вход через authentik не завершён: выполните вход заново.");
+    // Вернулись без кода: страница ошибки MAS либо пользователь нажал «назад»
+    dispatchOidcError(dispatch, "Вход через MAS не завершён: выполните вход заново.");
   }
 };
 
 // Успех OIDC оформляет мост (AuthContainer) — уже после того, как MTRXCTL_ поднял сессию:
-// статус говорит, что токен израсходован и повторно им сессию не поднять
+// статус говорит, что токены израсходованы и повторно ими сессию не поднять
 const handleOidcSuccess = () => (dispatch) => {
   dispatch({ type: AUTHCTL_OIDC_SUCCESS });
 };
 
-// Ошибку подъёма сессии по loginToken приносит мост: показать её должна форма OIDC
+// Ошибку подъёма сессии по токенам MAS приносит мост: показать её должна форма OIDC
 const handleOidcError = (errText) => (dispatch) => {
-  dispatchOidcError(dispatch, errText || "Не удалось войти через authentik.");
+  dispatchOidcError(dispatch, errText || "Не удалось войти через MAS.");
 };
 
 const handleOidcClear = () => (dispatch, getState) => {
-  // Готовый токен закрытие формы не отменяет: окно могли открыть только чтобы посмотреть
-  // статус источника. Израсходованный или ошибочный токен при закрытии забываем
-  if (getState().authControlRdcr.oidcStatus !== "ready") clearOidcCredentials();
+  // Готовые токены закрытие формы не отменяет: окно могли открыть только чтобы посмотреть
+  // статус источника. Израсходованные или ошибочные токены при закрытии забываем
+  if (getState().authControlRdcr.oidcStatus !== "ready") clearMasCredentials();
 
   dispatch({ type: AUTHCTL_OIDC_CLEAR });
 };

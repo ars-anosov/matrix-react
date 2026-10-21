@@ -1,7 +1,8 @@
-import { Close as IconClose, Key as IconKey, Login as IconLogin, VpnKey as IconVpnKey } from "@mui/icons-material";
+import { Close as IconClose, Key as IconKey, Login as IconLogin } from "@mui/icons-material";
 import {
   Alert,
   Avatar,
+  Box,
   Button,
   Collapse,
   Dialog,
@@ -10,22 +11,21 @@ import {
   DialogContentText,
   DialogTitle,
   IconButton,
-  InputAdornment,
   Stack,
-  TextField,
+  Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-// Вход через OIDC (OAuth 2.0) в authentik. Сама форма только собирает адрес ресурса IdP и
-// просит мост запустить переход (props onLogin): браузер уходит на SSO-редирект Synapse и
-// возвращается уже с loginToken, поэтому форму закрывает редирект, а не успешный ответ.
-// Сессию Matrix по токену поднимает MTRXCTL_ по клику тумблера в AuthPad, а связывает шаги
-// мост AuthContainer. Форма — модальный Dialog, как AuthRest/MtrxReg.
+// Вход через Matrix Authentication Service (MAS, OAuth 2.0 / MSC2965). Сама форма только
+// просит мост запустить переход (props onLogin): discovery, регистрация клиента и PKCE
+// живут в services/masAuth.js, браузер уходит на authorization_endpoint MAS и возвращается
+// уже с `?code=&state=`, поэтому форму закрывает редирект, а не успешный ответ. Сессию
+// Matrix по токенам поднимает MTRXCTL_ по клику тумблера в AuthPad, а связывает шаги мост
+// AuthContainer. Форма — модальный Dialog, как AuthRest/MtrxReg.
 function AuthOidc(props) {
   const { authControlRdcr, authControlActions, onLogin, isMatrixUriMissing } = props;
 
-  const [uriOidcAuth, setUriOidcAuth] = useState(() => authControlRdcr.uriOidcAuth || "");
   // Ошибку, закрытую крестиком алерта, прячем локально: статус ошибки в Redux остаётся
   const [isErrDismissed, setIsErrDismissed] = useState(false);
 
@@ -33,39 +33,34 @@ function AuthOidc(props) {
   const isError = authControlRdcr.oidcStatus === "error";
   const errText = authControlRdcr.oidcErrText || "";
   const showError = isError && !isErrDismissed && Boolean(errText);
-
-  // Синхронизируем адрес из глобального стора при его изменении
-  useEffect(() => {
-    setUriOidcAuth(authControlRdcr.uriOidcAuth || "");
-  }, [authControlRdcr.uriOidcAuth]);
+  // Issuer узнаётся из auth_metadata homeserver при первом входе и кэшируется сервисом
+  const issuer = authControlRdcr.oidcIssuer || "";
 
   const handleSubmit = (event) => {
     event.preventDefault();
     // Новая попытка показывает ошибку снова, даже если текст тот же
     setIsErrDismissed(false);
-    if (isLoading) return;
-    if (!uriOidcAuth.trim()) return;
+    if (isLoading || isMatrixUriMissing) return;
 
-    authControlActions.handleChangeStore("uriOidcAuth", uriOidcAuth.trim());
-    onLogin({ uriOidcAuth });
+    onLogin();
   };
 
   const handleClose = () => {
-    // Закрытие формы сбрасывает готовый токен: он одноразовый и ждёт запуска
+    // Закрытие формы сбрасывает неиспользованные токены: они одноразовые для запуска
     authControlActions.handleOidcClear();
   };
 
-  const isSubmitDisabled = isLoading || !uriOidcAuth.trim() || isMatrixUriMissing;
+  const isSubmitDisabled = isLoading || isMatrixUriMissing;
 
-  // Paper — сам тег form: Enter в поле отправляет запрос, кнопки живут в DialogActions
+  // Paper — сам тег form: Enter отправляет запрос, кнопки живут в DialogActions
   return (
     <Dialog
       open
       onClose={handleClose}
       maxWidth="xs"
       fullWidth
-      aria-labelledby="oidcAuthTitle"
-      aria-describedby="oidcAuthSubtitle"
+      aria-labelledby="masAuthTitle"
+      aria-describedby="masAuthSubtitle"
       slotProps={{
         paper: {
           component: "form",
@@ -75,47 +70,37 @@ function AuthOidc(props) {
         },
       }}
     >
-      <IconButton aria-label="Закрыть форму входа через authentik" onClick={handleClose} sx={{ position: "absolute", top: 8, right: 8 }}>
+      <IconButton aria-label="Закрыть форму входа через MAS" onClick={handleClose} sx={{ position: "absolute", top: 8, right: 8 }}>
         <IconClose color="action" />
       </IconButton>
 
       <DialogTitle
-        id="oidcAuthTitle"
+        id="masAuthTitle"
         variant="h5"
         sx={{ pt: 4, pb: 1, fontWeight: 600, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}
       >
         <Avatar sx={{ width: 56, height: 56, backgroundColor: "primary.light" }}>
           <IconKey sx={{ fontSize: 32, color: "primary.main" }} />
         </Avatar>
-        authentik
+        MAS
       </DialogTitle>
 
       <DialogContent>
-        <DialogContentText id="oidcAuthSubtitle" variant="body2" sx={{ textAlign: "center", mb: 2.5 }}>
-          Вход по OIDC (OAuth 2.0)
+        <DialogContentText id="masAuthSubtitle" variant="body2" sx={{ textAlign: "center", mb: 2.5 }}>
+          Вход через Matrix Authentication Service
         </DialogContentText>
 
         <Stack spacing={2.5}>
-          {/* Адрес ресурса IdP: в DEV доступен для правки, в PROD берётся сохранённый */}
-          <TextField
-            fullWidth
-            required
-            disabled={isLoading || !import.meta.env.DEV}
-            id="uriOidcAuth"
-            label={import.meta.env.DEV ? "Ресурс authentik (Dev Only)" : "Ресурс authentik"}
-            variant="outlined"
-            value={uriOidcAuth}
-            onChange={(event) => setUriOidcAuth(event.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <IconVpnKey color="action" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
+          {/* Адрес сервера авторизации не вводится: MAS объявляет себя через auth_metadata
+              homeserver, а клиент регистрируется динамически (MSC2966) */}
+          <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "action.hover" }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+              Сервер авторизации
+            </Typography>
+            <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
+              {issuer || "определяется автоматически по homeserver"}
+            </Typography>
+          </Box>
 
           <Collapse in={showError}>
             <Alert
@@ -141,7 +126,7 @@ function AuthOidc(props) {
           disabled={isSubmitDisabled}
           sx={{ py: 1.3, fontWeight: "bold", borderRadius: 2 }}
         >
-          Войти через authentik
+          {isLoading ? "Переходим в MAS…" : "Войти через MAS"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -151,16 +136,14 @@ function AuthOidc(props) {
 AuthOidc.propTypes = {
   authControlRdcr: PropTypes.shape({
     displayOidc: PropTypes.bool,
-    uriOidcAuth: PropTypes.string,
-    oidcIdpId: PropTypes.string,
+    oidcIssuer: PropTypes.string,
     oidcStatus: PropTypes.oneOf(["idle", "loading", "ready", "success", "error"]),
     oidcErrText: PropTypes.string,
   }).isRequired,
   authControlActions: PropTypes.shape({
-    handleChangeStore: PropTypes.func.isRequired,
     handleOidcClear: PropTypes.func.isRequired,
   }).isRequired,
-  // Мост к MTRXCTL_ живёт в AuthContainer: форма только просит запустить переход в authentik
+  // Мост к MTRXCTL_ живёт в AuthContainer: форма только просит запустить переход в MAS
   onLogin: PropTypes.func.isRequired,
   // В DEV вход невозможен без адреса homeserver — его подставляет мост
   isMatrixUriMissing: PropTypes.bool,

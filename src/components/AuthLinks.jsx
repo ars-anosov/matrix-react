@@ -2,7 +2,7 @@ import { AdminPanelSettings as IconAdminPanelSettings, Hub as IconHub, Key as Ic
 import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
-// Иконки-входы стартового экрана: использовать Matrix, войти через authentik (OIDC)
+// Иконки-входы стартового экрана: использовать Matrix, войти через MAS (OIDC)
 // или получить матричные атрибуты через REST. Показываются, пока ни REST-, ни
 // Matrix-сессия не активны (условие считает AuthContainer). Сами ничего не
 // диспатчат — только колбэки. Размеры — стандартные: Typography по умолчанию
@@ -29,8 +29,8 @@ function AuthLinks({ onOpenMtrx, onOpenOidc, onOpenRest }) {
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Войти через authentik (OIDC)">
-          <IconButton aria-label="Войти через OAuth 2.0 / OIDC" onClick={onOpenOidc} sx={iconButtonSx}>
+        <Tooltip title="Войти через MAS (OIDC)">
+          <IconButton aria-label="Войти через MAS (OAuth 2.0 / OIDC)" onClick={onOpenOidc} sx={iconButtonSx}>
             <IconKey />
           </IconButton>
         </Tooltip>

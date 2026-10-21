@@ -8,6 +8,7 @@ export const MTRX_REFRESH_TOKEN_KEY = "mtrxRefreshToken";
 export const REST_URI_AUTH_KEY = "uriRestAuth";
 export const REST_LOGIN_KEY = "restLogin";
 
-// OIDC (OAuth 2.0) через authentik: адрес ресурса IdP и id провайдера Synapse
-export const OIDC_ISSUER_KEY = "uriOidcAuth";
-export const OIDC_IDP_KEY = "oidcIdpId";
+// MAS (OAuth 2.0 / MSC2965): issuer из auth_metadata и зарегистрированный OAuth-клиент.
+// Issuer кэшируется только для подписи источника; живой адрес всегда приходит из discovery.
+export const MAS_ISSUER_KEY = "masIssuer";
+export const MAS_CLIENT_KEY = "masOAuthClient";

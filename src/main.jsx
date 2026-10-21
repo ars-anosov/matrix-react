@@ -31,7 +31,7 @@ import configureStore from "./store/configureStore";
 
 const store = configureStore();
 
-// Возврат из authentik разбираем до отрисовки: токен уходит из URL, панель видит готовый источник
+// Возврат из MAS разбираем до отрисовки: код уходит из URL, панель видит готовый источник
 bootstrapStore(store);
 
 const rootElement = document.getElementById("root");

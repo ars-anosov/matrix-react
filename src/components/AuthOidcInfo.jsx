@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { AUTH_SOURCE_OIDC } from "../constants/authSource.js";
 import { getAuthSourceView } from "./utils/authSourceView.jsx";
 
-// Состояние входа через authentik (OIDC) — аналог AuthRestInfo для второго источника
+// Состояние входа через MAS (OIDC) — аналог AuthRestInfo для второго источника
 // матричных учётных данных. Подписи статусов те же, что у источника в панели AuthPad и у
 // кругляша AuthIco: их даёт общий модуль представления.
 function AuthOidcInfo(props) {
@@ -55,8 +55,7 @@ function AuthOidcInfo(props) {
           wordBreak: "break-all",
         }}
       >
-        {`ресурс:\t\t${authControlRdcr?.uriOidcAuth || ""}
-IdP:\t\t${authControlRdcr?.oidcIdpId || ""}
+        {`MAS:\t\t${authControlRdcr?.oidcIssuer || ""}
 токен:\t\t${sourceView.label}
 
 Matrix:\t\t${mtrxControlRdcr?.responseData?.user_id || ""}`}
@@ -70,7 +69,7 @@ Matrix:\t\t${mtrxControlRdcr?.responseData?.user_id || ""}`}
 
       <Stack direction="row" spacing={1} sx={{ mt: 2, justifyContent: "space-between", alignItems: "center" }}>
         <Tooltip title={isAuthorized ? "Деавторизоваться" : "Авторизоваться"}>
-          <IconButton color={authButtonColor} onClick={toggleAuth} aria-label="Открыть форму входа через authentik">
+          <IconButton color={authButtonColor} onClick={toggleAuth} aria-label="Открыть форму входа через MAS">
             {isAuthorized ? <IconHowToReg /> : <IconPersonOff />}
           </IconButton>
         </Tooltip>
@@ -82,8 +81,7 @@ Matrix:\t\t${mtrxControlRdcr?.responseData?.user_id || ""}`}
 AuthOidcInfo.propTypes = {
   authControlRdcr: PropTypes.shape({
     displayOidc: PropTypes.bool,
-    uriOidcAuth: PropTypes.string,
-    oidcIdpId: PropTypes.string,
+    oidcIssuer: PropTypes.string,
     oidcStatus: PropTypes.oneOf(["idle", "loading", "ready", "success", "error"]),
     oidcErrText: PropTypes.string,
   }).isRequired,

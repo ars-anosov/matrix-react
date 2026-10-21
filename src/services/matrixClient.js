@@ -2,10 +2,12 @@ import { CryptoEvent } from "matrix-js-sdk/lib/crypto-api/CryptoEvent.js";
 import { TokenRefreshLogoutError } from "matrix-js-sdk/lib/http-api/errors.js";
 import { MTRX_ACCESS_TOKEN_KEY, MTRX_DEVICE_ID_KEY, MTRX_HS_URL_KEY, MTRX_LOGIN_KEY, MTRX_REFRESH_TOKEN_KEY, MTRX_USER_ID_KEY } from "../constants/storage";
 import { VERIFICATION_ERR } from "../constants/verification";
+import { refreshMasTokens, revokeMasSession } from "./masAuth.js";
 import { clearMatrixClient, getMatrixClient, setMatrixClient } from "./matrixClientStore.js";
 import { clearMediaUrlCache } from "./matrixMedia.js";
 import { clearRoomAvatarCache } from "./matrixRooms.js";
 import { loadMatrixSdk } from "./matrixSdk.js";
+import { resolveHomeserverUrl } from "./matrixUrl.js";
 
 const DEVICE_DISPLAY_NAME = "matrix-react";
 
@@ -21,6 +23,9 @@ let activeDeviceVerificationRequest = null;
 let activeDeviceVerificationRequestCleanup = null;
 let activeDeviceVerificationVerifier = null;
 let secretStorageKeyCache = null;
+// Контекст OAuth-сессии MAS: нужен для refresh через MAS и отзыва токенов при выходе.
+// Парольная (compat) сессия остаётся с прежним refresh на /_matrix/client/v3/refresh.
+let activeMasSession = null;
 
 function buildStoreKey(userId, deviceId) {
   return deviceId || userId;
@@ -34,9 +39,9 @@ function cryptoDbPrefix(storeKey) {
   return `mx-crypto-${storeKey}`;
 }
 
-async function createTempMatrixClient(baseUrl) {
+async function createTempMatrixClient(baseUrl, accessToken) {
   const { createClient } = await loadMatrixSdk();
-  return createClient({ baseUrl });
+  return createClient({ baseUrl, ...(accessToken ? { accessToken } : {}) });
 }
 
 /**
@@ -47,7 +52,7 @@ async function createTempMatrixClient(baseUrl) {
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html
  * @see https://spec.matrix.org/latest/client-server-api/#using-access-tokens
  */
-async function createMatrixClientFromSession({ baseUrl, accessToken, userId, deviceId, refreshToken }) {
+async function createMatrixClientFromSession({ baseUrl, accessToken, userId, deviceId, refreshToken, oauth }) {
   if (!baseUrl || typeof baseUrl !== "string") {
     throw new Error(`[createMatrixClientFromSession] Невалидный baseUrl: ${baseUrl}`);
   }
@@ -76,10 +81,45 @@ async function createMatrixClientFromSession({ baseUrl, accessToken, userId, dev
     });
   }
 
-  // Не вызываем client.refreshToken() из tokenRefreshFunction:
-  // он идёт через authedRequest и может задедлочить TokenRefresher.
-  // Прямой POST /refresh — рекомендуемый обходной путь для password-сессий.
-  if (refreshToken) {
+  // OAuth-сессия MAS: токен выдан MAS, поэтому и refresh идёт на его token_endpoint.
+  // Compat-эндпоинт `/refresh` принимает только compat-токены, а не OAuth-сессию.
+  if (refreshToken && oauth) {
+    clientOptions.tokenRefreshFunction = async (currentRefreshToken) => {
+      try {
+        const tokenData = await refreshMasTokens(oauth, currentRefreshToken);
+        if (!tokenData.access_token) {
+          throw new Error("MAS не вернул access token.");
+        }
+
+        persistMatrixSession({
+          homeserverUrl: baseUrl,
+          login: localStorage.getItem(MTRX_LOGIN_KEY) || "",
+          accessToken: tokenData.access_token,
+          userId,
+          deviceId,
+          refreshToken: tokenData.refresh_token || currentRefreshToken,
+        });
+
+        return {
+          accessToken: tokenData.access_token,
+          refreshToken: tokenData.refresh_token || currentRefreshToken,
+          // RFC 6749 отдаёт expires_in в секундах, а Matrix refresh — expires_in_ms
+          expiry: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : undefined,
+        };
+      } catch (error) {
+        // invalid_grant / 400 / 401 — MAS отозвал сессию. Сетевую ошибку пробрасываем:
+        // SDK повторит refresh, и временный обрыв не выбросит пользователя.
+        if (error?.httpStatus === 400 || error?.httpStatus === 401 || error?.error === "invalid_grant") {
+          console.warn("[tokenRefreshFunction] MAS отозвал сессию. Сессия потеряна.");
+          throw new TokenRefreshLogoutError(error);
+        }
+        throw error;
+      }
+    };
+  } else if (refreshToken) {
+    // Не вызываем client.refreshToken() из tokenRefreshFunction:
+    // он идёт через authedRequest и может задедлочить TokenRefresher.
+    // Прямой POST /refresh — рекомендуемый обходной путь для password-сессий.
     clientOptions.tokenRefreshFunction = async (currentRefreshToken) => {
       const response = await fetch(`${baseUrl}/_matrix/client/v3/refresh`, {
         method: "POST",
@@ -827,56 +867,14 @@ function getStoredMatrixData() {
   return { uriMatrix, login, deviceId };
 }
 
-function resolveHomeserverUrl(uriMatrix = "") {
-  const url = (uriMatrix || localStorage.getItem(MTRX_HS_URL_KEY) || "").trim();
-  if (!url) {
-    throw new Error("Не задан URL homeserver Matrix.");
-  }
-
-  let parsedUrl;
-  try {
-    parsedUrl = new URL(url);
-  } catch {
-    throw new Error("URL homeserver Matrix указан некорректно.");
-  }
-
-  if (!["http:", "https:"].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
-    throw new Error("Homeserver должен использовать URL http или https без учетных данных.");
-  }
-
-  return parsedUrl.toString().replace(/\/$/, "");
-}
-
 /**
- * Абсолютный адрес начала SSO-входа (legacy `m.login.sso`) на homeserver:
- * `GET /_matrix/client/v3/login/sso/redirect/{idpId}?redirectUrl=…`.
- *
- * Путь строим сами (как `http.getUrl` в matrix-js-sdk: baseUrl + prefix + path), без
- * `MatrixClient.getSsoLoginUrl`: SDK грузится динамически (`loadMatrixSdk`), а popup
- * нужно открыть синхронно в обработчике клика — до первого await.
- *
- * @see https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3loginsso_redirect
- * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#getssologinurl
- */
-function buildSsoLoginUrl({ uriMatrix, redirectUrl, idpId } = {}) {
-  if (!redirectUrl) throw new Error("Не задан адрес возврата SSO.");
-
-  const homeserverUrl = resolveHomeserverUrl(uriMatrix);
-  const path = typeof idpId === "string" && idpId.trim() ? `/login/sso/redirect/${encodeURIComponent(idpId.trim())}` : "/login/sso/redirect";
-  const url = new URL(`${homeserverUrl}/_matrix/client/v3${path}`);
-  url.searchParams.set("redirectUrl", redirectUrl);
-
-  return url.toString();
-}
-
-/**
- * Поднимает сессию по ответу `/login`: создаёт клиент, сохраняет сессию и запускает sync.
- * Один путь для входа по паролю и по login token (OIDC/SSO).
+ * Поднимает сессию по ответу `/login` либо по токенам MAS: создаёт клиент, сохраняет
+ * сессию и запускает sync. Один путь для пароля, compat-токена и OAuth-сессии MAS.
  *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#loginrequest
  * @see https://spec.matrix.org/latest/client-server-api/#login
  */
-async function activateMatrixSession({ homeserverUrl, login, loginResponse }) {
+async function activateMatrixSession({ homeserverUrl, login, loginResponse, oauth = null }) {
   try {
     const client = await createMatrixClientFromSession({
       baseUrl: homeserverUrl,
@@ -884,6 +882,7 @@ async function activateMatrixSession({ homeserverUrl, login, loginResponse }) {
       userId: loginResponse.user_id,
       deviceId: loginResponse.device_id,
       refreshToken: loginResponse.refresh_token,
+      oauth,
     });
 
     persistMatrixSession({
@@ -897,6 +896,8 @@ async function activateMatrixSession({ homeserverUrl, login, loginResponse }) {
 
     await startMatrixSync(client);
 
+    activeMasSession = oauth ? { oauth } : null;
+
     return {
       homeserverUrl,
       userId: loginResponse.user_id,
@@ -904,6 +905,7 @@ async function activateMatrixSession({ homeserverUrl, login, loginResponse }) {
       displayName: await fetchDisplayName(client, loginResponse.user_id).catch(() => loginResponse.user_id),
     };
   } catch (error) {
+    activeMasSession = null;
     destroyMatrixClient();
     deleteMatrixLocalStores();
     throw error;
@@ -940,45 +942,70 @@ async function loginMatrix({ login, password, uriMatrix }) {
 }
 
 /**
- * Завершает вход по login token (`m.login.token`), который Synapse выдал после
- * OIDC-редиректа в authentik. Тот же путь, что и у входа по паролю: сессия, sync.
+ * Поднимает сессию по токенам MAS (OAuth 2.0 Authorization Code). Отдельный `/login`
+ * не нужен: access token MAS — обычный Matrix-токен, Synapse проверяет его через
+ * introspection. `whoami` даёт user_id и device_id для клиента и E2EE-стора.
  *
- * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#loginrequest
- * @see https://spec.matrix.org/latest/client-server-api/#login
+ * @see https://spec.matrix.org/v1.18/client-server-api/#using-access-tokens
+ * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#whoami
  */
-async function loginMatrixWithToken({ loginToken, uriMatrix }) {
-  if (typeof loginToken !== "string" || !loginToken) {
-    throw new Error("Не получен loginToken от homeserver.");
+async function loginMatrixWithOAuth({ tokens, oauth, uriMatrix } = {}) {
+  if (!tokens?.access_token) {
+    throw new Error("MAS не вернул access token: вход не завершён.");
+  }
+  if (!oauth?.metadata || !oauth.clientId) {
+    throw new Error("Не найден контекст входа MAS: войдите заново.");
   }
 
   const homeserverUrl = resolveHomeserverUrl(uriMatrix);
-  const tempClient = await createTempMatrixClient(homeserverUrl);
+  const tempClient = await createTempMatrixClient(homeserverUrl, tokens.access_token);
 
-  const loginResponse = await tempClient.loginRequest({
-    type: "m.login.token",
-    token: loginToken,
-    initial_device_display_name: DEVICE_DISPLAY_NAME,
-    refresh_token: true,
+  let whoami;
+  try {
+    whoami = await tempClient.whoami();
+  } finally {
+    tempClient.stopClient?.();
+  }
+
+  if (!whoami?.user_id) {
+    throw new Error("Homeserver не подтвердил токен MAS.");
+  }
+
+  return activateMatrixSession({
+    homeserverUrl,
+    login: whoami.user_id,
+    loginResponse: {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      user_id: whoami.user_id,
+      device_id: whoami.device_id || oauth.deviceId,
+    },
+    oauth,
   });
-
-  tempClient.stopClient?.();
-
-  return activateMatrixSession({ homeserverUrl, login: loginResponse.user_id, loginResponse });
 }
 
 /**
- * Завершает сессию на сервере, чистит локальные и IndexedDB-хранилища.
+ * Завершает сессию, чистит локальные и IndexedDB-хранилища.
+ * OAuth-сессию MAS закрывает отзыв токенов на revocation_endpoint: compat-эндпоинт
+ * `/logout` рассчитан на compat-токены и OAuth-сессию не завершит.
  *
  * @see https://matrix-org.github.io/matrix-js-sdk/classes/matrix.MatrixClient.html#logout
- * @see https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3logout
+ * @see https://spec.matrix.org/v1.18/client-server-api/#post_matrixclientv3logout
  */
 async function logoutMatrix() {
   const client = getMatrixClient();
+  const masSession = activeMasSession;
+  const accessToken = localStorage.getItem(MTRX_ACCESS_TOKEN_KEY) || "";
+  const refreshToken = localStorage.getItem(MTRX_REFRESH_TOKEN_KEY) || "";
 
   if (client) {
     // logout(true) сам останавливает клиент до POST /logout
     try {
-      await client.logout(true);
+      if (masSession) {
+        client.stopClient();
+      } else {
+        await client.logout(true);
+      }
     } catch {
       try {
         client.stopClient();
@@ -991,6 +1018,11 @@ async function logoutMatrix() {
     destroyMatrixClient();
   }
 
+  if (masSession) {
+    await revokeMasSession(masSession.oauth, { accessToken, refreshToken }).catch(() => {});
+  }
+
+  activeMasSession = null;
   deleteMatrixLocalStores();
 }
 
@@ -1010,6 +1042,7 @@ async function invalidateMatrixSession() {
     }
     await clearMatrixClientStores(client).catch(() => {});
   }
+  activeMasSession = null;
   destroyMatrixClient();
   deleteMatrixLocalStores();
 }
@@ -1017,7 +1050,6 @@ async function invalidateMatrixSession() {
 // Публичный доменный API — без SDK-объектов (MatrixClient / Room).
 export {
   acceptCurrentDeviceVerification,
-  buildSsoLoginUrl,
   cancelCurrentDeviceVerification,
   clearCurrentDeviceVerification,
   confirmCurrentDeviceVerification,
@@ -1028,7 +1060,7 @@ export {
   getStoredMatrixData,
   invalidateMatrixSession,
   loginMatrix,
-  loginMatrixWithToken,
+  loginMatrixWithOAuth,
   logoutMatrix,
   requestCurrentDeviceVerification,
   resetOwnEncryption,

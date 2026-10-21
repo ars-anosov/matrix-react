@@ -25,7 +25,7 @@
           "path": "src/components/AuthPad.jsx"
         }
       ],
-      "sublabel": "формы REST · OIDC",
+      "sublabel": "формы REST · MAS",
       "tag": "AUTHCTL_",
       "pos": [
         40,
@@ -84,7 +84,7 @@
           "path": "src/reducers/authControlRdcr.js"
         }
       ],
-      "sublabel": "состояние REST и OIDC",
+      "sublabel": "состояние REST и MAS",
       "tag": "AUTHCTL_",
       "pos": [
         680,
@@ -115,15 +115,10 @@
       ]
     },
     {
-      "id": "oidcSvc",
+      "id": "masSvc",
       "type": "backend",
-      "label": "oidcAuth",
-      "sources": [
-        {
-          "path": "src/services/oidcAuth.js"
-        }
-      ],
-      "sublabel": "OIDC · authentik",
+      "label": "masAuth",
+      "sublabel": "discovery · регистрация · токены MAS",
       "tag": "AUTHCTL_",
       "pos": [
         1040,
@@ -337,7 +332,7 @@
       "label": "Сервисы",
       "wraps": [
         "restSvc",
-        "oidcSvc",
+        "masSvc",
         "mtrxSvc"
       ]
     },
@@ -379,7 +374,7 @@
       "id": "auth-state",
       "from": "authAct",
       "to": "authStore",
-      "label": "состояние REST",
+      "label": "состояние REST и MAS",
       "fromSide": "bottom",
       "toSide": "top",
       "labelDy": 30
@@ -477,30 +472,23 @@
       "id": "bridge-mtrx",
       "from": "bridge",
       "to": "mtrxAct",
-      "label": "мост: loginMatrix · logoutMatrix · loginToken",
+      "label": "мост: loginMatrix · logoutMatrix · токены MAS",
       "fromSide": "bottom",
       "toSide": "top"
     },
     {
       "from": "authAct",
-      "to": "oidcSvc",
+      "to": "masSvc",
       "label": "доменный API"
     },
     {
-      "from": "oidcSvc",
+      "from": "masSvc",
       "to": "storage",
-      "label": "uriOidcAuth · oidcIdpId",
+      "label": "masIssuer · masOAuthClient",
       "labelAt": [
         1240,
-        300
+        390
       ]
-    },
-    {
-      "from": "authAct",
-      "to": "mtrxSvc",
-      "label": "SSO-редирект · абсолютный адрес",
-      "fromSide": "right",
-      "toSide": "bottom"
     }
   ],
   "cards": [
@@ -508,7 +496,7 @@
       "dot": "cyan",
       "title": "Два среза",
       "items": [
-        "Строка AUTHCTL_ — REST- и OIDC-вход",
+        "Строка AUTHCTL_ — REST- и MAS-вход",
         "Строка MTRXCTL_ — регистрация Matrix, чат и медиа",
         "Thunk-и не диспатчат чужой namespace"
       ]
@@ -527,7 +515,7 @@
       "title": "Мост",
       "items": [
         "AuthContainer — единственный переход между срезами",
-        "loginMatrix / logoutMatrix · loginToken (OIDC)",
+        "loginMatrix / logoutMatrix · токены MAS",
         "Срезы видят друг друга только через мост"
       ]
     },

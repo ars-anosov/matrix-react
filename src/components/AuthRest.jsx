@@ -231,7 +231,7 @@ function RestAuth(props) {
             disabled={isSubmitDisabled}
             sx={{ py: 1.3, fontWeight: "bold", borderRadius: 2 }}
           >
-            Войти в систему
+            Получить auth-данные
           </Button>
         ) : (
           <Button

@@ -12,7 +12,7 @@ import {
   AUTHCTL_SUBMIT_SUCCESS,
 } from "../constants/redux";
 
-// Только UI-дефолты: сохранённые значения (uriRestAuth, uriOidcAuth, oidcIdpId) подставляет
+// Только UI-дефолты: сохранённые значения (uriRestAuth, oidcIssuer) подставляет
 // сид стора — store/preloadedState.js → preloadedState в configureStore.
 export const initialState = {
   displayRest: false,
@@ -24,21 +24,20 @@ export const initialState = {
   status: "idle", // 'idle' | 'loading' | 'success' | 'error'
   responseData: null,
   errText: "",
-  // --- OIDC (OAuth 2.0) через authentik ---
+  // --- OIDC (OAuth 2.0) через MAS ---
   // Вход общий для приложения, поэтому его форма и ход входа живут в этом срезе, а не в
-  // Matrix: сюда приходит готовность loginToken, а сессию Matrix по нему поднимает MTRXCTL_.
+  // Matrix: сюда приходит готовность токенов, а сессию Matrix по ним поднимает MTRXCTL_.
   displayOidc: false,
-  // Адрес ресурса IdP: сохранённое значение подставляет сид стора (store/preloadedState.js)
-  uriOidcAuth: "",
-  // id провайдера на стороне Synapse (GET /login → m.login.sso.identity_providers[].id)
-  oidcIdpId: "",
+  // Issuer MAS из auth_metadata homeserver: известен после первого входа, сохранённое
+  // значение подставляет сид стора (store/preloadedState.js)
+  oidcIssuer: "",
   // 'idle' | 'loading' | 'ready' | 'success' | 'error'.
-  // ready — токен получен и ждёт клика тумблера AuthPad; success — сессия по нему поднята,
-  // то есть токен израсходован (повторно запускать им нельзя)
+  // ready — токены получены и ждут клика тумблера AuthPad; success — сессия по ним поднята,
+  // то есть токены израсходованы (повторно запускать ими нельзя)
   oidcStatus: "idle",
   oidcErrText: "",
   // Источник, которым поднимается сессия Matrix: 'rest' (матричная пара из REST-ответа)
-  // или 'oidc' (loginToken authentik). Пусто, пока данных нет ни от одного источника
+  // или 'oidc' (токены MAS). Пусто, пока данных нет ни от одного источника
   activeAuthSource: null,
 };
 
@@ -120,6 +119,9 @@ export default function authControlRdcr(state = initialState, action) {
         ...state,
         oidcStatus: "ready",
         oidcErrText: "",
+        // Issuer приходит из auth_metadata MAS и кэшируется сервисом; в сторе он нужен
+        // для подписи источника до следующего discovery
+        oidcIssuer: action.payload?.issuer || state.oidcIssuer,
         // Форма ушла в редирект, поэтому её закрываем, а панель с готовым тумблером
         // открываем — запуск сессии остаётся за кликом пользователя (3b)
         displayOidc: false,
@@ -140,8 +142,8 @@ export default function authControlRdcr(state = initialState, action) {
       return {
         ...state,
         oidcStatus: "error",
-        // Ошибку показывает форма, поэтому открываем её: при возврате из authentik
-        // её никто не открывал, а после неудачного запуска токена перезапуск — здесь
+        // Ошибку показывает форма, поэтому открываем её: при возврате из MAS
+        // её никто не открывал, а после неудачного запуска токенов перезапуск — здесь
         displayOidc: true,
         oidcErrText: errText,
         activeAuthSource: releaseAuthSource(state, "oidc"),
@@ -149,7 +151,7 @@ export default function authControlRdcr(state = initialState, action) {
     }
 
     case AUTHCTL_OIDC_CLEAR: {
-      // Готовый токен закрытие формы не отменяет: окно могли открыть только чтобы посмотреть
+      // Готовые токены закрытие формы не отменяет: окно могли открыть только чтобы посмотреть
       // статус источника. Ошибку и прочие состояния закрытие сбрасывает
       const keepReady = state.oidcStatus === "ready";
 

@@ -98,35 +98,25 @@ const handleRegister =
     }
   };
 
-// Текст ошибки подъёма сессии по loginToken: у MatrixError причина лежит в data,
-// у прочих ошибок — в message. Остальное разбирает общий разбор ошибок Matrix.
-function getLoginTokenErrorMessage(error) {
-  const data = error?.data;
-
-  if (typeof data?.error === "string" && data.error.trim()) return data.error.trim();
-  if (typeof data?.errcode === "string" && data.errcode.trim()) return data.errcode.trim();
-
-  return getMatrixErrorMessage(error);
-}
-
-// Вход по login token (`m.login.token`): token добывает слой AUTH (authControlActions,
-// popup → Synapse → authentik), здесь он превращается в сессию Matrix тем же путём, что и
-// вход по паролю. Мост между срезами — в AuthContainer: ошибку он передаёт форме OIDC.
-const handleLoginWithToken =
+// Вход по токенам MAS: их добывает слой AUTH (authControlActions → masAuth), а здесь
+// поднимается сессия Matrix тем же путём, что и после пароля. Access token MAS — обычный
+// Matrix-токен, поэтому `/login` не вызывается: клиент проверяет токен через `whoami`.
+// Мост между срезами — в AuthContainer: ошибку он передаёт форме OIDC.
+const handleLoginWithOAuth =
   (formData = {}) =>
   async (dispatch) => {
     const operationId = ++sessionOperationId;
-    const loginToken = typeof formData.loginToken === "string" ? formData.loginToken.trim() : "";
     const uriMatrix = typeof formData.uriMatrix === "string" ? formData.uriMatrix.trim() : "";
+    const { tokens, oauth } = formData;
 
-    if (!loginToken) {
-      throw new Error("Synapse не вернул loginToken: вход не завершён.");
+    if (!tokens?.access_token) {
+      throw new Error("MAS не вернул access token: вход не завершён.");
     }
 
     dispatch({ type: MTRXCTL_SUBMIT_REQUEST });
 
     try {
-      const session = await matrixClient.loginMatrixWithToken({ loginToken, uriMatrix });
+      const session = await matrixClient.loginMatrixWithOAuth({ tokens, oauth, uriMatrix });
       if (operationId !== sessionOperationId) return null;
 
       watchSessionAndDispatchClear(dispatch, operationId);
@@ -135,7 +125,7 @@ const handleLoginWithToken =
 
       return session;
     } catch (error) {
-      const errText = getLoginTokenErrorMessage(error);
+      const errText = getMatrixErrorMessage(error);
       if (operationId === sessionOperationId) {
         dispatchMtrxRegError(dispatch, errText);
       }
@@ -474,7 +464,7 @@ export {
   handleLeaveRoom,
   handleLoadDeviceVerification,
   handleLoadRoomMeta,
-  handleLoginWithToken,
+  handleLoginWithOAuth,
   handleRegClear,
   handleRegister,
   handleRequestDeviceVerification,

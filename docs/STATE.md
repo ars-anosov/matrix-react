@@ -15,7 +15,7 @@
 ```mermaid
 flowchart LR
   subgraph UI["UI — компоненты"]
-    ViewAuth["AuthRest · AuthOidc · AuthPad<br/>формы REST · OIDC"]
+    ViewAuth["AuthRest · AuthOidc · AuthPad<br/>формы REST · MAS"]
     ViewMtrx["MtrxReg · MtrxPad<br/>регистрация и чат"]
   end
   subgraph CT["Контейнеры — связь с Redux"]
@@ -24,13 +24,13 @@ flowchart LR
   end
   subgraph RX["Redux — actions и reducers"]
     AuthAct["authControlActions<br/>AUTHCTL_"]
-    AuthStore["authControlRdcr<br/>состояние REST и OIDC"]
+    AuthStore["authControlRdcr<br/>состояние REST и MAS"]
     MtrxAct["mtrxControlActions<br/>MTRXCTL_"]
     MtrxStore["mtrxControlRdcr<br/>индекс комнат"]
   end
   subgraph SV["Сервисы"]
     RestSvc["restAuth<br/>REST-авторизация · ky"]
-    OidcSvc["oidcAuth<br/>OIDC · authentik"]
+    MasSvc["masAuth<br/>discovery · регистрация · токены MAS"]
     MtrxSvc["Matrix-сервисы<br/>matrixClient · matrixRooms · matrixMedia"]
   end
   subgraph ST["Хранилище"]
@@ -41,12 +41,11 @@ flowchart LR
   Bridge -->|dispatch| AuthAct
   AuthAct -->|доменный API| RestSvc
   RestSvc -->|ky · POST| RestRes["REST-сервис<br/>внешний блок"]
-  AuthAct -->|доменный API| OidcSvc
-  AuthAct -->|SSO-редирект · абсолютный адрес| MtrxSvc
-  AuthAct -->|состояние REST и OIDC| AuthStore
+  AuthAct -->|доменный API| MasSvc
+  AuthAct -->|состояние REST и MAS| AuthStore
   AuthStore -->|useSelector| Bridge
   RestSvc -->|ключи REST| Ls
-  OidcSvc -->|uriOidcAuth · oidcIdpId| Ls
+  MasSvc -->|masIssuer · masOAuthClient| Ls
   ViewMtrx -->|события| MtrxCnt
   MtrxCnt -->|dispatch| MtrxAct
   MtrxAct -->|доменный API| MtrxSvc
@@ -56,7 +55,7 @@ flowchart LR
   MtrxSvc -->|токены и адрес| Ls
   Sdk -->|sync и crypto| Idb
   MtrxSvc -->|сообщения комнаты — мимо Redux| ViewMtrx
-  Bridge -->|мост: loginMatrix · logoutMatrix · loginToken| MtrxAct
+  Bridge -->|мост: loginMatrix · logoutMatrix · токены MAS| MtrxAct
 ```
 
 - Пунктирные области — слои: UI, контейнеры (связь со store), Redux (`actions` и `reducers`),
@@ -65,19 +64,19 @@ flowchart LR
   свой редьюсер (`authControlRdcr`, `mtrxControlRdcr`), а переход между срезами есть только в
   `AuthContainer` (мост); обратный поток (`authLost`, `mtrx_user_id`) идёт через тот же мост.
 - У каждого среза свой сервис и внешний ресурс: `AUTHCTL_` → `restAuth` (REST-сервис · `ky`) и
-  `oidcAuth` (authentik), `MTRXCTL_` → Matrix-сервисы → `matrix-js-sdk`; абсолютный адрес
-  SSO-редиректа для OIDC строит `matrixClient` — единственное касание Matrix-сервиса из
-  AUTH-слоя. Ключи приложения в `localStorage` пишут сервисы обоих срезов, sync и crypto — в
-  `IndexedDB`.
+  `masAuth` (discovery MAS, регистрация, PKCE и токены), `MTRXCTL_` → Matrix-сервисы →
+  `matrix-js-sdk`. AUTH-слой больше не строит SSO-редирект Synapse: MAS — самостоятельный
+  OAuth-провайдер, а `masAuth` использует `OAuth2`/`getAuthMetadata` из SDK. Ключи приложения в
+  `localStorage` пишут сервисы обоих срезов, sync и crypto — в `IndexedDB`.
 - Thunk-и namespace-чистые: `AUTHCTL_` и `MTRXCTL_` не диспатчат чужой срез — мост между ними
   только в `AuthContainer`.
 - `matrix-js-sdk` грузится лениво: `import()` в `services/matrixSdk.js` даёт отдельный чанк
   `matrix-sdk`, активный клиент держит `services/matrixClientStore.js`; UI и Redux видят только
   доменный API сервисов, без SDK-объектов.
-- Сервисов авторизации два: `restAuth` (REST-сессия и матричная пара) и `oidcAuth` (вход через
-  OIDC/authentik, см. § 2). OIDC — вход, общий для приложения, поэтому его форма, `uriOidcAuth`
-  и `oidcIdpId` живут в срезе `AUTHCTL_`; узел `oidcAuth` на диаграмме архитектуры связан с
-  `authAct`, `matrixClient` (SSO-редирект) и `localStorage`.
+- Сервисов авторизации два: `restAuth` (REST-сессия и матричная пара) и `masAuth` (вход через
+  MAS, см. § 2). OIDC — вход, общий для приложения, поэтому его форма и issuer (`oidcIssuer`)
+  живут в срезе `AUTHCTL_`; узел `masAuth` на диаграмме архитектуры связан с `authAct` и
+  `localStorage`, а зависимость от `OAuth2`/`getAuthMetadata` SDK описана в § 2.
 
 ## 2. Старт и авторизация
 
@@ -150,65 +149,85 @@ sequenceDiagram
   `invalidateMatrixSession` (токены и IndexedDB удалены) → `authLost` → `AuthPad` с красным
   тумблером.
 
-### Вход через OIDC (authentik)
+### Вход через MAS (OIDC)
 
 [Диаграмма](archify/matrix-react-oidc-login.html) · спека
 `archify/matrix-react-oidc-login.sequence.json`. Ветка отдельная от диаграммы § 2: она не
-восстанавливает сессию, а добывает `loginToken` полностраничным переходом в authentik и поднимает
-сессию по клику тумблера. Токен добывает AUTH-срез (`services/oidcAuth.js`, thunk-и
-`handleOidcRedirect` / `handleOidcReturn`, namespace `AUTHCTL_`), сессию Matrix по нему поднимает
-`handleLoginWithToken` (`MTRXCTL_`), а шаги связывает мост `AuthContainer`:
+восстанавливает сессию, а добывает OAuth-токены полностраничным переходом в MAS и поднимает
+сессию по клику тумблера. Discovery, регистрацию клиента, PKCE и обмен кода ведёт AUTH-срез
+(`services/masAuth.js`, thunk-и `handleOidcRedirect` / `handleOidcReturn`, namespace `AUTHCTL_`),
+сессию Matrix по токенам поднимает `handleLoginWithOAuth` (`MTRXCTL_`), а шаги связывает мост
+`AuthContainer`:
 
 ```mermaid
 sequenceDiagram
   participant Form as AuthOidc
   participant Br as AuthContainer
-  participant Act as authControlActions
   participant Boot as старт приложения
   participant RX as Redux
-  participant Oidc as oidcAuth
+  participant LS as localStorage
+  participant Act as authControlActions
+  participant Mas as masAuth
   participant MAct as mtrxControlActions
   participant Cl as matrixClient
-  participant SSO as Synapse /login/sso
-  participant AK as authentik
-  Form->>Act: handleOidcRedirect · uriOidcAuth
-  Act->>Oidc: beginOidcRedirect (адрес SPA — redirectUrl)
-  Oidc->>SSO: location.assign /login/sso/redirect/oidc-authentik
-  SSO->>AK: 302 authorize (код и PKCE делает Synapse)
-  AK-->>SSO: код на /_synapse/client/oidc/callback
-  SSO-->>Boot: 302 <адрес SPA>?loginToken=…
+  participant HS as homeserver
+  participant MAS as MAS
+  Form->>Act: handleOidcRedirect · uriMatrix
+  Act->>Mas: beginMasRedirect
+  Mas->>HS: GET auth_metadata (MSC2965)
+  HS-->>Mas: issuer · endpoints · registration_endpoint
+  Mas->>MAS: POST /oauth2/registration (MSC2966)
+  MAS-->>Mas: client_id
+  Mas->>LS: state · PKCE-verifier · metadata (sessionStorage)
+  Mas->>MAS: location.assign /authorize?code_challenge=…
+  MAS-->>Boot: 302 <адрес SPA>?code=…&state=…
   Boot->>Act: handleOidcReturn
-  Act->>Oidc: takeOidcReturn · replaceState
-  Oidc-->>RX: AUTHCTL_OIDC_READY (токен — в модуле сервиса)
-  RX-->>Br: useSelector: тумблер активен, источник authentik
-  Br->>MAct: handleLoginWithToken (клик тумблера)
-  MAct->>Cl: loginMatrixWithToken
-  Cl->>SSO: POST /login · m.login.token
-  SSO-->>Cl: access_token · device_id
+  Act->>Mas: takeMasReturn · replaceState
+  Act->>Mas: completeMasAuth (code + verifier)
+  Mas->>MAS: POST /oauth2/token
+  MAS-->>Mas: access_token · refresh_token
+  Mas-->>RX: AUTHCTL_OIDC_READY (токены — в модуле сервиса)
+  RX-->>Br: useSelector: тумблер активен, источник MAS
+  Br->>MAct: handleLoginWithOAuth (клик тумблера)
+  MAct->>Cl: loginMatrixWithOAuth
+  Cl->>HS: GET /account/whoami
+  HS-->>Cl: user_id · device_id
+  Cl->>HS: createClient + startClient → /sync
   MAct->>RX: MTRXCTL_SUBMIT_SUCCESS
-  Br->>RX: AUTHCTL_OIDC_SUCCESS · токен израсходован
+  Br->>RX: AUTHCTL_OIDC_SUCCESS · токены израсходованы
 ```
 
-- Форма `AuthOidc` (модальный `Dialog`) собирает адрес ресурса IdP и просит мост запустить переход;
-  адрес (`uriOidcAuth`) и id провайдера (`oidcIdpId`) хранятся в `localStorage`, сохранённое значение
-  подставляет сид стора в срез `AUTHCTL_`. Сервис сохраняет их **до** перехода: на возврате память
-  страницы уже новая.
-- Вход ведёт `AUTHCTL_`: `handleOidcRedirect` уводит браузер, `handleOidcReturn` разбирает возврат
-  (`AUTHCTL_OIDC_READY / ERROR`). Сам `loginToken` в стор не попадает — он лежит в модуле
-  `services/oidcAuth.js` (одноразовый, DEV-логгер печатает payload'ы экшенов), а готовность
-  источника видна по `oidcStatus`.
-- Matrix-сессию по токену поднимает `MTRXCTL_` (`handleLoginWithToken`) — но не автоматически, а по
-  клику тумблера `AuthPad`: запуск сервиса всегда идёт через мост, а источник (пара REST или токен
-  authentik) выбирается в панели явно. Успех и ошибку подъёма мост возвращает в `AUTHCTL_`.
-- Токен одноразовый и живёт на стороне Synapse 2 минуты, поэтому после возврата сессию поднимают
-  сразу; `AUTHCTL_OIDC_SUCCESS` помечает токен израсходованным, и повторный запуск им невозможен.
-- Спаринг делает Synapse: SPA уходит на `/_matrix/client/v3/login/sso/redirect/{idpId}`, а не
-  ходит в authentik напрямую, — поэтому client secret и код в SPA не попадают.
-- Возврат идёт на адрес самого приложения: `oidcAuth` чистит `?loginToken`/`?error` через
-  `history.replaceState` ещё до отрисовки, поэтому токен не остаётся в адресной строке и истории.
-- Сессию поднимает `loginMatrixWithToken` (`m.login.token`) тем же путём, что и вход по паролю:
-  `activateMatrixSession` создаёт клиент, сохраняет сессию и запускает sync; refresh-токен
-  password-сессии не используется.
+- Форма `AuthOidc` (модальный `Dialog`) больше не собирает адрес IdP: в ней одна кнопка и
+  подпись с issuer, который приходит из discovery. Сервер авторизации и его endpoints задаёт
+  `GET /auth_metadata` homeserver (MSC2965; SDK выбирает стабильный `/v1` или unstable-префикс
+  по `/versions`); на сервере с MAS это `https://mas.ars-dev.ru/`, а `.well-known/matrix/client`
+  дополнительно отдаёт `m.authentication.issuer`.
+- Вход ведёт `AUTHCTL_`: `handleOidcRedirect` запускает `beginMasRedirect` — discovery,
+  динамическую регистрацию public-клиента (MSC2966; client_id кэшируется и регистрация
+  повторяется только при смене issuer/redirect URI) и Authorization Code + PKCE. State,
+  PKCE-verifier, device_id и метаданные перехода сохраняются в `sessionStorage` **до** редиректа:
+  на возврате память страницы уже новая. Issuer и client_id кэшируются в `localStorage`.
+- `handleOidcReturn` разбирает `?code&state` до первой отрисовки, сразу чистит адресную строку
+  через `history.replaceState` и меняет код на токены в `token_endpoint` (`completeMasAuth`).
+  Токены в стор не попадают — они лежат в модуле `services/masAuth.js` (DEV-логгер печатает
+  payload'ы экшенов), а готовность источника видна по `oidcStatus`.
+- Matrix-сессию по токенам поднимает `MTRXCTL_` (`handleLoginWithOAuth`) — но не автоматически, а
+  по клику тумблера `AuthPad`: запуск сервиса всегда идёт через мост, а источник (пара REST или
+  токены MAS) выбирается в панели явно. `loginMatrixWithOAuth` проверяет access token через
+  `whoami`, получает `user_id` и `device_id`, а `activateMatrixSession` создаёт клиент и запускает
+  sync. Успех и ошибку подъёма мост возвращает в `AUTHCTL_`.
+- Access token MAS — обычный Matrix-токен: Synapse проверяет его через introspection. Поэтому
+  `POST /login` с `m.login.token` и `loginToken` больше не используются; `AUTHCTL_OIDC_SUCCESS`
+  только помечает токены израсходованными, чтобы повторно ими сессию не поднять.
+- Refresh OAuth-сессии идёт на `token_endpoint` MAS (`refresh_token` grant), а не на compat-эндпоинт
+  `/_matrix/client/v3/refresh`. Ошибка `invalid_grant`/400/401 на refresh превращается в
+  `TokenRefreshLogoutError` и красный тумблер; сетевая ошибка оставляет сессию и повторяется SDK.
+- Выход завершает OAuth-сессию отзывом access и refresh токенов на `revocation_endpoint` MAS:
+  compat-эндпоинт `/logout` рассчитан на compat-токены и OAuth-сессию не закрывает.
+- Почему не legacy-схема Synapse `m.login.sso`: на сервере с MAS возврат `redirectUrl` ограничен
+  известными клиентами (в nginx — `cinny.ars-dev.ru`), а MAS сам является OAuth-провайдером.
+  Прямой discovery + PKCE не требует client secret и работает для SPA на любом разрешённом
+  redirect URI.
 
 ## 3. Чат
 
@@ -308,13 +327,15 @@ sequenceDiagram
 ```
 
 - `AuthContainer` — единственный мост между срезами `AUTHCTL_` и `MTRXCTL_` (реквизиты REST,
-  тумблер и `loginToken` для OIDC); пароль REST в Matrix Redux не попадает.
+  тумблер и OAuth-токены MAS); пароль REST в Matrix Redux не попадает.
 - Оба среза сходятся в Redux: `authControlRdcr` принимает `AUTHCTL_SUBMIT_SUCCESS`,
   `mtrxControlRdcr` — `MTRXCTL_SUBMIT_SUCCESS / ERROR` и `MTRXCTL_CLEAR`; цвета тумблера и
   реквизиты REST мост читает из них через `useSelector`.
-- Отключённый тумблер запускает вход данными REST; успех, ошибка или потеря сессии — сброс.
+- Отключённый тумблер запускает вход данными REST или OAuth-токенами MAS; успех, ошибка или
+  потеря сессии — сброс.
 - Внешние серверы показаны явно: `restAuth` ходит в REST-сервис (`POST uriRestAuth`), `matrixClient` —
-  на Homeserver (`POST /login`, дальше `/sync` через `createClient + startClient`).
+  на Homeserver (`POST /login` для пароля либо `GET /account/whoami` для токена MAS, дальше `/sync`
+  через `createClient + startClient`).
 - Ключи REST и Matrix ложатся в `localStorage` (`constants/storage.js`); при сбросе токены
   удаляются, адрес и логин остаются, а вместе с токенами чистятся IndexedDB-хранилища `sync` и
   `crypto`.
@@ -367,11 +388,12 @@ stateDiagram-v2
 ## 6. Хранилища
 
 `localStorage` доступен только сервисам; ключи объявлены в `src/constants/storage.js`.
-Стартовые адреса `uriMatrix`, `uriRestAuth` и `uriOidcAuth` прописывает inline-скрипт
-`index.html` — до загрузки приложения; дальше эти ключи читают и пишут только сервисы.
+Стартовые адреса `uriMatrix` и `uriRestAuth` прописывает inline-скрипт `index.html` — до загрузки
+приложения; дальше эти ключи читают и пишут только сервисы. Адрес MAS в `index.html` не задаётся:
+issuer и endpoints приходят из auth_metadata homeserver.
 `matrixClient` хранит `uriMatrix`, `mtrxLogin`, `mtrxAccessToken`, `mtrxUserId`, `mtrxDeviceId` и
-`mtrxRefreshToken`; `restAuth` — `uriRestAuth` и `restLogin`; `oidcAuth` — `uriOidcAuth` и
-`oidcIdpId`.
+`mtrxRefreshToken`; `restAuth` — `uriRestAuth` и `restLogin`; `masAuth` — `masIssuer` (issuer для
+подписи источника) и `masOAuthClient` (зарегистрированный client_id и redirect_uri).
 Токены нужны активной сессии и переиспользованию `deviceId`, а не для входа при следующем
 запуске. При выходе удаляются токены, `mtrxUserId` и `mtrxDeviceId`; recovery key и ключ Secret
 Storage живут только в памяти сессии. Вместе с токенами `matrixClient` чистит IndexedDB-хранилища
@@ -379,10 +401,11 @@ SDK (`sync` и `crypto`). `IndexedDB` принадлежит `matrix-js-sdk`; в
 служебные ключи (например, id фильтра sync), а очередь неотправленных событий попадает туда только
 при `pendingEventOrdering: Detached`, который приложение не задаёт.
 
-Отдельно от `localStorage`: `loginToken` возврата из authentik вообще не пишется в хранилище — он
-живёт в модуле `services/oidcAuth.js` до клика тумблера, а `sessionStorage` (`oidcLoginPending`)
-хранит только признак «ушли в authentik и разбора возврата ещё не было» — по нему приложение
-показывает «вход не завершён» после страницы ошибки Synapse.
+Отдельно от `localStorage`: токены MAS до клика тумблера живут в модуле `services/masAuth.js`, а
+`sessionStorage` (`masOauthPending`) хранит state, PKCE-verifier, device_id и метаданные
+незавершённого перехода — по нему приложение завершает обмен кода и показывает «вход не
+завершён» после страницы ошибки MAS. `masOAuthClient` и `masIssuer` переживают выход: повторный
+вход не регистрирует нового клиента.
 
 ## 7. Документация archify: первичный источник
 

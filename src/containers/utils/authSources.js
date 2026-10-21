@@ -1,12 +1,12 @@
 // Производные данные двух источников матричных учётных данных — матричной пары из ответа REST
-// и loginToken authentik. Их считают оба контейнера (AuthContainer и MenuAppContainer) одной
+// и OAuth-токены MAS. Их считают оба контейнера (AuthContainer и MenuAppContainer) одной
 // функцией, чтобы статус в панели AuthPad и в индикаторе шапки не расходились.
 //
 // Смысловые состояния источников (поле state):
 //   rest:  idle | loading | success | error — статус REST-сессии; success с полной парой
 //          означает готовность к запуску (ready), success без пары — неполный ответ;
-//   oidc:  idle | loading | ready | success | error — ready это полученный и ещё не
-//          потраченный loginToken, success — сессия по нему уже поднята (токен израсходован).
+//   oidc:  idle | loading | ready | success | error — ready это полученные и ещё не
+//          потраченные токены MAS, success — сессия по ним уже поднята (токены израсходованы).
 
 import { AUTH_SOURCE_OIDC, AUTH_SOURCE_REST } from "../../constants/authSource.js";
 
@@ -34,8 +34,8 @@ export function buildMtrxAuthSources(authControlRdcr, mtrxControlRdcr) {
     },
     {
       kind: AUTH_SOURCE_OIDC,
-      label: "authentik",
-      detail: authControlRdcr?.uriOidcAuth || "",
+      label: "MAS",
+      detail: authControlRdcr?.oidcIssuer || "",
       state: oidcStatus,
       ready: oidcStatus === "ready",
       session: sessionSource === AUTH_SOURCE_OIDC,
@@ -64,10 +64,10 @@ export function buildMtrxAuthInfo({ sources, activeSource, authControlRdcr }) {
   const state = activeSource?.state || "idle";
 
   if (activeSource?.kind === AUTH_SOURCE_OIDC) {
-    if (state === "error") return { text: authControlRdcr?.oidcErrText || "Ошибка входа через authentik.", isError: true };
-    if (state === "loading") return { text: "Переходим в authentik…", isError: false };
-    if (state === "ready") return { text: "Токен authentik получен: включите тумблер, чтобы войти в Matrix.", isError: false };
-    if (state === "success" && !activeSource.session) return { text: "Токен authentik использован: войдите заново.", isError: false };
+    if (state === "error") return { text: authControlRdcr?.oidcErrText || "Ошибка входа через MAS.", isError: true };
+    if (state === "loading") return { text: "Переходим в MAS…", isError: false };
+    if (state === "ready") return { text: "Токены MAS получены: включите тумблер, чтобы войти в Matrix.", isError: false };
+    if (state === "success" && !activeSource.session) return { text: "Токены MAS использованы: войдите заново.", isError: false };
   }
 
   if (activeSource?.kind === AUTH_SOURCE_REST && state === "success" && !activeSource.ready) {
@@ -80,7 +80,7 @@ export function buildMtrxAuthInfo({ sources, activeSource, authControlRdcr }) {
   }
 
   if (!sources.some((source) => source.ready) && !sources.some((source) => source.session)) {
-    return { text: "Авторизуйтесь в REST или войдите через authentik.", isError: false };
+    return { text: "Авторизуйтесь в REST или войдите через MAS.", isError: false };
   }
 
   return { text: "", isError: false };

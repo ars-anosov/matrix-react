@@ -205,7 +205,7 @@ function AuthPad(props) {
             bgcolor: HEADER_BACKGROUND,
           }}
         >
-          <Tooltip title={`Открыть форму входа ${footerKind === AUTH_SOURCE_OIDC ? "authentik" : "REST"}`}>
+          <Tooltip title={`Открыть форму входа ${footerKind === AUTH_SOURCE_OIDC ? "MAS" : "REST"}`}>
             {/* Стиль как у кнопок состояния в MtrxInfo: цветная иконка с подписью,
                 без подложки и рамки — остаётся только hover-подсветка MUI */}
             <Button
